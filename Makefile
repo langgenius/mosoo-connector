@@ -3,19 +3,43 @@ BUN ?= bun
 LATHE ?= lathe
 MOSOO_REPO ?= https://github.com/langgenius/mosoo.git
 MOSOO_REF ?= main
-INSTALL_DIR ?= $(HOME)/.bin
 
+GOBIN := $(shell $(GO) env GOBIN)
+GOPATH := $(shell $(GO) env GOPATH)
+BINDIR ?= $(if $(GOBIN),$(GOBIN),$(GOPATH)/bin)
 MOSOO_DIR := .cache/mosoo
 SPEC_FILE := docs/openapi/public-thread-api.openapi.json
 SOURCE_NAME := threads
 PINNED_TAG := local-snapshot
+SYNC_DIR := .cache/specs-sync/$(SOURCE_NAME)
 
-.PHONY: all mosoo openapi sources sync-cache codegen embed-manifest build install clean
+.DEFAULT_GOAL := help
+.PHONY: help build install clean _codegen
 
-all: build
+help:
+	@printf '%s\n' \
+		'make build                  Generate and build bin/mosoo' \
+		'make install                Install mosoo to $(BINDIR)/mosoo' \
+		'make clean                  Remove generated files and caches' \
+		'' \
+		'Variables:' \
+		'  MOSOO_REPO=$(MOSOO_REPO)' \
+		'  MOSOO_REF=$(MOSOO_REF)' \
+		'  BINDIR=$(BINDIR)'
 
-mosoo:
-	@mkdir -p .cache
+build: _codegen
+	cp cli.yaml cmd/mosoo/cli.yaml
+	$(GO) build -trimpath -o bin/mosoo ./cmd/mosoo
+
+install: build
+	mkdir -p "$(BINDIR)"
+	install -m 0755 bin/mosoo "$(BINDIR)/mosoo"
+
+clean:
+	rm -rf .cache bin cmd/mosoo/cli.yaml internal/generated skills specs/sources.yaml
+
+_codegen:
+	@mkdir -p .cache specs "$(SYNC_DIR)/docs/openapi"
 	@if [ -d "$(MOSOO_DIR)/.git" ]; then \
 		git -C "$(MOSOO_DIR)" fetch --all --tags --quiet; \
 	else \
@@ -27,13 +51,8 @@ mosoo:
 		git -C "$(MOSOO_DIR)" -c advice.detachedHead=false checkout --quiet "$(MOSOO_REF)"; \
 	fi
 	git -C "$(MOSOO_DIR)" submodule update --init --recursive
-
-openapi: mosoo
 	cd "$(MOSOO_DIR)" && $(BUN) install --frozen-lockfile
 	$(BUN) scripts/export-public-api-openapi.ts
-
-sources: openapi
-	@mkdir -p specs
 	@printf '%s\n' \
 		'sources:' \
 		'  $(SOURCE_NAME):' \
@@ -45,29 +64,11 @@ sources: openapi
 		'      files:' \
 		'        - $(SPEC_FILE)' \
 		> specs/sources.yaml
-
-sync-cache: sources
-	@mkdir -p ".cache/specs-sync/$(SOURCE_NAME)/docs/openapi"
-	cp "$(MOSOO_DIR)/$(SPEC_FILE)" ".cache/specs-sync/$(SOURCE_NAME)/$(SPEC_FILE)"
+	cp "$(MOSOO_DIR)/$(SPEC_FILE)" "$(SYNC_DIR)/$(SPEC_FILE)"
 	@printf '%s\n' \
 		'source: $(SOURCE_NAME)' \
 		'backend: openapi3' \
 		'synced_from: $(PINNED_TAG)' \
 		'resolved_sha: $(PINNED_TAG)' \
-		> ".cache/specs-sync/$(SOURCE_NAME)/sync-state.yaml"
-
-codegen: sync-cache
+		> "$(SYNC_DIR)/sync-state.yaml"
 	$(LATHE) codegen -sources specs/sources.yaml -cache .cache
-
-embed-manifest:
-	cp cli.yaml cmd/mosoo/cli.yaml
-
-build: codegen embed-manifest
-	$(GO) build -trimpath -o bin/mosoo ./cmd/mosoo
-
-install: build
-	mkdir -p "$(INSTALL_DIR)"
-	install -m 0755 bin/mosoo "$(INSTALL_DIR)/mosoo"
-
-clean:
-	rm -rf .cache bin cmd/mosoo/cli.yaml internal/generated skills specs/sources.yaml
