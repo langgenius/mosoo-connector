@@ -286,18 +286,26 @@ func stripAPISuffix(hostname string) string {
 }
 
 func targetForBaseURL(baseURL string) string {
-	parsed, err := url.Parse(baseURL)
-	if err != nil {
-		return CustomTarget
-	}
-	switch parsed.Hostname() {
-	case "127.0.0.1", "localhost", "::1":
+	if IsLocalBaseURL(baseURL) {
 		return LocalTarget
 	}
 	if strings.EqualFold(strings.TrimRight(baseURL, "/"), DefaultCloudBaseURL) {
 		return CloudTarget
 	}
 	return CustomTarget
+}
+
+// IsLocalBaseURL reports whether a base URL points at the local development API.
+func IsLocalBaseURL(baseURL string) bool {
+	parsed, err := url.Parse(baseURL)
+	if err != nil {
+		return false
+	}
+	switch parsed.Hostname() {
+	case "127.0.0.1", "localhost", "::1":
+		return true
+	}
+	return false
 }
 
 func findProjectConfig(start string) (string, bool) {

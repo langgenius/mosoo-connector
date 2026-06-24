@@ -128,16 +128,24 @@ Check the resolved target and readiness:
 mosoo doctor --json
 ```
 
-Create a personal access token from the Mosoo web app, then log in once per hostname base
-(same token is fine):
+For local development targets, Bootstrap can sign in through the local development
+backdoor with an `@mosoo.ai` email, create a personal access token, and write the
+CLI credentials for both hostname bases. This only works against a loopback Mosoo
+API with the development backdoor enabled.
+
+For cloud and custom targets, sign in at `https://mosoo.ai`, use a Mosoo API
+token from that logged-in web session, then log in once per hostname base (same
+token is fine):
 
 ```sh
-mosoo auth login --hostname http://127.0.0.1:8787/api
-mosoo auth login --hostname http://127.0.0.1:8787/api/v1 --skip-validate
+mosoo auth login --hostname https://api.mosoo.ai/api
+mosoo auth login --hostname https://api.mosoo.ai/api/v1 --skip-validate
 ```
 
 `auth login` validates the token against `GET /access-tokens` on the `/api` host.
 The `/api/v1` entry reuses the same credential; `--skip-validate` avoids a 404 on that base.
+The generated `mosoo console-rest access create` command maps to `POST /access-tokens`,
+but it still needs viewer-level authentication; it is not a first-login mechanism by itself.
 
 ## Common commands
 

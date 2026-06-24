@@ -20,6 +20,7 @@ type Report struct {
 	Hosts         map[string]string `json:"hosts"`
 	ConfigPath    string            `json:"configPath,omitempty"`
 	ProjectRoot   string            `json:"projectRoot,omitempty"`
+	AuthRequired  bool              `json:"authRequired"`
 	Authenticated bool              `json:"authenticated"`
 	Ready         bool              `json:"ready"`
 	Checks        []Check           `json:"checks"`
@@ -69,7 +70,7 @@ func BuildReport(cmd *cobra.Command) (Report, error) {
 	apiCheck := checkAPI(cmd.Context(), resolved.Hosts[target.SurfaceConsole])
 	checks = append(checks, apiCheck)
 
-	authenticated, authCheck := checkAuth(resolved)
+	authenticated, authRequired, authCheck := checkAuth(resolved)
 	checks = append(checks, authCheck)
 
 	ready := true
@@ -87,6 +88,7 @@ func BuildReport(cmd *cobra.Command) (Report, error) {
 		Hosts:         resolved.Hosts,
 		ConfigPath:    resolved.ConfigPath,
 		ProjectRoot:   resolved.ProjectRoot,
+		AuthRequired:  authRequired,
 		Authenticated: authenticated,
 		Ready:         ready,
 		Checks:        checks,
@@ -118,10 +120,15 @@ func checkAPI(ctx context.Context, consoleHost string) Check {
 	return Check{Name: "api", OK: true, Message: fmt.Sprintf("GET %s returned %s", endpoint, resp.Status)}
 }
 
-func checkAuth(resolved target.Resolution) (bool, Check) {
+func checkAuth(resolved target.Resolution) (bool, bool, Check) {
+	authRequired := requiresAuth(resolved)
+	if !authRequired {
+		return false, false, Check{Name: "auth", OK: true, Message: "not required for local target"}
+	}
+
 	hosts, err := latheconfig.LoadHosts()
 	if err != nil {
-		return false, Check{Name: "auth", OK: false, Message: err.Error()}
+		return false, authRequired, Check{Name: "auth", OK: false, Message: err.Error()}
 	}
 
 	missing := make([]string, 0, 2)
@@ -135,9 +142,13 @@ func checkAuth(resolved target.Resolution) (bool, Check) {
 		}
 	}
 	if len(missing) > 0 {
-		return false, Check{Name: "auth", OK: false, Message: "not authenticated to " + strings.Join(missing, ", ")}
+		return false, authRequired, Check{Name: "auth", OK: false, Message: "not authenticated to " + strings.Join(missing, ", ")}
 	}
-	return true, Check{Name: "auth", OK: true}
+	return true, authRequired, Check{Name: "auth", OK: true}
+}
+
+func requiresAuth(resolved target.Resolution) bool {
+	return resolved.Target != target.LocalTarget && !target.IsLocalBaseURL(resolved.BaseURL)
 }
 
 func printHuman(cmd *cobra.Command, report Report) {
