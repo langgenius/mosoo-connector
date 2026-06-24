@@ -3,6 +3,7 @@
 This directory contains source files for externally fetchable Mosoo CLI distribution artifacts.
 
 - `installers/`: installer scripts exposed through stable install URLs.
+  `installers/codex` is the source for `https://install.mosoo.ai/codex`.
 - `manifests/`: machine-readable release metadata consumed by installers.
 - `skills/`: skill packages distributed by bootstrap or installer flows. The
   Mosoo Skill entrypoint is `skills/mosoo/SKILL.md`; generated CLI reference

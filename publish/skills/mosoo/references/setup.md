@@ -16,6 +16,22 @@ less install-mosoo-codex.sh
 bash install-mosoo-codex.sh
 ```
 
+By default, Bootstrap is interactive and asks for `y` or `n` before each
+high-impact step, such as installing the CLI, installing the Skill, writing
+config, running login, or running optional Cloudflare checks.
+
+For automation:
+
+```sh
+curl -fsSL https://install.mosoo.ai/codex | bash -s -- --yes
+```
+
+For an execution preview:
+
+```sh
+curl -fsSL https://install.mosoo.ai/codex | bash -s -- --dry-run
+```
+
 Then verify:
 
 ```sh

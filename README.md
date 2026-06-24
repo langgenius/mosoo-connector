@@ -36,6 +36,18 @@ By default, installation uses `go env GOBIN`, or `$(go env GOPATH)/bin` when
 make install BINDIR="$HOME/.bin"
 ```
 
+## Bootstrap
+
+The source for the Codex-facing Bootstrap installer lives at
+`publish/installers/codex`. The intended public entrypoint is:
+
+```sh
+curl -fsSL https://install.mosoo.ai/codex | bash
+```
+
+Bootstrap is interactive by default and asks for `y` or `n` before high-impact
+steps. Use `--yes` for automation and `--dry-run` to preview the plan.
+
 ## Published Skill layout
 
 The publishable Mosoo Skill is rooted at `publish/skills/mosoo`.
