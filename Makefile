@@ -25,8 +25,6 @@ CONSOLE_REST_SYNC_DIR := .cache/specs-sync/$(CONSOLE_REST_SOURCE_NAME)
 OVERLAY_DIR := overlays
 PUBLISH_SKILL_DIR := publish/skills/mosoo
 PUBLISH_CLI_REFERENCE_DIR := $(PUBLISH_SKILL_DIR)/references/cli
-PUBLISH_CLI_REFERENCE_SKILL_ROOT := $(PUBLISH_CLI_REFERENCE_DIR)
-PUBLISH_CLI_REFERENCE_SKILL_DIR := $(PUBLISH_CLI_REFERENCE_SKILL_ROOT)/mosoo
 
 .DEFAULT_GOAL := help
 .PHONY: help build install clean tools _codegen
@@ -84,5 +82,5 @@ _codegen: $(LATHE_BIN)
 	cp "$(MOSOO_DIR)/$(SPEC_FILE)" "$(SYNC_DIR)/$(SPEC_FILE)"
 	cp "$(MOSOO_DIR)/$(GRAPHQL_SPEC_FILE)" "$(CONSOLE_SYNC_DIR)/$(GRAPHQL_SPEC_FILE)"
 	cp "$(MOSOO_DIR)/$(CONSOLE_REST_SPEC_FILE)" "$(CONSOLE_REST_SYNC_DIR)/$(CONSOLE_REST_SPEC_FILE)"
-	"$(LATHE)" codegen -sources specs/sources.yaml -cache .cache -overlay $(OVERLAY_DIR) -skill-root "$(PUBLISH_CLI_REFERENCE_SKILL_ROOT)"
+	"$(LATHE)" codegen -sources specs/sources.yaml -cache .cache -overlay $(OVERLAY_DIR)
 	$(BUN) scripts/render-publish-skill.ts
