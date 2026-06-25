@@ -20,7 +20,6 @@ sources:
         queries:
           - accessibleAgentList
           - agent
-          - agentBuilderMessages
           - agentChannelBindingList
           - agentCostCard
           - agentEditorState
@@ -32,8 +31,10 @@ sources:
           - appEnvironmentList
           - appInfo
           - appList
+          - appOverview
           - appSkillList
           - availableAgentModels
+          - controlPlaneOverview
           - environment
           - exportAgentPackage
           - fileList
@@ -76,8 +77,6 @@ sources:
           - deleteMcpServer
           - deleteOwnedSkill
           - deleteVendorCredential
-          - ensureAgentBuilderThread
-          - executeAgentBuilderControlPlaneAction
           - importAgentPackage
           - onboardingBootstrap
           - pollLarkAgentChannelRegistration
@@ -96,6 +95,7 @@ sources:
           - setEnvironmentVariableValue
           - setMcpServerEnabled
           - setSystemAgentModel
+          - startAgentRun
           - startLarkAgentChannelRegistration
           - startMcpOAuth
           - startWeChatAgentChannelPairing
@@ -126,11 +126,6 @@ sources:
             - unpublishAgent
             - updateAgentConfig
           group: Agents
-        - match:
-            - agentBuilderMessages
-            - ensureAgentBuilderThread
-            - executeAgentBuilderControlPlaneAction
-          group: Builder
         - match:
             - agentChannelBindingList
             - createDiscordAgentChannelBinding
@@ -174,6 +169,8 @@ sources:
           group: Onboarding
         - match:
             - appList
+            - appOverview
+            - controlPlaneOverview
             - createApp
             - renameApp
           group: Apps
@@ -193,6 +190,7 @@ sources:
             - addSessionResource
             - createAgentSession
             - prewarmAgentSession
+            - startAgentRun
             - archiveAgentSession
             - autoTitleSession
             - deleteAgentSession
