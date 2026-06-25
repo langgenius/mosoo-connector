@@ -149,7 +149,7 @@ func NewCommand() *cobra.Command {
 	applyCmd.Flags().BoolVar(&opts.dryRun, "dry-run", false, "Show the planned field-level changes without writing remote state")
 
 	manifestCmd.AddCommand(probeCmd, diffCmd, applyCmd)
-	agentCmd.AddCommand(manifestCmd)
+	agentCmd.AddCommand(manifestCmd, newEnvCommand())
 	return agentCmd
 }
 
