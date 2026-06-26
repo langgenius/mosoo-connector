@@ -120,6 +120,12 @@ local YAML as the intended patch, preserves remote fields omitted from the YAML,
 and then calls the raw `updateAgentConfig` operation. Use `--dry-run` first to
 show the field-level changes without writing.
 
+When changing prompts, models, providers, tools, runtime, or environment
+settings, do not reconstruct an update payload from memory or guessed defaults.
+Round-trip the current manifest, edit only the requested fields, and preserve
+unchanged values such as `environmentId`, runtime, provider, model, skill IDs,
+MCP server IDs, and `providerOptions`.
+
 The raw generated `console agents manifest` and `console agents update-config`
 commands are hidden from normal discovery. Use them only for low-level API
 inspection with `mosoo commands --include-hidden --json`.

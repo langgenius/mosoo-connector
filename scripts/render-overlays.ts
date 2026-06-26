@@ -35,6 +35,7 @@ const consoleCommandOverrides: Record<string, Partial<OverlayCommand>> = {
 		notes: [
 			"Raw API command. The product workflow command is `mosoo agent manifest probe`.",
 			"Uses POST /graphql on the console default hostname (/api).",
+			"Pull this before changing Agent config; treat the returned manifest/YAML as the source of truth.",
 		],
 	},
 	"update-agent-config": {
@@ -49,6 +50,7 @@ const consoleCommandOverrides: Record<string, Partial<OverlayCommand>> = {
 		notes: [
 			"Raw API command. The product workflow command is `mosoo agent manifest apply`.",
 			"Uses POST /graphql on the console default hostname (/api).",
+			"Agent config updates are full-manifest updates: pull agent-manifest first, preserve unchanged environment/runtime/provider/tool fields, and submit the complete updated config.",
 		],
 	},
 };
