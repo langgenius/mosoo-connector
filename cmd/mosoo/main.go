@@ -10,6 +10,7 @@ import (
 	"github.com/lathe-cli/lathe/pkg/runtime"
 
 	"github.com/langgenius/mosoo-cli-go/internal/agentmanifest"
+	"github.com/langgenius/mosoo-cli-go/internal/commandmeta"
 	"github.com/langgenius/mosoo-cli-go/internal/consolecommands"
 	"github.com/langgenius/mosoo-cli-go/internal/doctor"
 	"github.com/langgenius/mosoo-cli-go/internal/generated"
@@ -40,5 +41,6 @@ func main() {
 	if err := publicthreads.Install(root); err != nil {
 		os.Exit(runtime.FormatError(err, "table", os.Stderr))
 	}
+	commandmeta.RelaxBodyVariableRequiredFlags(root)
 	os.Exit(runtime.Execute(root))
 }
