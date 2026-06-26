@@ -14,6 +14,7 @@ import (
 	"github.com/langgenius/mosoo-cli-go/internal/doctor"
 	"github.com/langgenius/mosoo-cli-go/internal/generated"
 	"github.com/langgenius/mosoo-cli-go/internal/target"
+	"github.com/langgenius/mosoo-cli-go/internal/threadfiles"
 )
 
 //go:embed cli.yaml
@@ -34,6 +35,9 @@ func main() {
 		os.Exit(runtime.FormatError(err, "table", os.Stderr))
 	}
 	if err := consolecommands.Install(root); err != nil {
+		os.Exit(runtime.FormatError(err, "table", os.Stderr))
+	}
+	if err := threadfiles.Install(root); err != nil {
 		os.Exit(runtime.FormatError(err, "table", os.Stderr))
 	}
 	os.Exit(runtime.Execute(root))

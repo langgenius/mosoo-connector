@@ -88,6 +88,22 @@ The raw generated `console agents manifest` and `console agents update-config`
 commands are hidden from normal discovery. Use them only for low-level API
 inspection with `mosoo commands --include-hidden --json`.
 
+## Public thread file upload
+
+Prefer the `files upload` helper to attach a local file to a thread in one step:
+
+```sh
+mosoo public-thread-api files upload --thread-id <thread-id> --file ./brief.txt
+```
+
+It runs the full upload path — create upload session, upload the bytes, complete
+the upload, and attach the file to the thread — instead of calling the four
+generated operations by hand. The output reports the resulting `fileId`, the
+attached file and thread metadata, and the next step to run (sending a thread
+event that references the file). Uploads use single PUT and must be 64 MiB or
+fewer. When a public API call fails, the helper preserves the API `error.code`
+in the CLI error so callers can branch on the failure reason.
+
 ## References
 
 - Read `references/cli/catalog.md` for the command discovery protocol and catalog field meanings.
