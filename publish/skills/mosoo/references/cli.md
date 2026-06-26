@@ -85,6 +85,15 @@ shape and host selection. If a step fails or times out, inspect state with
 `console-rest files get-upload` before retrying. Use `console-rest files
 abort-upload` only for a pending upload that should not be completed.
 
+## Public Thread Wait, Final Output, And Transcript Workflow
+
+```sh
+mosoo public-thread-api threads create --agent-id <agent-id> --file body.json --wait -o json
+mosoo public-thread-api threads create --agent-id <agent-id> --file body.json --final-output
+mosoo public-thread-api events wait --thread-id <thread-id> --final-output
+mosoo public-thread-api threads transcript --thread-id <thread-id>
+```
+
 ## Workflow
 
 1. Search for candidates with `mosoo search "<intent>" --json`; use `--limit` when needed. Search is only candidate discovery.
