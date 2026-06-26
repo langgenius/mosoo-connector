@@ -19,6 +19,21 @@ async function normalizeMarkdown(path: string): Promise<void> {
 	}
 }
 
+async function polishPublishedReference(path: string): Promise<void> {
+	const text = await readFile(path, "utf8");
+	const polished = text
+		.replace(
+			"Use the runtime catalog as the source of truth. Generated references are a fast index; command execution details come from the CLI itself.",
+			"Use the CLI catalog for exact command details. The Markdown references are a fast index; command execution details come from the CLI itself.",
+		)
+		.replace("generated command catalog", "CLI command catalog")
+		.replace("include hidden commands", "include specialized commands")
+		.replace("hidden commands are relevant", "specialized commands are relevant");
+	if (polished !== text) {
+		await writeFile(path, polished, "utf8");
+	}
+}
+
 async function normalizeMarkdownTree(path: string): Promise<void> {
 	const entries = await readdir(path, { withFileTypes: true });
 	for (const entry of entries) {
@@ -53,6 +68,7 @@ if (await pathExists(generatedCliReferenceRoot)) {
 }
 await cp(resolve(generatedReferencesRoot, "catalog.md"), resolve(outputReferenceRoot, "catalog.md"));
 await cp(resolve(generatedReferencesRoot, "modules"), resolve(outputReferenceRoot, "modules"), { recursive: true });
+await polishPublishedReference(resolve(outputReferenceRoot, "catalog.md"));
 await normalizeMarkdown(outputCliGuide);
 await normalizeMarkdownTree(outputReferenceRoot);
 

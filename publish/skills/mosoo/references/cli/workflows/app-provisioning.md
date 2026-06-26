@@ -1,8 +1,7 @@
 # Agent App Provisioning Workflow
 
 Use this workflow when a task starts from App and Agent setup instead of an
-already published Agent. It is a product workflow assembled from generated
-commands plus the env and Public Thread workflows.
+already published Agent.
 
 First select the App boundary. For a new application, create a new App. Reuse
 an existing App only when the user explicitly supplied its `appId`, or when its
@@ -10,9 +9,9 @@ name and purpose exactly match the current application after live verification.
 Existing credentials or a working model are not sufficient reasons to reuse an
 App.
 
-After the App boundary is selected, create the Agent and publish it. Run the
-generated commands in order and save each returned `appId` and `agentId` before
-moving to the next step:
+After the App boundary is selected, create the Agent and publish it. Run the CLI
+commands in order and save each returned `appId` and `agentId` before moving to
+the next step:
 
 ```sh
 mosoo console apps app-list --organization-id <organization-id> -o json
@@ -32,8 +31,8 @@ duplicating their commands here:
 4. If Agent configuration needs a follow-up change, round-trip it through
    `agent-manifest.md`.
 
-Use `mosoo commands show <path...> --json` before each generated command to
-confirm body shape and required flags. Prefer `--file` for large Agent create
-bodies. If a step fails or times out, inspect state with `console apps app-list`,
-`console agents accessible-agent-list`, or `console agents agent` before
-retrying; do not recreate resources until the current remote state is known.
+Use `mosoo commands show <path...> --json` before each command to confirm body
+shape and required flags. Prefer `--file` for large Agent create bodies. If a
+step fails or times out, inspect state with `console apps app-list`, `console
+agents accessible-agent-list`, or `console agents agent` before retrying; do
+not recreate resources until the current remote state is known.

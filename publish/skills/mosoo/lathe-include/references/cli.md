@@ -1,9 +1,7 @@
 # CLI Reference
 
-Generated from Lathe's mosoo CLI Skill output during `make build`.
-
-Use this reference when a user asks you to operate `mosoo`, inspect its API
-commands, or find the right generated command for an API task.
+Use this reference to operate `mosoo`, inspect API commands, or find the right
+CLI command for a Mosoo task.
 
 ## Runtime State
 
@@ -16,13 +14,12 @@ API commands use the `/api/v1` surface. For target and hostname examples, read
 
 ## Command Selection
 
-Use generated CLI commands for Mosoo resource operations, and use
+Use Mosoo CLI commands for Mosoo resource operations, and use
 `references/api.md` for application code that calls an already published Agent.
-Do not invent a wrapper command when the generated catalog already exposes the
-operation.
+Do not invent a wrapper command when the CLI already exposes the operation.
 
 For a new App, Agent creation, publishing, credential setup, or Console/API
-inspection, search the generated catalog first. For app environment files only,
+inspection, search the CLI catalog first. For app environment files only,
 derive `MOSOO_API_BASE`, `MOSOO_AGENT_ID`, and `MOSOO_API_TOKEN` from the
 published Agent/API contract instead of creating new resources.
 
@@ -70,8 +67,8 @@ missing, return to the workflow that produces it instead of guessing.
 
 ## General Commands
 
-- `mosoo commands --json`: full generated command catalog.
-- `mosoo commands --include-hidden --json`: include hidden generated commands.
+- `mosoo commands --json`: full CLI command catalog.
+- `mosoo commands --include-hidden --json`: include specialized CLI commands.
 - `mosoo commands show <path...> --json`: source of truth for one command.
 - `mosoo commands schema --json`: catalog schema version for parser
   compatibility.

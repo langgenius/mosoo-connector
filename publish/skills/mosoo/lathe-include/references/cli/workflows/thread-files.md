@@ -2,8 +2,8 @@
 
 Use this workflow when a Public Thread needs file attachments.
 
-Run the generated commands in order and save the returned `fileId` before moving
-to the next step:
+Run the CLI commands in order and save the returned `fileId` before moving to
+the next step:
 
 ```sh
 mosoo console-rest files create-upload --file upload.json -o json

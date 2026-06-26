@@ -1,6 +1,6 @@
 # Catalog Protocol
 
-Use the runtime catalog as the source of truth. Generated references are a fast index; command execution details come from the CLI itself.
+Use the CLI catalog for exact command details. The Markdown references are a fast index; command execution details come from the CLI itself.
 
 ## Search
 
@@ -8,7 +8,7 @@ Run `mosoo search "<intent>" --json` to find candidate commands. Use `--limit` t
 
 ## Full Catalog
 
-Run `mosoo commands --json` to inspect the generated command catalog. Use `--include-hidden` only when hidden commands are relevant.
+Run `mosoo commands --json` to inspect the CLI command catalog. Use `--include-hidden` only when specialized commands are relevant.
 
 Key fields:
 

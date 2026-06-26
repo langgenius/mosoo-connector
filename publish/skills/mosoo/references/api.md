@@ -1,12 +1,4 @@
-> ## Documentation Index
-> Fetch the complete documentation index at: https://docs.mosoo.ai/llms.txt
-> Use this file to discover all available pages before exploring further.
-
-# Mosoo API for coding agents
-
-> Machine-oriented guide for calling published Mosoo Agents through the public API.
-
-# Mosoo API for coding agents
+# Mosoo Public API
 
 Use this document when integrating an existing, published Mosoo Agent into application code through the public API.
 
@@ -23,7 +15,7 @@ It does not cover:
 
 This document is also not the source for secrets or live resource IDs. Do not invent API tokens, `agentId`, `threadId`, `fileId`, or `runId` values. Use values supplied by the user, environment variables, Mosoo UI, or Mosoo CLI when available.
 
-This document is not a replacement for the raw OpenAPI document when generating clients or validating every schema detail. Use the raw OpenAPI for code generation and strict schema validation.
+This document is not a replacement for the OpenAPI specification when generating clients or validating every schema detail. Use the OpenAPI specification for code generation and strict schema validation.
 
 ## Integration model
 
@@ -34,11 +26,11 @@ Build the app-side integration layer around Mosoo Threads, events, files, and pu
 Primary contract:
 
 * Human docs: `/`, `/quickstart`, `/auth-and-access`
-* Raw OpenAPI: `/mosoo-openapi.en.generated.json`
+* OpenAPI specification: `/mosoo-openapi.en.generated.json`
 * API version: `v1`
 * Base URL used in examples: `https://mosoo.ai/api/v1`
 
-Do not infer request fields that are not listed here or in the raw OpenAPI. The public API rejects unsupported fields.
+Do not infer request fields that are not listed here or in the OpenAPI specification. The public API rejects unsupported fields.
 
 ## What Mosoo exposes
 
@@ -105,7 +97,7 @@ Implementation rules:
 * Use `Idempotency-Key` for Thread creation and event submission.
 * Treat Thread events as the integration contract and `GET /threads/{threadId}/events` as the stable source for results.
 * Keep Agent creation, App management, and Agent lifecycle operations outside this workflow.
-* On failure, branch on `error.code` and follow the error handling table below.
+* On failure, branch on `error.code` and follow the error handling table in this document.
 
 ## Minimal call sequence
 
@@ -266,7 +258,7 @@ The stable read surface is the Thread event log.
 
 Use `GET /threads/{threadId}/events` for polling and snapshots. Use `GET /threads/{threadId}/events/stream` for long-running consumer UX.
 
-Do not expect event APIs to expose raw runtime payloads, private transcripts, or internal diagnostics. Each event entry has public fields:
+Do not expect event APIs to expose non-public runtime details or private transcripts. Each event entry has public fields:
 
 | Field        | Meaning                                                                                                 |
 | ------------ | ------------------------------------------------------------------------------------------------------- |
@@ -355,9 +347,9 @@ Retry policy:
 
 ## API contract
 
-This section is generated from `/mosoo-openapi.en.generated.json`. Do not edit it manually; run `npm run openapi:sync`.
+This section summarizes the public OpenAPI contract exposed at `/mosoo-openapi.en.generated.json`.
 
-All endpoints below are relative to `/api/v1`.
+All endpoints in this section are relative to `/api/v1`.
 
 | Method   | Path                                 | Purpose                                                             |
 | -------- | ------------------------------------ | ------------------------------------------------------------------- |
@@ -471,7 +463,7 @@ Error responses:
 
 ### `PUT /files/{fileId}/content`
 
-Purpose: Uploads raw bytes for a pending single PUT Thread file upload. The file must have been created through POST /threads/{threadId}/files/uploads and belong to a public Thread visible to the API token.
+Purpose: Uploads bytes for a pending single PUT Thread file upload. The file must have been created through POST /threads/{threadId}/files/uploads and belong to a public Thread visible to the API token.
 
 Path params:
 
@@ -682,7 +674,7 @@ Error responses:
 
 ### `GET /threads/{threadId}/events`
 
-Purpose: Returns the latest public event log entries for this Thread in chronological order. This is the stable snapshot read surface for CLI and API consumers; it does not expose raw runtime payloads, transcript, or diagnostics.
+Purpose: Returns the latest public event log entries for this Thread in chronological order. This is the stable snapshot read surface for CLI and API consumers; it does not expose non-public runtime details or private transcripts.
 
 Path params:
 
@@ -751,7 +743,7 @@ Error responses:
 
 ### `GET /threads/{threadId}/events/stream`
 
-Purpose: Streams public Thread event log entries as Server-Sent Events. Each `thread.event` data payload uses the same ThreadEventLogEntry shape as GET /threads/{threadId}/events. The stream is for long-running consumer UX and does not expose raw runtime payloads, internal diagnostics, or private transcripts.
+Purpose: Streams public Thread event log entries as Server-Sent Events. Each `thread.event` data payload uses the same ThreadEventLogEntry shape as GET /threads/{threadId}/events. The stream is for long-running consumer UX and does not expose non-public runtime details or private transcripts.
 
 Path params:
 
@@ -1102,11 +1094,11 @@ Fields:
 
 ### `ThreadEventLogEntry`
 
-A single public event log entry for a Thread. This is the stable read surface and never exposes raw runtime payloads, transcripts, or diagnostics.
+A single public event log entry for a Thread. This is the stable read surface and does not expose non-public runtime details or private transcripts.
 
 Fields:
 
-* `content` required, `string`. Public content of the event — typically a reference to the associated payload (such as a message ID) rather than the raw runtime data.
+* `content` required, `string`. Public content of the event. This is typically a reference to the associated payload, such as a message ID.
 * `durationMs` required, `integer | null`. Wall-clock duration of the event in milliseconds, when applicable (for example a completed Run). Null when not measured.
 * `id` required, `string(ulid)`. Unique event ID (bare ULID), monotonically increasing in chronological order.
 * `occurredAt` required, `string(date-time)`. Timestamp (RFC 3339) at which the event occurred.
@@ -1262,13 +1254,13 @@ Fields:
 * `code` required, `string`. Stable, machine-readable warning code.
 * `message` required, `string`. Human-readable explanation of the warning.
 
-## Implementation guardrails for coding agents
+## Integration Rules
 
 * Always send `Authorization: Bearer $MOSOO_API_TOKEN`.
 * Always treat `agentId`, `threadId`, `fileId`, and `runId` as bare ULIDs.
 * Use `Idempotency-Key` for create-thread and send-events retries.
 * Use event log APIs as the source for public results.
-* Do not assume raw model output, private runtime payloads, or internal diagnostics are exposed.
+* Do not assume model internals, non-public runtime details, or private transcripts are exposed.
 * Do not send provider credentials, model configuration, channel credentials, or Agent configuration through this public API.
 * Do not retry invalid requests unchanged.
 * Do not treat `403` as an authentication problem; `403` means the token was understood but the operation is not allowed for that resource.

@@ -1,8 +1,8 @@
 ---
 name: mosoo
 description: >
-  Use when a coding agent needs to work with Mosoo setup, local or cloud runtime
-  state, Mosoo CLI operations, or app integration with a published Mosoo Agent.
+  Use for Mosoo setup, local or cloud runtime state, Mosoo CLI operations, or
+  application integration with a published Mosoo Agent.
 ---
 
 # Mosoo
@@ -19,8 +19,8 @@ separate agent runtime.
 3. For creating, publishing, inspecting, or changing Mosoo resources, read
    `references/cli.md`, then follow its command-index links when command
    details are needed.
-4. For missing first-time setup, read `references/setup.md` and ask the user to
-   run Bootstrap.
+4. For missing first-time setup, read `references/setup.md` and follow the
+   Mosoo setup flow.
 
 ## Routing
 
@@ -28,7 +28,7 @@ separate agent runtime.
   `references/api.md` and app backend code.
 - New app, Agent creation, publishing, credential setup, or Console/API
   inspection: use `references/cli.md`, then run `mosoo search ... --json` and
-  `mosoo commands show <path...> --json` before executing generated commands.
+  `mosoo commands show <path...> --json` before executing CLI commands.
 - Agent configuration changes: follow the manifest round-trip workflow in
   `references/cli.md`; pull the current Agent manifest/YAML first, edit it
   locally, and submit the complete updated config.
@@ -36,8 +36,7 @@ separate agent runtime.
   `MOSOO_API_TOKEN` from the published Agent/API contract; do not create
   Mosoo resources unless the user asked for that.
 - Published Agent verification: use the public Thread API contract in
-  `references/api.md` or the generated public-thread-api commands in
-  `references/cli.md`.
+  `references/api.md` or the `public-thread-api` commands in `references/cli.md`.
 
 ## Rules
 
