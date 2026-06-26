@@ -27,6 +27,25 @@ published Agent/API contract instead of creating new resources.
 
 Use this reference when a user asks you to operate `mosoo`, inspect its API commands, or find the right generated command for an API task.
 
+## Common Workflow Recipes
+
+Use this section as the entry point for end-to-end Mosoo CLI tasks. It defines
+workflow order and handoff values only; keep detailed command flags and request
+shapes in the owning workflow sections below.
+
+For a backend or Worker integration with a published Agent:
+
+1. Resolve runtime and hosts with `Runtime State` and `Host Context`.
+2. Provision or select the App and Agent with `Agent App Provisioning Workflow`.
+3. Prepare backend environment values with `Public API Tokens`.
+4. Upload files only when the thread needs attachments; use `Public Thread File Upload Workflow` and carry forward the returned `fileId`.
+5. Create or continue the thread, wait for completion, and inspect output with `Public Thread Wait, Final Output, And Transcript Workflow`.
+6. Edit Agent configuration only through `Agent Manifest Workflow`.
+
+Carry these handoff values between workflow sections: `appId`, `agentId`,
+`threadId`, `fileId`, env file path, and manifest file path. If any value is
+missing, return to the section that produces it instead of guessing.
+
 ## Public API Tokens
 
 `MOSOO_API_TOKEN` is a server-side credential for application backends or
@@ -53,8 +72,13 @@ Use `mosoo agent env export` or `mosoo agent env write --file <path>` to prepare
 
 ## Agent App Provisioning Workflow
 
-For App and Agent setup, run the generated commands in order and save each
-returned ID before moving to the next step:
+Use this workflow when a task starts from App and Agent setup instead of an
+already published Agent. It is a product workflow assembled from generated
+commands plus the env and Public Thread workflows below.
+
+First create or reuse the App, create the Agent, and publish it. Run the
+generated commands in order and save each returned `appId` and `agentId` before
+moving to the next step:
 
 ```sh
 mosoo console apps app-list --organization-id <organization-id> -o json
@@ -63,10 +87,19 @@ mosoo console agents create-agent --file create-agent.json -o json
 mosoo console agents publish-agent --input-app-id <app-id> --input-agent-id <agent-id> -o json
 ```
 
-Use `mosoo commands show <path...> --json` before each command to confirm body
-shape and required flags. Prefer `--file` for large Agent create bodies. If a
-step fails or times out, inspect state with `console apps app-list`, `console
-agents accessible-agent-list`, or `console agents agent` before retrying.
+After publish, continue through the related workflow sections instead of
+duplicating their commands here:
+
+1. Write backend or Worker env values with `Public API Tokens`.
+2. Upload attachments only when the first thread requires files; use `Public Thread File Upload Workflow`.
+3. Run a smoke test by creating a Public Thread and waiting for final output with `Public Thread Wait, Final Output, And Transcript Workflow`.
+4. If Agent configuration needs a follow-up change, round-trip it through `Agent Manifest Workflow`.
+
+Use `mosoo commands show <path...> --json` before each generated command to
+confirm body shape and required flags. Prefer `--file` for large Agent create
+bodies. If a step fails or times out, inspect state with `console apps app-list`,
+`console agents accessible-agent-list`, or `console agents agent` before
+retrying; do not recreate resources until the current remote state is known.
 
 ## Public Thread File Upload Workflow
 
