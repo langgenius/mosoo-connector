@@ -51,6 +51,35 @@ output.
 
 Use `mosoo agent env export` or `mosoo agent env write --file <path>` to prepare `MOSOO_API_BASE`, `MOSOO_AGENT_ID`, and `MOSOO_API_TOKEN` for backend or Worker workflows; when `MOSOO_API_TOKEN` is unset, the helper uses the token from `mosoo auth login` for the selected Public API host.
 
+## Agent App Provisioning Workflow
+
+Do not hide App provisioning behind a one-shot CLI helper. Creating or reusing an
+App, creating one or more Agents, and publishing those Agents are separate
+non-transactional server mutations. The CLI cannot roll them back safely or know
+the final server state after an ambiguous network failure.
+
+Keep provisioning explicit and save each returned ID before moving to the next
+step:
+
+```sh
+mosoo console apps app-list --organization-id <organization-id> -o json
+mosoo console apps create-app --input-organization-id <organization-id> --input-name <app-name> -o json
+mosoo console agents create-agent --file create-agent.json -o json
+mosoo console agents publish-agent --input-app-id <app-id> --input-agent-id <agent-id> -o json
+```
+
+Use `mosoo commands show <path...> --json` before each step to confirm the body
+shape and required flags for the current generated catalog. Prefer `--file` for
+large Agent create bodies so prompt, provider, model, runtime, and skill IDs are
+reviewable before the mutation runs.
+
+After each successful mutation, persist the returned `appId`, `agentId`, and any
+published Agent/API endpoint identifiers needed by app backends. If a step fails
+or times out, query the current state with generated read commands such as
+`console apps app-list`, `console agents accessible-agent-list`, or `console
+agents agent` before retrying. Do not blindly rerun create or publish steps, and
+do not assume the CLI can clean up partial provisioning on behalf of the caller.
+
 ## Workflow
 
 1. Search for candidates with `mosoo search "<intent>" --json`; use `--limit` when needed. Search is only candidate discovery.
