@@ -31,10 +31,8 @@ sources:
           - appEnvironmentList
           - appInfo
           - appList
-          - appOverview
           - appSkillList
           - availableAgentModels
-          - controlPlaneOverview
           - environment
           - exportAgentPackage
           - fileList
@@ -95,7 +93,6 @@ sources:
           - setEnvironmentVariableValue
           - setMcpServerEnabled
           - setSystemAgentModel
-          - startAgentRun
           - startLarkAgentChannelRegistration
           - startMcpOAuth
           - startWeChatAgentChannelPairing
@@ -169,8 +166,6 @@ sources:
           group: Onboarding
         - match:
             - appList
-            - appOverview
-            - controlPlaneOverview
             - createApp
             - renameApp
           group: Apps
@@ -190,7 +185,6 @@ sources:
             - addSessionResource
             - createAgentSession
             - prewarmAgentSession
-            - startAgentRun
             - archiveAgentSession
             - autoTitleSession
             - deleteAgentSession
