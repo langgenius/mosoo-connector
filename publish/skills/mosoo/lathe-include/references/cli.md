@@ -85,12 +85,68 @@ shape and host selection. If a step fails or times out, inspect state with
 `console-rest files get-upload` before retrying. Use `console-rest files
 abort-upload` only for a pending upload that should not be completed.
 
+## Public Thread Wait, Final Output, And Transcript Workflow
+
+```sh
+mosoo public-thread-api threads create --agent-id <agent-id> --file body.json --wait -o json
+mosoo public-thread-api threads create --agent-id <agent-id> --file body.json --final-output
+mosoo public-thread-api events wait --thread-id <thread-id> --final-output
+mosoo public-thread-api threads transcript --thread-id <thread-id>
+```
+
 ## Workflow
 
 1. Search for candidates with `mosoo search "<intent>" --json`; use `--limit` when needed. Search is only candidate discovery.
 2. Inspect the exact command with `mosoo commands show <path...> --json` before executing an unfamiliar command.
 3. If the command detail has `auth.required=true`, run `mosoo auth status --hostname <host>` before execution. Use `http.default_hostname` when present unless the user provides `--hostname` or `$MOSOO_HOST`.
 4. Execute only after flags, body, auth, HTTP path, and output hints are clear from `commands show`.
+
+## Host Context And Runnable Examples
+
+Use `mosoo doctor --json` first when the target is not explicit. It reports the
+resolved target, base URL, and per-surface hosts. Console GraphQL and console
+REST commands use the `/api` surface. Public Thread API commands use the
+`/api/v1` surface.
+
+Use `--target local` or `--target cloud` when the built-in target is enough. Use
+`--target custom --base-url <service-root>` when pointing at a non-default Mosoo
+deployment; the CLI derives `/api` and `/api/v1` from the service root:
+
+```sh
+mosoo --target local -o json console apps app-list \
+  --organization-id <organization-id>
+
+mosoo --target custom --base-url http://127.0.0.1:8787 -o json \
+  console apps app-list --organization-id <organization-id>
+```
+
+Use `--hostname <surface-host>` only when overriding the exact host for one
+surface. Pass the full surface host, not the service root:
+
+```sh
+mosoo --hostname http://127.0.0.1:8787/api -o json \
+  console apps app-list --organization-id <organization-id>
+
+mosoo --hostname http://127.0.0.1:8787/api/v1 -o json \
+  public-thread-api threads create --agent-id <agent-id> --file body.json
+```
+
+`MOSOO_HOST` behaves like `--hostname`, but for the shell environment. Keep it
+scoped to the command when possible so it does not leak into later commands for
+another surface:
+
+```sh
+MOSOO_HOST=http://127.0.0.1:8787/api \
+  mosoo -o json console apps app-list --organization-id <organization-id>
+```
+
+Before running a command copied from an example, confirm the surface host and
+required auth from the catalog:
+
+```sh
+mosoo commands show console apps app-list --json
+mosoo auth status --hostname http://127.0.0.1:8787/api
+```
 
 ## General Commands
 
