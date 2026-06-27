@@ -72,6 +72,18 @@ make install BINDIR="$HOME/.bin"
 `make install` runs `make verify-install`, which checks that the installed
 binary's `mosoo --version` output exactly matches the build metadata.
 
+### Homebrew
+
+Tap this repository, then install the formula:
+
+```sh
+brew tap langgenius/mosoo-cli-go https://github.com/langgenius/mosoo-cli-go
+brew install langgenius/mosoo-cli-go/mosoo
+```
+
+The formula downloads the tagged source release, builds `cmd/mosoo` with Go,
+and installs the resulting `mosoo` binary into Homebrew's `bin` directory.
+
 ## Bootstrap
 
 The source for the Codex-facing Bootstrap installer lives at
