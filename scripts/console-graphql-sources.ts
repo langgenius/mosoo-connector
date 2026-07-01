@@ -15,8 +15,6 @@ import {
 } from "../.cache/mosoo/apps/api/src/adapters/graphql/graphql-module-specs.ts";
 
 export const excludedMutations = new Set([
-	"createEnvironment",
-	"updateEnvironment",
 	"sendAgentSessionEvents",
 ]);
 

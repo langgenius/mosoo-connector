@@ -306,6 +306,14 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked personal access token."
+  create-environment:
+    short: "Create an environment"
+    long: "Create an environment via the Mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host."
+    notes:
+      - "Uses POST /graphql on the console default hostname (/api)."
+    known_errors:
+      - status: 401
+        cause: "Missing, invalid, or revoked personal access token."
   create-environment-fork:
     short: "Create an environment fork"
     long: "Create an environment fork via the Mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host."
@@ -832,6 +840,14 @@ commands:
       - "Raw API command. The product workflow command is `mosoo agent manifest apply`."
       - "Uses POST /graphql on the console default hostname (/api)."
       - "Agent config updates are full-manifest updates: pull agent-manifest first, preserve unchanged environment/runtime/provider/tool fields, and submit the complete updated config."
+    known_errors:
+      - status: 401
+        cause: "Missing, invalid, or revoked personal access token."
+  update-environment:
+    short: "Update an environment"
+    long: "Update an environment via the Mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host."
+    notes:
+      - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked personal access token."

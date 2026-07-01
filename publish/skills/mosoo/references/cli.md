@@ -51,6 +51,12 @@ Carry these handoff values between workflow sections: `appId`, `agentId`,
 `threadId`, `fileId`, env file path, and manifest file path. If any value is
 missing, return to the section that produces it instead of guessing.
 
+For deploying a public GitHub repository as an Agent app (Mosoo pulls the repo's
+default-branch HEAD, hosts it on a Mosoo-owned Cloudflare URL, and binds the
+App's Agents into the deployed app's env): use `Deploy App From Public Repo
+Workflow`. It reuses `Agent App Provisioning Workflow` for App/Agent resolution
+and adds the manifest, lock file, deploy, and status steps.
+
 ## Public API Tokens
 
 `MOSOO_API_TOKEN` is a server-side credential for application backends or
@@ -106,6 +112,90 @@ confirm body shape and required flags. Prefer `--file` for large Agent create
 bodies. If a step fails or times out, inspect state with `console apps app-list`,
 `console agents accessible-agent-list`, or `console agents agent` before
 retrying; do not recreate resources until the current remote state is known.
+
+## Deploy App From Public Repo Workflow
+
+Use this workflow to deploy a public GitHub repository as a Mosoo Agent app.
+Mosoo clones the repo's default-branch HEAD, builds and hosts it on a
+Mosoo-owned Cloudflare URL, and binds the App's Agents so the deployed app calls
+them through injected env vars with no secret in code. v0 deploys public GitHub
+repositories only; the deployed commit is always the default-branch HEAD.
+
+The repository carries two files. `.mosoo.toml` is the human-readable product
+manifest (committed); `mosoo.lock` is machine-written and stores the resolved
+ids so re-deploys reuse the same App and Agents. Commit both.
+
+`.mosoo.toml` (schema v1; names only, never ids):
+
+```toml
+schema = 1
+name = "roadmap-board"
+
+[deploy]
+adapter = "cloudflare-workers"
+wrangler = "wrangler.toml"
+
+[[agents]]
+name = "roadmap"
+expose = "public_thread"
+env = "MOSOO_AGENT_ROADMAP_URL"
+```
+
+`mosoo.lock` (machine-written; resolved ids):
+
+```toml
+schema = 1
+app_id = "<resolved-app-id>"
+
+[[agents]]
+name = "roadmap"
+agent_id = "<resolved-agent-id>"
+```
+
+Run the steps in order and save each returned id:
+
+1. Read `.mosoo.toml` for the App `name` and the `[[agents]]` bindings. If
+   `mosoo.lock` already has an `app_id` or a per-agent `agent_id`, prefer it and
+   skip resolution for ids already present.
+2. Resolve or create the App and each named Agent, and publish each Agent, with
+   `Agent App Provisioning Workflow` — resolve by name first
+   (`console apps app-list`, `console agents accessible-agent-list`) and create
+   only when missing. Every bound Agent must be published before deploy; deploy
+   fails fast on an unpublished binding.
+3. Write `mosoo.lock` with the resolved `app_id` and the `name → agent_id`
+   mapping. Leave `.mosoo.toml` unchanged (names only).
+4. Deploy the repo's default-branch HEAD:
+
+```sh
+mosoo console apps deploy-app --input-app-id <app-id> --input-repo-url <https-public-github-url> -o json
+```
+
+5. Poll until the run reaches a terminal status (`success` or `failed`):
+
+```sh
+mosoo console apps app-deployment-status --app-id <app-id> -o json
+```
+
+6. Read the result and report the live URL, deployed commit, bound Agents, and
+   injected env keys:
+
+```sh
+mosoo console apps app-overview --app-id <app-id> -o json
+```
+
+`appOverview.deployment` carries the repo, commit, status, and live URL.
+`appOverview.boundAgents` carries each bound Agent's `name`, `agentId`,
+`expose`, and `envVar` — the env var name only, never the URL value. Print the
+live URL, the commit, and the `name → envVar` pairs.
+
+Use `mosoo commands show <path...> --json` before each generated command to
+confirm flags and body shape. The two common deploy rejections are a non-public
+repo and an unpublished bound Agent; fix the cause, then re-run `deploy-app`
+(retry redeploys the default-branch HEAD, it does not roll back). Remove a
+deployment with `console apps delete-app-deployment`.
+
+Carry these handoff values: `appId`, per-Agent `agentId`, `.mosoo.toml` path,
+`mosoo.lock` path, deploy run status, and the live URL.
 
 ## Public Thread File Upload Workflow
 

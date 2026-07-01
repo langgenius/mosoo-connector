@@ -8,7 +8,7 @@ import (
 	"github.com/lathe-cli/lathe/pkg/runtime"
 )
 
-const generatedSchemaVersion = 7
+const generatedSchemaVersion = 8
 
 func Mount(root *cobra.Command) error {
 	if err := runtime.AssertSchema(generatedSchemaVersion); err != nil {
@@ -39,7 +39,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
-			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"label": &runtime.SchemaSpec{Type: "string"}}},
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"label": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"label"}},
 		},
 		Security: &runtime.SecurityHint{},
 	},
@@ -114,7 +114,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
-			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"mimeType": &runtime.SchemaSpec{Type: "string"}, "name": &runtime.SchemaSpec{Type: "string"}, "size": &runtime.SchemaSpec{Type: "integer"}, "target": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "kind": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}, "sessionKind": &runtime.SchemaSpec{Type: "string"}}}}},
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"mimeType": &runtime.SchemaSpec{Type: "string"}, "name": &runtime.SchemaSpec{Type: "string"}, "size": &runtime.SchemaSpec{Type: "integer"}, "target": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "kind": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}, "sessionKind": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"kind"}}}, Required: []string{"name", "target"}},
 		},
 		Output:   runtime.OutputHints{ResponseMediaType: "application/json"},
 		Security: &runtime.SecurityHint{},
@@ -295,7 +295,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "multipart/form-data",
-			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "file": &runtime.SchemaSpec{Type: "string"}, "githubUrl": &runtime.SchemaSpec{Type: "string"}, "skillId": &runtime.SchemaSpec{Type: "string"}}},
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "file": &runtime.SchemaSpec{Type: "string"}, "githubUrl": &runtime.SchemaSpec{Type: "string"}, "skillId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId"}},
 		},
 		Output:   runtime.OutputHints{ResponseMediaType: "application/json"},
 		Security: &runtime.SecurityHint{},

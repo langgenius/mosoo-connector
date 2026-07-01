@@ -8,7 +8,7 @@ import (
 	"github.com/lathe-cli/lathe/pkg/runtime"
 )
 
-const generatedSchemaVersion = 7
+const generatedSchemaVersion = 8
 
 func Mount(root *cobra.Command) error {
 	if err := runtime.AssertSchema(generatedSchemaVersion); err != nil {
@@ -51,6 +51,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId"}},
 			Template:  "{\"query\":\"query accessibleAgentList($appId: ULID!) { accessibleAgentList(appId: $appId) { createdAt description id kind name owner { id imageUrl name } runtimeId status tools { enabled iconUrl name serverId } updatedAt viewerRole visibility appId } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -75,6 +76,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "agentId"}},
 			Template:  "{\"query\":\"query agent($appId: ULID!, $agentId: ULID!) { agent(appId: $appId, agentId: $agentId) { createdAt description id kind liveVersion { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } model name owner { id imageUrl name } prompt provider runtimeId skills { ownerName skillId skillName state } status tools { enabled iconUrl name serverId } updatedAt versions { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } viewerRole visibility appId } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -99,6 +101,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "agentId"}},
 			Template:  "{\"query\":\"query agentEditorState($appId: ULID!, $agentId: ULID!) { agentEditorState(appId: $appId, agentId: $agentId) { builtInTools { enabled name } environment { environmentId } id packageResolution { recordedAt report { issues { actionLabel code message required severity status targetLabel targetType } summary { boundMcpServerCount boundSkillCount copiedAssetCount createdMcpServerCount reusedMcpServerCount } } source } mcpBindings { authType authorizationState createdAt credentialMode credentialScope credentialStatus credentialSubject enabled hasCredential iconUrl id name serverId source updatedAt url } providerOptions readiness { checkedAt issues { code message severity } ready } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -126,6 +129,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "agentId"}},
 			Template:  "{\"query\":\"query agentManifest($appId: ULID!, $agentId: ULID!) { agentManifest(appId: $appId, agentId: $agentId) { agentId json yaml } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -166,6 +170,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "description": &runtime.SchemaSpec{Type: "string"}, "kind": &runtime.SchemaSpec{Type: "string"}, "model": &runtime.SchemaSpec{Type: "string"}, "name": &runtime.SchemaSpec{Type: "string"}, "prompt": &runtime.SchemaSpec{Type: "string"}, "provider": &runtime.SchemaSpec{Type: "string"}, "runtimeId": &runtime.SchemaSpec{Type: "string"}, "skillIds": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}}, Required: []string{"kind", "model", "name", "prompt", "provider", "runtimeId", "skillIds", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation createAgent($input: CreateAgentInput!) { createAgent(input: $input) { createdAt description id kind liveVersion { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility appId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -191,6 +196,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "kind": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"agentId", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation createAgentFork($input: CreateAgentForkInput!) { createAgentFork(input: $input) { agent { createdAt description id kind liveVersion { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility appId } resolution { issues { actionLabel code message required severity status targetLabel targetType } summary { boundMcpServerCount boundSkillCount copiedAssetCount createdMcpServerCount reusedMcpServerCount } } } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -215,6 +221,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"agentId", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation deleteAgent($input: DeleteAgentInput!) { deleteAgent(input: $input) { ok } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -239,6 +246,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "agentId"}},
 			Template:  "{\"query\":\"query exportAgentPackage($appId: ULID!, $agentId: ULID!) { exportAgentPackage(appId: $appId, agentId: $agentId) { agentId contentType fileId fileName manifestYaml size } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -263,6 +271,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "fileId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"fileId", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation importAgentPackage($input: ImportAgentPackageInput!) { importAgentPackage(input: $input) { agent { createdAt description id kind liveVersion { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility appId } resolution { issues { actionLabel code message required severity status targetLabel targetType } summary { boundMcpServerCount boundSkillCount copiedAssetCount createdMcpServerCount reusedMcpServerCount } } } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -289,6 +298,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"agentId", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation publishAgent($input: PublishAgentInput!) { publishAgent(input: $input) { createdAt description id kind liveVersion { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility appId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -317,6 +327,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"affectedFields": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}, "agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "applyActionKind": &runtime.SchemaSpec{Type: "string"}, "targetVersion": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"id": &runtime.SchemaSpec{Type: "string"}, "versionNumber": &runtime.SchemaSpec{Type: "integer"}}, Required: []string{"id", "versionNumber"}}}, Required: []string{"agentId", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation recreateSandbox($input: RuntimeStateOperationInput!) { recreateSandbox(input: $input) { affectedSessionCount agentId ok operation } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -345,6 +356,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"affectedFields": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}, "agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "applyActionKind": &runtime.SchemaSpec{Type: "string"}, "targetVersion": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"id": &runtime.SchemaSpec{Type: "string"}, "versionNumber": &runtime.SchemaSpec{Type: "integer"}}, Required: []string{"id", "versionNumber"}}}, Required: []string{"agentId", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation resetAgentState($input: RuntimeStateOperationInput!) { resetAgentState(input: $input) { affectedSessionCount agentId ok operation } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -373,6 +385,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"affectedFields": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}, "agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "applyActionKind": &runtime.SchemaSpec{Type: "string"}, "targetVersion": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"id": &runtime.SchemaSpec{Type: "string"}, "versionNumber": &runtime.SchemaSpec{Type: "integer"}}, Required: []string{"id", "versionNumber"}}}, Required: []string{"agentId", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation restartDriver($input: RuntimeStateOperationInput!) { restartDriver(input: $input) { affectedSessionCount agentId ok operation } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -397,6 +410,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "agentId"}},
 			Template:  "{\"query\":\"mutation unpublishAgent($appId: ULID!, $agentId: ULID!) { unpublishAgent(appId: $appId, agentId: $agentId) { createdAt description id kind liveVersion { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility appId } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -420,6 +434,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId"}},
 			Template:  "{\"query\":\"query appDeploymentStatus($appId: ULID!) { appDeploymentStatus(appId: $appId) { appId createdAt deploymentId errorCode errorMessage id liveUrl plannedUrl sourceBranch sourceCommitSha status targetKind updatedAt } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -445,6 +460,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"organizationId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"organizationId"}},
 			Template:  "{\"query\":\"query appList($organizationId: ULID!) { appList(organizationId: $organizationId) { createdAt defaultEnvironmentId id name ownerAccountId } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -471,7 +487,8 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
-			Template:  "{\"query\":\"query appOverview($appId: ULID!, $agentLimit: Int, $credentialLimit: Int) { appOverview(appId: $appId, agentLimit: $agentLimit, credentialLimit: $credentialLimit) { agents { hasMore items { appId description id kind model name provider runtimeId status updatedAt } limit } app { createdAt defaultEnvironmentId id name ownerAccountId } deployment { appId createdAt defaultBranch id latestRun { appId createdAt deploymentId errorCode errorMessage id liveUrl plannedUrl sourceBranch sourceCommitSha status targetKind updatedAt } liveUrl plannedUrl repoName repoOwner repoUrl updatedAt } providerCredentials { byVendor { count defaultCredentialId vendorId } configuredCount hasMore items { appId hasCustomApiBase id isDefault modelCount name status vendorId } limit } } }\",\"variables\":{}}",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentLimit": &runtime.SchemaSpec{Type: "integer"}, "appId": &runtime.SchemaSpec{Type: "string"}, "credentialLimit": &runtime.SchemaSpec{Type: "integer"}}, Required: []string{"appId"}},
+			Template:  "{\"query\":\"query appOverview($appId: ULID!, $agentLimit: Int, $credentialLimit: Int) { appOverview(appId: $appId, agentLimit: $agentLimit, credentialLimit: $credentialLimit) { agents { hasMore items { appId description id kind model name provider runtimeId status updatedAt } limit } app { createdAt defaultEnvironmentId id name ownerAccountId } boundAgents { agentId envVar expose name } deployment { appId createdAt defaultBranch id latestRun { appId createdAt deploymentId errorCode errorMessage id liveUrl plannedUrl sourceBranch sourceCommitSha status targetKind updatedAt } liveUrl plannedUrl repoName repoOwner repoUrl updatedAt } providerCredentials { byVendor { count defaultCredentialId vendorId } configuredCount hasMore items { appId hasCustomApiBase id isDefault modelCount name status vendorId } limit } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
 	},
@@ -501,7 +518,8 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
-			Template:  "{\"query\":\"query controlPlaneOverview($appLimit: Int, $agentLimit: Int, $credentialLimit: Int) { controlPlaneOverview(appLimit: $appLimit, agentLimit: $agentLimit, credentialLimit: $credentialLimit) { activeOrganization { avatarUrl createdAt id name } apps { hasMore items { agents { hasMore items { appId description id kind model name provider runtimeId status updatedAt } limit } app { createdAt defaultEnvironmentId id name ownerAccountId } deployment { appId createdAt defaultBranch id latestRun { appId createdAt deploymentId errorCode errorMessage id liveUrl plannedUrl sourceBranch sourceCommitSha status targetKind updatedAt } liveUrl plannedUrl repoName repoOwner repoUrl updatedAt } providerCredentials { byVendor { count defaultCredentialId vendorId } configuredCount hasMore items { appId hasCustomApiBase id isDefault modelCount name status vendorId } limit } } limit } } }\",\"variables\":{}}",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentLimit": &runtime.SchemaSpec{Type: "integer"}, "appLimit": &runtime.SchemaSpec{Type: "integer"}, "credentialLimit": &runtime.SchemaSpec{Type: "integer"}}},
+			Template:  "{\"query\":\"query controlPlaneOverview($appLimit: Int, $agentLimit: Int, $credentialLimit: Int) { controlPlaneOverview(appLimit: $appLimit, agentLimit: $agentLimit, credentialLimit: $credentialLimit) { activeOrganization { avatarUrl createdAt id name } apps { hasMore items { agents { hasMore items { appId description id kind model name provider runtimeId status updatedAt } limit } app { createdAt defaultEnvironmentId id name ownerAccountId } boundAgents { agentId envVar expose name } deployment { appId createdAt defaultBranch id latestRun { appId createdAt deploymentId errorCode errorMessage id liveUrl plannedUrl sourceBranch sourceCommitSha status targetKind updatedAt } liveUrl plannedUrl repoName repoOwner repoUrl updatedAt } providerCredentials { byVendor { count defaultCredentialId vendorId } configuredCount hasMore items { appId hasCustomApiBase id isDefault modelCount name status vendorId } limit } } limit } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
 	},
@@ -530,6 +548,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"name": &runtime.SchemaSpec{Type: "string"}, "organizationId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"name", "organizationId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation createApp($input: CreateAppInput!) { createApp(input: $input) { createdAt defaultEnvironmentId id name ownerAccountId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -553,6 +572,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation deleteAppDeployment($input: DeleteAppDeploymentInput!) { deleteAppDeployment(input: $input) { ok } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -578,6 +598,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "configPath": &runtime.SchemaSpec{Type: "string"}, "repoUrl": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "repoUrl"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation deployApp($input: DeployAppInput!) { deployApp(input: $input) { appId createdAt deploymentId errorCode errorMessage id liveUrl plannedUrl sourceBranch sourceCommitSha status targetKind updatedAt } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -602,6 +623,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "name": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "name"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation renameApp($input: RenameAppInput!) { renameApp(input: $input) { createdAt defaultEnvironmentId id name ownerAccountId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -626,6 +648,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "agentId"}},
 			Template:  "{\"query\":\"query agentChannelBindingList($appId: ULID!, $agentId: ULID!) { agentChannelBindingList(appId: $appId, agentId: $agentId) { activityLastTriggeredAt activitySessionCount7d agentId createdAt displayMetadata externalBotId externalTenantId id lastErrorCode appId provider status updatedAt } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -653,6 +676,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "applicationId": &runtime.SchemaSpec{Type: "string"}, "botToken": &runtime.SchemaSpec{Type: "string"}, "relaySecret": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"agentId", "applicationId", "botToken", "appId", "relaySecret"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation createDiscordAgentChannelBinding($input: CreateDiscordAgentChannelBindingInput!) { createDiscordAgentChannelBinding(input: $input) { activityLastTriggeredAt activitySessionCount7d agentId createdAt displayMetadata externalBotId externalTenantId id lastErrorCode appId provider status updatedAt } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -683,6 +707,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "appSecret": &runtime.SchemaSpec{Type: "string"}, "connectionMode": &runtime.SchemaSpec{Type: "string"}, "domain": &runtime.SchemaSpec{Type: "string"}, "encryptKey": &runtime.SchemaSpec{Type: "string"}, "larkAppId": &runtime.SchemaSpec{Type: "string"}, "verificationToken": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"agentId", "larkAppId", "appSecret", "connectionMode", "domain", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation createLarkAgentChannelBinding($input: CreateLarkAgentChannelBindingInput!) { createLarkAgentChannelBinding(input: $input) { activityLastTriggeredAt activitySessionCount7d agentId createdAt displayMetadata externalBotId externalTenantId id lastErrorCode appId provider status updatedAt } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -711,6 +736,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "appLevelToken": &runtime.SchemaSpec{Type: "string"}, "botToken": &runtime.SchemaSpec{Type: "string"}, "signingSecret": &runtime.SchemaSpec{Type: "string"}, "threadRepliesRequireMention": &runtime.SchemaSpec{Type: "boolean"}}, Required: []string{"agentId", "botToken", "appId", "signingSecret"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation createSlackAgentChannelBinding($input: CreateSlackAgentChannelBindingInput!) { createSlackAgentChannelBinding(input: $input) { activityLastTriggeredAt activitySessionCount7d agentId createdAt displayMetadata externalBotId externalTenantId id lastErrorCode appId provider status updatedAt } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -737,6 +763,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "botToken": &runtime.SchemaSpec{Type: "string"}, "webhookSecret": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"agentId", "botToken", "appId", "webhookSecret"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation createTelegramAgentChannelBinding($input: CreateTelegramAgentChannelBindingInput!) { createTelegramAgentChannelBinding(input: $input) { activityLastTriggeredAt activitySessionCount7d agentId createdAt displayMetadata externalBotId externalTenantId id lastErrorCode appId provider status updatedAt } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -761,6 +788,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "bindingId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"bindingId", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation deleteAgentChannelBinding($input: DeleteAgentChannelBindingInput!) { deleteAgentChannelBinding(input: $input) { ok } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -787,6 +815,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "deviceCode": &runtime.SchemaSpec{Type: "string"}, "domain": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"agentId", "deviceCode", "domain", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation pollLarkAgentChannelRegistration($input: PollLarkAgentChannelRegistrationInput!) { pollLarkAgentChannelRegistration(input: $input) { appId appSecret deviceCode domain expireIn interval lastErrorCode openId qrUrl status userCode } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -812,6 +841,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "qrToken": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"agentId", "appId", "qrToken"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation pollWeChatAgentChannelPairing($input: PollWeChatAgentChannelPairingInput!) { pollWeChatAgentChannelPairing(input: $input) { binding { activityLastTriggeredAt activitySessionCount7d agentId createdAt displayMetadata externalBotId externalTenantId id lastErrorCode appId provider status updatedAt } lastErrorCode qrCodeImageSrc qrToken status } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -837,6 +867,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "domain": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"agentId", "domain", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation startLarkAgentChannelRegistration($input: StartLarkAgentChannelRegistrationInput!) { startLarkAgentChannelRegistration(input: $input) { appId appSecret deviceCode domain expireIn interval lastErrorCode openId qrUrl status userCode } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -861,6 +892,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"agentId", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation startWeChatAgentChannelPairing($input: StartWeChatAgentChannelPairingInput!) { startWeChatAgentChannelPairing(input: $input) { binding { activityLastTriggeredAt activitySessionCount7d agentId createdAt displayMetadata externalBotId externalTenantId id lastErrorCode appId provider status updatedAt } lastErrorCode qrCodeImageSrc qrToken status } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -881,6 +913,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object"},
 			Template:  "{\"query\":\"query appInfo { appInfo { api name runtime } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -907,6 +940,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "range": &runtime.SchemaSpec{Type: "string"}, "runPurposes": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}}, Required: []string{"appId", "agentId", "range"}},
 			Template:  "{\"query\":\"query agentCostCard($appId: ULID!, $agentId: ULID!, $range: CostRange!, $runPurposes: [CostRunPurpose!]) { agentCostCard(appId: $appId, agentId: $agentId, range: $range, runPurposes: $runPurposes) { agentId agentName agents { activeUsers agentId agentName cacheCreationTokens cacheReadTokens debugCostUsd evalCostUsd inputTokens outputTokens ownerEmail ownerId ownerName previousCostUsd previewCostUsd productionCostUsd requestCount scheduledCostUsd totalCostUsd unpricedRequestCount } daily { activeUsers cacheCreationTokens cacheReadTokens date inputTokens outputTokens requestCount totalCostUsd unpricedRequestCount } models { activeUsers cacheCreationTokens cacheReadTokens cacheReadUsdPerMillion cacheWriteUsdPerMillion inputTokens inputUsdPerMillion model outputTokens outputUsdPerMillion provider requestCount totalCostUsd unpricedRequestCount vendor } ownerId ownerName recentSessions { actorEmail actorName cacheCreationTokens cacheReadTokens createdAt inputTokens model outputTokens provider runPurpose sessionId sessionRunId totalCostUsd } totals { activeUsers cacheCreationTokens cacheReadTokens inputTokens outputTokens requestCount totalCostUsd unpricedRequestCount } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -932,6 +966,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "range": &runtime.SchemaSpec{Type: "string"}, "runPurposes": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}}, Required: []string{"appId", "range"}},
 			Template:  "{\"query\":\"query appCostCard($appId: ULID!, $range: CostRange!, $runPurposes: [CostRunPurpose!]) { appCostCard(appId: $appId, range: $range, runPurposes: $runPurposes) { agents { activeUsers agentId agentName cacheCreationTokens cacheReadTokens debugCostUsd evalCostUsd inputTokens outputTokens ownerEmail ownerId ownerName previousCostUsd previewCostUsd productionCostUsd requestCount scheduledCostUsd totalCostUsd unpricedRequestCount } daily { activeUsers cacheCreationTokens cacheReadTokens date inputTokens outputTokens requestCount totalCostUsd unpricedRequestCount } models { activeUsers cacheCreationTokens cacheReadTokens cacheReadUsdPerMillion cacheWriteUsdPerMillion inputTokens inputUsdPerMillion model outputTokens outputUsdPerMillion provider requestCount totalCostUsd unpricedRequestCount vendor } previousTotals { activeUsers cacheCreationTokens cacheReadTokens inputTokens outputTokens requestCount totalCostUsd unpricedRequestCount } appId appName recentSessions { actorEmail actorName cacheCreationTokens cacheReadTokens createdAt inputTokens model outputTokens provider runPurpose sessionId sessionRunId totalCostUsd } totals { activeUsers cacheCreationTokens cacheReadTokens inputTokens outputTokens requestCount totalCostUsd unpricedRequestCount } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -957,6 +992,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"organizationId": &runtime.SchemaSpec{Type: "string"}, "range": &runtime.SchemaSpec{Type: "string"}, "runPurposes": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}}, Required: []string{"organizationId", "range"}},
 			Template:  "{\"query\":\"query organizationBillingCostCard($organizationId: ULID!, $range: CostRange!, $runPurposes: [CostRunPurpose!]) { organizationBillingCostCard(organizationId: $organizationId, range: $range, runPurposes: $runPurposes) { daily { activeUsers cacheCreationTokens cacheReadTokens date inputTokens outputTokens requestCount totalCostUsd unpricedRequestCount } models { activeUsers cacheCreationTokens cacheReadTokens cacheReadUsdPerMillion cacheWriteUsdPerMillion inputTokens inputUsdPerMillion model outputTokens outputUsdPerMillion provider requestCount totalCostUsd unpricedRequestCount vendor } previousTotals { activeUsers cacheCreationTokens cacheReadTokens inputTokens outputTokens requestCount totalCostUsd unpricedRequestCount } totals { activeUsers cacheCreationTokens cacheReadTokens inputTokens outputTokens requestCount totalCostUsd unpricedRequestCount } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -983,6 +1019,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "currentModelId": &runtime.SchemaSpec{Type: "string"}, "currentVendorId": &runtime.SchemaSpec{Type: "string"}, "runtimeId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "runtimeId"}},
 			Template:  "{\"query\":\"query availableAgentModels($appId: ULID!, $runtimeId: String!, $currentModelId: String, $currentVendorId: String) { availableAgentModels(appId: $appId, runtimeId: $runtimeId, currentModelId: $currentModelId, currentVendorId: $currentVendorId) { available displayName modelId reason source statusDetail statusLabel vendorId vendorLabel } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1020,6 +1057,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"apiBase": &runtime.SchemaSpec{Type: "string"}, "apiKey": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "models": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}, "name": &runtime.SchemaSpec{Type: "string"}, "vendorId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"apiKey", "name", "appId", "vendorId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation createVendorCredential($input: CreateVendorCredentialInput!) { createVendorCredential(input: $input) { apiBase id isDefault maskedApiKey models name appId vendorId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1044,6 +1082,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "id": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"id", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation deleteVendorCredential($input: DeleteVendorCredentialInput!) { deleteVendorCredential(input: $input) { ok } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1068,6 +1107,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "id": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"id", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation setDefaultVendorCredential($input: SetDefaultVendorCredentialInput!) { setDefaultVendorCredential(input: $input) { apiBase id isDefault maskedApiKey models name appId vendorId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1101,6 +1141,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"apiBase": &runtime.SchemaSpec{Type: "string"}, "apiKey": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "modelId": &runtime.SchemaSpec{Type: "string"}, "vendorId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"apiKey", "appId", "vendorId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation testVendorCredential($input: TestVendorCredentialInput!) { testVendorCredential(input: $input) { errorCode latencyMs ok } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1129,6 +1170,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"apiBase": &runtime.SchemaSpec{Type: "string"}, "apiKey": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "id": &runtime.SchemaSpec{Type: "string"}, "models": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}, "name": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"id", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation updateVendorCredential($input: UpdateVendorCredentialInput!) { updateVendorCredential(input: $input) { apiBase id isDefault maskedApiKey models name appId vendorId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1154,6 +1196,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId"}},
 			Template:  "{\"query\":\"query vendorCredentialList($appId: ULID!) { vendorCredentialList(appId: $appId) { apiBase id isDefault maskedApiKey models name appId vendorId } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1177,7 +1220,39 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId"}},
 			Template:  "{\"query\":\"query appEnvironmentList($appId: ULID!) { appEnvironmentList(appId: $appId) { allowMcpServers allowPackageManagers allowedHosts canDelete canEdit createdAt currentRevisionId description envVars { key preview status } forkOrigin { environmentId name ownerName } id isBuiltIn isDefault isEditable name networkPolicy owner { id imageUrl name } packages { manager packages } role setupScript updatedAt usedByAgentCount appId } }\",\"variables\":{}}",
+			MergePath: "variables",
+		},
+	},
+	{
+		Group: "Environments",
+		Use:   "create-environment",
+		Short: "Create an environment",
+		Long:  "Create an environment via the Mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
+		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
+		KnownErrors: []runtime.KnownError{
+			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
+		},
+		OperationID:     "console_createEnvironment",
+		Method:          "POST",
+		PathTpl:         "/graphql",
+		DefaultHostname: "http://127.0.0.1:8787/api",
+		Params: []runtime.ParamSpec{
+			{Name: "input.allowMcpServers", Flag: "input-allow-mcp-servers", In: "variable", GoType: "bool", Help: "input.allowMcpServers (variable, required)", Required: true},
+			{Name: "input.allowPackageManagers", Flag: "input-allow-package-managers", In: "variable", GoType: "bool", Help: "input.allowPackageManagers (variable, required)", Required: true},
+			{Name: "input.allowedHosts", Flag: "input-allowed-hosts", In: "variable", GoType: "[]string", Help: "input.allowedHosts (variable, required)", Required: true},
+			{Name: "input.description", Flag: "input-description", In: "variable", GoType: "string", Help: "input.description (variable)", Required: false},
+			{Name: "input.name", Flag: "input-name", In: "variable", GoType: "string", Help: "input.name (variable, required)", Required: true},
+			{Name: "input.networkPolicy", Flag: "input-network-policy", In: "variable", GoType: "string", Help: "input.networkPolicy (variable, required, one of: full|limited)", Required: true, Enum: []string{"full", "limited"}},
+			{Name: "input.appId", Flag: "input-app-id", In: "variable", GoType: "string", Help: "input.appId (variable, required)", Required: true},
+			{Name: "input.setupScript", Flag: "input-setup-script", In: "variable", GoType: "string", Help: "input.setupScript (variable, required)", Required: true},
+		},
+		RequestBody: &runtime.RequestBody{
+			Required:  true,
+			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"allowMcpServers": &runtime.SchemaSpec{Type: "boolean"}, "allowPackageManagers": &runtime.SchemaSpec{Type: "boolean"}, "allowedHosts": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}, "appId": &runtime.SchemaSpec{Type: "string"}, "description": &runtime.SchemaSpec{Type: "string"}, "envVars": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"key": &runtime.SchemaSpec{Type: "string"}, "value": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"key"}}}, "name": &runtime.SchemaSpec{Type: "string"}, "networkPolicy": &runtime.SchemaSpec{Type: "string"}, "packages": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"manager": &runtime.SchemaSpec{Type: "string"}, "packages": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}}, Required: []string{"manager", "packages"}}}, "setupScript": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"allowMcpServers", "allowPackageManagers", "allowedHosts", "envVars", "name", "networkPolicy", "appId", "packages", "setupScript"}}}, Required: []string{"input"}},
+			Template:  "{\"query\":\"mutation createEnvironment($input: CreateEnvironmentInput!) { createEnvironment(input: $input) { allowMcpServers allowPackageManagers allowedHosts canDelete canEdit createdAt currentRevisionId description envVars { key preview status } forkOrigin { environmentId name ownerName } id isBuiltIn isDefault isEditable name networkPolicy owner { id imageUrl name } packages { manager packages } role setupScript updatedAt usedByAgentCount appId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
 	},
@@ -1201,6 +1276,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "environmentId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"environmentId", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation createEnvironmentFork($input: CreateEnvironmentForkInput!) { createEnvironmentFork(input: $input) { allowMcpServers allowPackageManagers allowedHosts canDelete canEdit createdAt currentRevisionId description envVars { key preview status } forkOrigin { environmentId name ownerName } id isBuiltIn isDefault isEditable name networkPolicy owner { id imageUrl name } packages { manager packages } role setupScript updatedAt usedByAgentCount appId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1225,6 +1301,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "environmentId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"environmentId", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation deleteEnvironment($input: DeleteEnvironmentInput!) { deleteEnvironment(input: $input) { ok } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1249,6 +1326,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "environmentId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "environmentId"}},
 			Template:  "{\"query\":\"query environment($appId: ULID!, $environmentId: ULID!) { environment(appId: $appId, environmentId: $environmentId) { allowMcpServers allowPackageManagers allowedHosts canDelete canEdit createdAt currentRevisionId description envVars { key preview status } forkOrigin { environmentId name ownerName } id isBuiltIn isDefault isEditable name networkPolicy owner { id imageUrl name } packages { manager packages } role setupScript updatedAt usedByAgentCount appId } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1273,6 +1351,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "environmentId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"environmentId", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation setAppDefaultEnvironment($input: SetAppDefaultEnvironmentInput!) { setAppDefaultEnvironment(input: $input) { allowMcpServers allowPackageManagers allowedHosts canDelete canEdit createdAt currentRevisionId description envVars { key preview status } forkOrigin { environmentId name ownerName } id isBuiltIn isDefault isEditable name networkPolicy owner { id imageUrl name } packages { manager packages } role setupScript updatedAt usedByAgentCount appId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1299,7 +1378,40 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "environmentId": &runtime.SchemaSpec{Type: "string"}, "key": &runtime.SchemaSpec{Type: "string"}, "value": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"environmentId", "key", "appId", "value"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation setEnvironmentVariableValue($input: SetEnvironmentVariableValueInput!) { setEnvironmentVariableValue(input: $input) { allowMcpServers allowPackageManagers allowedHosts canDelete canEdit createdAt currentRevisionId description envVars { key preview status } forkOrigin { environmentId name ownerName } id isBuiltIn isDefault isEditable name networkPolicy owner { id imageUrl name } packages { manager packages } role setupScript updatedAt usedByAgentCount appId } }\",\"variables\":{\"input\":{}}}",
+			MergePath: "variables",
+		},
+	},
+	{
+		Group: "Environments",
+		Use:   "update-environment",
+		Short: "Update an environment",
+		Long:  "Update an environment via the Mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
+		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
+		KnownErrors: []runtime.KnownError{
+			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
+		},
+		OperationID:     "console_updateEnvironment",
+		Method:          "POST",
+		PathTpl:         "/graphql",
+		DefaultHostname: "http://127.0.0.1:8787/api",
+		Params: []runtime.ParamSpec{
+			{Name: "input.allowMcpServers", Flag: "input-allow-mcp-servers", In: "variable", GoType: "bool", Help: "input.allowMcpServers (variable, required)", Required: true},
+			{Name: "input.allowPackageManagers", Flag: "input-allow-package-managers", In: "variable", GoType: "bool", Help: "input.allowPackageManagers (variable, required)", Required: true},
+			{Name: "input.allowedHosts", Flag: "input-allowed-hosts", In: "variable", GoType: "[]string", Help: "input.allowedHosts (variable, required)", Required: true},
+			{Name: "input.description", Flag: "input-description", In: "variable", GoType: "string", Help: "input.description (variable)", Required: false},
+			{Name: "input.environmentId", Flag: "input-environment-id", In: "variable", GoType: "string", Help: "input.environmentId (variable, required)", Required: true},
+			{Name: "input.name", Flag: "input-name", In: "variable", GoType: "string", Help: "input.name (variable, required)", Required: true},
+			{Name: "input.networkPolicy", Flag: "input-network-policy", In: "variable", GoType: "string", Help: "input.networkPolicy (variable, required, one of: full|limited)", Required: true, Enum: []string{"full", "limited"}},
+			{Name: "input.appId", Flag: "input-app-id", In: "variable", GoType: "string", Help: "input.appId (variable, required)", Required: true},
+			{Name: "input.setupScript", Flag: "input-setup-script", In: "variable", GoType: "string", Help: "input.setupScript (variable, required)", Required: true},
+		},
+		RequestBody: &runtime.RequestBody{
+			Required:  true,
+			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"allowMcpServers": &runtime.SchemaSpec{Type: "boolean"}, "allowPackageManagers": &runtime.SchemaSpec{Type: "boolean"}, "allowedHosts": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}, "appId": &runtime.SchemaSpec{Type: "string"}, "description": &runtime.SchemaSpec{Type: "string"}, "envVars": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"key": &runtime.SchemaSpec{Type: "string"}, "value": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"key"}}}, "environmentId": &runtime.SchemaSpec{Type: "string"}, "name": &runtime.SchemaSpec{Type: "string"}, "networkPolicy": &runtime.SchemaSpec{Type: "string"}, "packages": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"manager": &runtime.SchemaSpec{Type: "string"}, "packages": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}}, Required: []string{"manager", "packages"}}}, "setupScript": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"allowMcpServers", "allowPackageManagers", "allowedHosts", "environmentId", "envVars", "name", "networkPolicy", "packages", "appId", "setupScript"}}}, Required: []string{"input"}},
+			Template:  "{\"query\":\"mutation updateEnvironment($input: UpdateEnvironmentInput!) { updateEnvironment(input: $input) { allowMcpServers allowPackageManagers allowedHosts canDelete canEdit createdAt currentRevisionId description envVars { key preview status } forkOrigin { environmentId name ownerName } id isBuiltIn isDefault isEditable name networkPolicy owner { id imageUrl name } packages { manager packages } role setupScript updatedAt usedByAgentCount appId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
 	},
@@ -1326,6 +1438,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "scopeId": &runtime.SchemaSpec{Type: "string"}, "scopeKind": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}, "sessionKind": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"query fileList($input: FileListInput!) { fileList(input: $input) { files { createdAt createdBy etag expiresAt id mimeType name owner { id kind } path purpose scope { id kind } sessionKind size status updatedAt version } } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1352,6 +1465,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "serverId": &runtime.SchemaSpec{Type: "string"}, "subjectLabel": &runtime.SchemaSpec{Type: "string"}, "token": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "serverId", "token"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation connectMcpBearer($input: ConnectMcpBearerInput!) { connectMcpBearer(input: $input) { authType authorizationState createdAt credential { authType createdAt expiresAt id scope scopeValues status subjectLabel updatedAt } credentialScope credentialStatus description enabled hasCredential iconUrl id name ownerId ownerName appId source updatedAt url } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1382,6 +1496,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "authType": &runtime.SchemaSpec{Type: "string"}, "description": &runtime.SchemaSpec{Type: "string"}, "iconUrl": &runtime.SchemaSpec{Type: "string"}, "name": &runtime.SchemaSpec{Type: "string"}, "oauthClientId": &runtime.SchemaSpec{Type: "string"}, "oauthClientSecret": &runtime.SchemaSpec{Type: "string"}, "url": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"authType", "name", "appId", "url"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation createAppMcpServer($input: CreateAppMcpServerInput!) { createAppMcpServer(input: $input) { authType authorizationState createdAt credential { authType createdAt expiresAt id scope scopeValues status subjectLabel updatedAt } credentialScope credentialStatus description enabled hasCredential iconUrl id name ownerId ownerName appId source updatedAt url } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1406,6 +1521,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "serverId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "serverId"}},
 			Template:  "{\"query\":\"mutation deleteMcpServer($appId: ULID!, $serverId: ULID!) { deleteMcpServer(appId: $appId, serverId: $serverId) { ok } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1424,6 +1540,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"flowId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"flowId"}},
 			Template:  "{\"query\":\"query mcpOAuthFlowStatus($flowId: ULID!) { mcpOAuthFlowStatus(flowId: $flowId) { authorizationState errorMessage flowId serverId status subjectLabel } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1447,6 +1564,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId"}},
 			Template:  "{\"query\":\"query mcpRegistry($appId: ULID!) { mcpRegistry(appId: $appId) { currentUserEmail currentUserId currentUserName appId servers { authType authorizationState createdAt credential { authType createdAt expiresAt id scope scopeValues status subjectLabel updatedAt } credentialScope credentialStatus description enabled hasCredential iconUrl id name ownerId ownerName appId source updatedAt url } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1471,6 +1589,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "serverId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "serverId"}},
 			Template:  "{\"query\":\"mutation revokeMcpCredential($appId: ULID!, $serverId: ULID!) { revokeMcpCredential(appId: $appId, serverId: $serverId) { authType authorizationState createdAt credential { authType createdAt expiresAt id scope scopeValues status subjectLabel updatedAt } credentialScope credentialStatus description enabled hasCredential iconUrl id name ownerId ownerName appId source updatedAt url } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1496,6 +1615,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "enabled": &runtime.SchemaSpec{Type: "boolean"}, "serverId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "serverId", "enabled"}},
 			Template:  "{\"query\":\"mutation setMcpServerEnabled($appId: ULID!, $serverId: ULID!, $enabled: Boolean!) { setMcpServerEnabled(appId: $appId, serverId: $serverId, enabled: $enabled) { authType authorizationState createdAt credential { authType createdAt expiresAt id scope scopeValues status subjectLabel updatedAt } credentialScope credentialStatus description enabled hasCredential iconUrl id name ownerId ownerName appId source updatedAt url } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1516,6 +1636,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "returnUrl": &runtime.SchemaSpec{Type: "string"}, "serverId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "serverId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation startMcpOAuth($input: StartMcpOAuthInput!) { startMcpOAuth(input: $input) { authorizationUrl flowId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1539,6 +1660,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"name": &runtime.SchemaSpec{Type: "string"}}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation onboardingBootstrap($input: BootstrapOnboardingInput!) { onboardingBootstrap(input: $input) { completed organization { avatarUrl createdAt id name } } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1566,6 +1688,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "file": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"contentType": &runtime.SchemaSpec{Type: "string"}, "name": &runtime.SchemaSpec{Type: "string"}, "size": &runtime.SchemaSpec{Type: "integer"}}, Required: []string{"contentType", "name", "size"}}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"file", "appId", "sessionId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation addSessionResource($input: AddSessionResourceInput!) { addSessionResource(input: $input) { contentType expectedSize expiresAt fileId owner { id kind } partSize path purpose scope { id kind } status strategy } }\",\"variables\":{\"input\":{\"file\":{}}}}",
 			MergePath: "variables",
 		},
@@ -1590,6 +1713,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId"}},
 			Template:  "{\"query\":\"query agentSessionDiagnostics($appId: ULID!, $sessionId: ULID!) { agentSessionDiagnostics(appId: $appId, sessionId: $sessionId) { execution { binding { agentId deploymentVersionId deploymentVersionNumber kind model prompt provider runtimeId sessionId } skills { resolutionMode sessionId skillId skillName snapshotId sortOrder } tools { agentCredentialId credentialMode serverId sessionId sortOrder } } generatedAt nativeRuntimeRef { kind runtimeId status valuePreview } pendingPermissionCount session { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt appId } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1620,6 +1744,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "archived": &runtime.SchemaSpec{Type: "boolean"}, "beforeCursor": &runtime.SchemaSpec{Type: "string"}, "limit": &runtime.SchemaSpec{Type: "integer"}, "participantOnly": &runtime.SchemaSpec{Type: "boolean"}, "type": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "agentId"}},
 			Template:  "{\"query\":\"query agentSessionList($appId: ULID!, $agentId: ULID!, $archived: Boolean, $beforeCursor: String, $limit: Int, $participantOnly: Boolean, $type: SessionType) { agentSessionList(appId: $appId, agentId: $agentId, archived: $archived, beforeCursor: $beforeCursor, limit: $limit, participantOnly: $participantOnly, type: $type) { nodes { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt appId } pageInfo { endCursor hasMore startCursor } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1644,6 +1769,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId"}},
 			Template:  "{\"query\":\"query agentSessionRetrieve($appId: ULID!, $sessionId: ULID!) { agentSessionRetrieve(appId: $appId, sessionId: $sessionId) { capabilities { action reason status } recoverability { reason status } session { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt appId } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1668,6 +1794,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId"}},
 			Template:  "{\"query\":\"mutation archiveAgentSession($appId: ULID!, $sessionId: ULID!) { archiveAgentSession(appId: $appId, sessionId: $sessionId) { ok } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1693,6 +1820,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}, "title": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId", "title"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation autoTitleSession($input: RenameSessionInput!) { autoTitleSession(input: $input) { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt appId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1719,6 +1847,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{Type: "string"}, "waitForRuntimeReady": &runtime.SchemaSpec{Type: "boolean"}}, Required: []string{"agentId", "appId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation createAgentSession($input: CreateAgentSessionInput!) { createAgentSession(input: $input) { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt appId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1743,6 +1872,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId"}},
 			Template:  "{\"query\":\"mutation deleteAgentSession($appId: ULID!, $sessionId: ULID!) { deleteAgentSession(appId: $appId, sessionId: $sessionId) { ok } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1767,6 +1897,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId"}},
 			Template:  "{\"query\":\"query listSessionResources($appId: ULID!, $sessionId: ULID!) { listSessionResources(appId: $appId, sessionId: $sessionId) { createdAt id kind mimeType name path size } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1791,6 +1922,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId"}},
 			Template:  "{\"query\":\"mutation prewarmAgentSession($appId: ULID!, $sessionId: ULID!) { prewarmAgentSession(appId: $appId, sessionId: $sessionId) { scheduledAt sessionId } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1816,6 +1948,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "resourceId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "resourceId", "sessionId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation removeSessionResource($input: RemoveSessionResourceInput!) { removeSessionResource(input: $input) { ok } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1841,6 +1974,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}, "title": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId", "title"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation renameSession($input: RenameSessionInput!) { renameSession(input: $input) { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt appId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -1865,6 +1999,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId"}},
 			Template:  "{\"query\":\"query session($appId: ULID!, $sessionId: ULID!) { session(appId: $appId, sessionId: $sessionId) { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt appId } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1893,6 +2028,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "archived": &runtime.SchemaSpec{Type: "boolean"}, "beforeCursor": &runtime.SchemaSpec{Type: "string"}, "limit": &runtime.SchemaSpec{Type: "integer"}, "type": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId"}},
 			Template:  "{\"query\":\"query sessionList($archived: Boolean, $beforeCursor: String, $limit: Int, $appId: ULID!, $type: SessionType) { sessionList(archived: $archived, beforeCursor: $beforeCursor, limit: $limit, appId: $appId, type: $type) { nodes { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt appId } pageInfo { endCursor hasMore startCursor } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1917,6 +2053,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId"}},
 			Template:  "{\"query\":\"query sessionMessages($appId: ULID!, $sessionId: ULID!) { sessionMessages(appId: $appId, sessionId: $sessionId) { content createdAt createdBy id plan { content priority status } role segments { argsText kind output path text tool toolCallId } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1942,6 +2079,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "limit": &runtime.SchemaSpec{Type: "integer"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId"}},
 			Template:  "{\"query\":\"query sessionProcessEvents($appId: ULID!, $limit: Int, $sessionId: ULID!) { sessionProcessEvents(appId: $appId, limit: $limit, sessionId: $sessionId) { content durationMs id occurredAt status tokens type } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -1976,6 +2114,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "appId": &runtime.SchemaSpec{Type: "string"}, "clientRequestId": &runtime.SchemaSpec{Type: "string"}, "prompt": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{Type: "string"}, "waitForRuntimeReady": &runtime.SchemaSpec{Type: "boolean"}}, Required: []string{"appId", "prompt"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation startAgentRun($input: StartAgentRunInput!) { startAgentRun(input: $input) { acceptedAt createdSession eventBatch { acceptedAt events { clientRequestId run { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } type } session { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt appId } warnings { code message } } eventSurface { appId graphqlUrl messagesOperation processEventsOperation retrieveOperation sessionId streamUrl suggestedPollIntervalMs } run { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } session { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt appId } } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -2003,6 +2142,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "archived": &runtime.SchemaSpec{Type: "boolean"}, "beforeCursor": &runtime.SchemaSpec{Type: "string"}, "limit": &runtime.SchemaSpec{Type: "integer"}, "type": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId"}},
 			Template:  "{\"query\":\"query threadAgentSessionList($archived: Boolean, $beforeCursor: String, $limit: Int, $appId: ULID!, $type: SessionType) { threadAgentSessionList(archived: $archived, beforeCursor: $beforeCursor, limit: $limit, appId: $appId, type: $type) { nodes { capabilities { action reason status } recoverability { reason status } session { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt appId } } pageInfo { endCursor hasMore startCursor } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -2027,6 +2167,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId"}},
 			Template:  "{\"query\":\"query threadAgentSessionRetrieve($appId: ULID!, $sessionId: ULID!) { threadAgentSessionRetrieve(appId: $appId, sessionId: $sessionId) { capabilities { action reason status } recoverability { reason status } session { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt appId } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -2051,6 +2192,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId"}},
 			Template:  "{\"query\":\"query threadSessionMessages($appId: ULID!, $sessionId: ULID!) { threadSessionMessages(appId: $appId, sessionId: $sessionId) { content createdAt createdBy id plan { content priority status } role segments { argsText kind output path text tool toolCallId } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -2078,6 +2220,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "limit": &runtime.SchemaSpec{Type: "integer"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId"}},
 			Template:  "{\"query\":\"query threadSessionProcessEvents($appId: ULID!, $limit: Int, $sessionId: ULID!) { threadSessionProcessEvents(appId: $appId, limit: $limit, sessionId: $sessionId) { content durationMs id occurredAt status tokens type } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -2102,6 +2245,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "sessionId"}},
 			Template:  "{\"query\":\"mutation unarchiveAgentSession($appId: ULID!, $sessionId: ULID!) { unarchiveAgentSession(appId: $appId, sessionId: $sessionId) { ok } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -2125,6 +2269,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId"}},
 			Template:  "{\"query\":\"query appSkillList($appId: ULID!) { appSkillList(appId: $appId) { author createdAt description forkOrigin { name ownerName skillId } id name ownerId ownerName appId snapshotId sourceKind updatedAt } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -2149,6 +2294,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "skillId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "skillId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation createSkillFork($input: CreateSkillForkInput!) { createSkillFork(input: $input) { author createdAt description forkOrigin { name ownerName skillId } id name ownerId ownerName appId snapshotId sourceKind updatedAt } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -2173,6 +2319,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "skillId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "skillId"}},
 			Template:  "{\"query\":\"mutation deleteOwnedSkill($appId: ULID!, $skillId: ULID!) { deleteOwnedSkill(appId: $appId, skillId: $skillId) { ok } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -2197,6 +2344,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"appId": &runtime.SchemaSpec{Type: "string"}, "skillId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"appId", "skillId"}},
 			Template:  "{\"query\":\"query skillDetail($appId: ULID!, $skillId: ULID!) { skillDetail(appId: $appId, skillId: $skillId) { author createdAt currentSnapshot { archiveFormat author blobKey blobSha256 blobSize compression createdAt description id name skillMarkdownPath uncompressedSize version } description entries { entryKind isExecutable mimeType path sha256 size } forkOrigin { name ownerName skillId } id name ownerId ownerName appId snapshotId sourceKind updatedAt } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
@@ -2221,6 +2369,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"modelId": &runtime.SchemaSpec{Type: "string"}, "vendor": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"modelId", "vendor"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation setSystemAgentModel($input: SetSystemAgentModelInput!) { setSystemAgentModel(input: $input) { email id imageUrl name systemAgentModel { modelId vendor } } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -2245,6 +2394,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"imageUrl": &runtime.SchemaSpec{Type: "string"}, "name": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"name"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation updateProfile($input: UpdateAccountProfileInput!) { updateProfile(input: $input) { email id imageUrl name systemAgentModel { modelId vendor } } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},
@@ -2266,6 +2416,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
+			Schema:    &runtime.SchemaSpec{Type: "object"},
 			Template:  "{\"query\":\"query viewer { viewer { account { email id imageUrl name systemAgentModel { modelId vendor } } activeOrganization { avatarUrl createdAt id name } auth { currentSecurityLevel methods } organizations { avatarUrl createdAt id name } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
