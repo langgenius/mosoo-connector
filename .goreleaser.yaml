@@ -5,8 +5,9 @@ project_name: mosoo
 before:
   hooks:
     - rm -rf .cache/goreleaser-skill
-    - mkdir -p .cache/goreleaser-skill
-    - cp -R publish/skills/mosoo .cache/goreleaser-skill/mosoo
+    - mkdir -p .cache/goreleaser-skill/mosoo
+    - cp publish/skills/mosoo/SKILL.md .cache/goreleaser-skill/mosoo/SKILL.md
+    - cp -R publish/skills/mosoo/references .cache/goreleaser-skill/mosoo/references
 
 builds:
   - id: mosoo
