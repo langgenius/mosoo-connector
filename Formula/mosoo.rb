@@ -5,20 +5,20 @@
 class Mosoo < Formula
   desc "Generated CLI for Mosoo integrators"
   homepage "https://github.com/langgenius/mosoo-connector"
-  version "0.1.1"
+  version "0.1.2"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/langgenius/mosoo-connector/releases/download/v0.1.1/mosoo-darwin-amd64.tar.gz"
-      sha256 "5994298a0aa0db3163b60904e6d1cfc0bc25253f1d18bc86b9ede3420de5aff5"
+      url "https://github.com/langgenius/mosoo-connector/releases/download/v0.1.2/mosoo-darwin-amd64.tar.gz"
+      sha256 "c9cf7be1e0850c232b7e10e1ca596eb8177881bb7d5391988f0b03caba5c56bb"
 
       define_method(:install) do
         bin.install "mosoo"
       end
     end
     if Hardware::CPU.arm?
-      url "https://github.com/langgenius/mosoo-connector/releases/download/v0.1.1/mosoo-darwin-arm64.tar.gz"
-      sha256 "07e0703446930e28702b2b3fe57742ab060d12182599f578aa5c2d8a9271be1c"
+      url "https://github.com/langgenius/mosoo-connector/releases/download/v0.1.2/mosoo-darwin-arm64.tar.gz"
+      sha256 "34e91186d2de591b45970c4e4592436e2762ef1b2461ef58b5d9d5bc9123f155"
 
       define_method(:install) do
         bin.install "mosoo"
@@ -28,15 +28,15 @@ class Mosoo < Formula
 
   on_linux do
     if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
-      url "https://github.com/langgenius/mosoo-connector/releases/download/v0.1.1/mosoo-linux-amd64.tar.gz"
-      sha256 "55b94ae3709fd3df0974ca000b7ddf5f05cdaabc6e43b043da5fa46d0ade2f0c"
+      url "https://github.com/langgenius/mosoo-connector/releases/download/v0.1.2/mosoo-linux-amd64.tar.gz"
+      sha256 "2b9b669d74c2d9dc2b7a0be5f5b2e1912e897503bfbfae7aaaa2b4c17f9181c6"
       define_method(:install) do
         bin.install "mosoo"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/langgenius/mosoo-connector/releases/download/v0.1.1/mosoo-linux-arm64.tar.gz"
-      sha256 "297abd5654563cfd8fa3693f35ed5fbd8353f2370001c974787671c39c7e880a"
+      url "https://github.com/langgenius/mosoo-connector/releases/download/v0.1.2/mosoo-linux-arm64.tar.gz"
+      sha256 "1fe2390e5938b3fa32d763bf88e60eb135ffdf50d563c27befe0970c2a0cf133"
       define_method(:install) do
         bin.install "mosoo"
       end
@@ -44,7 +44,7 @@ class Mosoo < Formula
   end
 
   test do
-    assert_match "mosoo v0.1.1", shell_output("#{bin}/mosoo --version")
+    assert_match "mosoo v0.1.2", shell_output("#{bin}/mosoo --version")
     system "#{bin}/mosoo", "commands", "--json"
   end
 end
