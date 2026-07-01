@@ -65,6 +65,7 @@ sources:
           - createApp
           - createAppMcpServer
           - createDiscordAgentChannelBinding
+          - createEnvironment
           - createEnvironmentFork
           - createLarkAgentChannelBinding
           - createSkillFork
@@ -106,6 +107,7 @@ sources:
           - unarchiveAgentSession
           - unpublishAgent
           - updateAgentConfig
+          - updateEnvironment
           - updateProfile
           - updateVendorCredential
       groups:
@@ -149,10 +151,12 @@ sources:
         - match:
             - environment
             - appEnvironmentList
+            - createEnvironment
             - createEnvironmentFork
             - deleteEnvironment
             - setEnvironmentVariableValue
             - setAppDefaultEnvironment
+            - updateEnvironment
           group: Environments
         - match:
             - fileList

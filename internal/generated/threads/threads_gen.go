@@ -8,7 +8,7 @@ import (
 	"github.com/lathe-cli/lathe/pkg/runtime"
 )
 
-const generatedSchemaVersion = 7
+const generatedSchemaVersion = 8
 
 func Mount(root *cobra.Command) error {
 	if err := runtime.AssertSchema(generatedSchemaVersion); err != nil {
@@ -74,7 +74,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
-			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"events": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{}}}},
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"events": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{}}}, Required: []string{"events"}},
 		},
 		Output: runtime.OutputHints{ListPath: "events", DefaultColumns: []string{"type", "clientRequestId", "run"}, ResponseMediaType: "application/json",
 		},
@@ -117,7 +117,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
-			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"fileId": &runtime.SchemaSpec{Type: "string"}}},
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"fileId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"fileId"}},
 		},
 		Security: &runtime.SecurityHint{},
 	},
@@ -195,7 +195,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  false,
 			MediaType: "application/json",
-			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"client_external_ref": &runtime.SchemaSpec{Type: "string"}, "files": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"file_id": &runtime.SchemaSpec{Type: "string"}}}}, "input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"content": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"text": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}}}, "type": &runtime.SchemaSpec{}}}}},
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"client_external_ref": &runtime.SchemaSpec{Type: "string"}, "files": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"file_id": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"file_id"}}}, "input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"content": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"text": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "text"}}}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "content"}}}},
 		},
 	},
 	{
