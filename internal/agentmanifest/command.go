@@ -347,7 +347,7 @@ func consoleClientOptions(cmd *cobra.Command) (string, latheruntime.ClientOption
 	}
 	entry, ok := hosts.Get(host)
 	if !ok {
-		return "", latheruntime.ClientOptions{}, fmt.Errorf("not authenticated to %s (run: mosoo auth login --hostname %s)", host, host)
+		return "", latheruntime.ClientOptions{}, fmt.Errorf("not authenticated to %s (run: mosoo auth login)", host)
 	}
 	auth, err := latheruntime.NewAuthFromHost(entry)
 	if err != nil {

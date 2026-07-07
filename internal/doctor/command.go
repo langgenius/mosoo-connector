@@ -247,7 +247,7 @@ func actionForCode(code string) string {
 	case "auth_store_unavailable":
 		return "Check the local Mosoo credential store and retry auth login."
 	case "auth_missing_credentials":
-		return "Run mosoo auth login for every host listed in auth.missingHosts."
+		return "Run mosoo auth login for the resolved target."
 	case "build_metadata_missing":
 		return "Build the CLI through the Makefile, install a tagged Go module, or inject Lathe Version, Commit, and Date with Go ldflags."
 	default:

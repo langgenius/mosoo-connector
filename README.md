@@ -159,12 +159,13 @@ Explicit hostname overrides always win:
   -> --target / --base-url
   -> MOSOO_TARGET / MOSOO_BASE_URL
   -> project config .mosoo/config.json
-  -> global config ~/.config/mosoo/config.json
+  -> global config in the OS config dir (or $MOSOO_CONFIG_DIR/config.json)
   -> current directory looks like the Mosoo source repo
   -> default local target
 ```
 
-Current builds default to the local Mosoo development stack until Mosoo Cloud API is available:
+Generated API commands still default to the local Mosoo development stack when
+no target config exists:
 
 ```json
 {
@@ -173,7 +174,28 @@ Current builds default to the local Mosoo development stack until Mosoo Cloud AP
 }
 ```
 
-Cloud is already a supported target shape for later distribution builds or explicit config:
+First-time cloud users should use the zero-config setup and login path:
+
+```sh
+mosoo setup
+mosoo auth login
+```
+
+`mosoo setup` stores the root target (`https://try.mosoo.ai`) in config. The CLI
+derives the console API (`/api`) and Public API (`/api/v1`) hosts internally.
+`mosoo auth login` defaults to Mosoo Cloud when no config exists, validates the
+token against the console API, and stores the same credential for both derived
+API hosts.
+
+Self-hosted and local targets use explicit setup subcommands:
+
+```sh
+mosoo setup self-host --base-url https://mosoo.example.com
+mosoo setup custom --api-url https://mosoo.example.com/api
+mosoo setup local
+```
+
+Cloud and custom targets are also supported with explicit command flags:
 
 ```sh
 mosoo doctor --json --target cloud
@@ -196,17 +218,10 @@ backdoor with an `@mosoo.ai` email, create a personal access token, and write th
 CLI credentials for both hostname bases. This only works against a loopback Mosoo
 API with the development backdoor enabled.
 
-For cloud and custom targets, sign in at `https://try.mosoo.ai`, use a Mosoo API
-token from that logged-in web session, then log in once per hostname base (same
-token is fine):
-
-```sh
-mosoo auth login --hostname https://try.mosoo.ai/api
-mosoo auth login --hostname https://try.mosoo.ai/api/v1 --skip-validate
-```
-
-`auth login` validates the token against `GET /access-tokens` on the `/api` host.
-The `/api/v1` entry reuses the same credential; `--skip-validate` avoids a 404 on that base.
+For cloud and custom targets, sign in at `https://try.mosoo.ai` or the configured
+web app, use a Mosoo API token from that logged-in web session, then run
+`mosoo auth login`. `--hostname` remains available as an advanced override for
+one-off host selection.
 The generated `mosoo console-rest access create` command maps to `POST /access-tokens`,
 but it still needs viewer-level authentication; it is not a first-login mechanism by itself.
 

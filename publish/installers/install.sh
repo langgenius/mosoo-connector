@@ -206,12 +206,26 @@ console_host() {
 	printf '%s/api\n' "$(default_base_url "$TARGET" | sed 's#/*$##')"
 }
 
-public_api_host() {
-	printf '%s/api/v1\n' "$(default_base_url "$TARGET" | sed 's#/*$##')"
-}
-
 base_origin() {
 	default_base_url "$TARGET" | sed 's#/*$##'
+}
+
+probe_target_api() {
+	local base endpoint status
+	base="$1"
+	endpoint="$(printf '%s/api/access-tokens\n' "$(printf '%s\n' "$base" | sed 's#/*$##')")"
+
+	if "$DRY_RUN"; then
+		print_cmd curl -sS --max-time 5 -o /dev/null -w "%{http_code}" "$endpoint"
+		return
+	fi
+
+	need_cmd curl
+	status="$(curl -sS --max-time 5 -o /dev/null -w "%{http_code}" "$endpoint" || true)"
+	case "$status" in
+		""|000) die "target API probe failed for $endpoint" ;;
+		404|5*) die "target API probe failed for $endpoint: HTTP $status" ;;
+	esac
 }
 
 global_config_dir() {
@@ -367,6 +381,7 @@ write_target_config() {
 	config_dir="$(global_config_dir)"
 	config_file="$config_dir/config.json"
 
+	probe_target_api "$base"
 	run mkdir -p "$config_dir"
 	if "$DRY_RUN"; then
 		log "dry-run: would write $config_file:"
@@ -391,15 +406,13 @@ resolve_mosoo_binary() {
 }
 
 store_api_token() {
-	local mosoo token console public
+	local mosoo token console
 	mosoo="$1"
 	token="$2"
 	console="$(console_host)"
-	public="$(public_api_host)"
 
 	[ -n "$token" ] || die "Mosoo API token must not be empty"
 	printf '%s\n' "$token" | "$mosoo" auth login --hostname "$console" --with-token
-	printf '%s\n' "$token" | "$mosoo" auth login --hostname "$public" --skip-validate --with-token
 }
 
 read_local_development_email() {
@@ -432,7 +445,6 @@ run_local_development_login() {
 		print_cmd curl -fsSL -c cookies.txt -H "content-type: application/json" -H "origin: $origin" --data '{"email":"dev@mosoo.ai"}' "$login_url"
 			print_cmd curl -fsSL -b cookies.txt -H "content-type: application/json" -H "origin: $origin" --data '{"label":"Mosoo CLI local install"}' "$token_url"
 		print_cmd "$BIN_DIR/mosoo" auth login --hostname "$console" --with-token
-		print_cmd "$BIN_DIR/mosoo" auth login --hostname "$(public_api_host)" --skip-validate --with-token
 		return
 	fi
 
@@ -484,7 +496,6 @@ run_login() {
 		mosoo="$BIN_DIR/mosoo"
 		log "dry-run: would show cloud login instructions: $LOGIN_URL"
 		print_cmd "$mosoo" auth login --hostname "$(console_host)" --with-token
-		print_cmd "$mosoo" auth login --hostname "$(public_api_host)" --skip-validate --with-token
 		return
 	fi
 

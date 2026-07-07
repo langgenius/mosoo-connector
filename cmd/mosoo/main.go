@@ -17,6 +17,7 @@ import (
 	"github.com/langgenius/mosoo-connector/internal/doctor"
 	"github.com/langgenius/mosoo-connector/internal/generated"
 	"github.com/langgenius/mosoo-connector/internal/publicthreads"
+	"github.com/langgenius/mosoo-connector/internal/setup"
 	"github.com/langgenius/mosoo-connector/internal/skillcommands"
 	"github.com/langgenius/mosoo-connector/internal/target"
 	publishskills "github.com/langgenius/mosoo-connector/publish/skills"
@@ -36,6 +37,9 @@ func main() {
 	config.Bind(m)
 	root := lathe.NewApp(m)
 	target.Install(root)
+	if err := setup.Install(root); err != nil {
+		os.Exit(runtime.FormatError(err, "table", os.Stderr))
+	}
 	root.AddCommand(agentmanifest.NewCommand())
 	root.AddCommand(doctor.NewCommand())
 	root.AddCommand(kitupcobra.NewSkillCommand(kitupcobra.Options{
