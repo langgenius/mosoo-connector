@@ -135,9 +135,24 @@ func runArgs(host string, args ...string) []string {
 }
 
 func TestCreateWaitFinalOutput(t *testing.T) {
+	want := "\n001|中文长文本校验-Aa0-表格字符|END001\n" +
+		"| 列一 | 列二 |\n| --- | --- |\n| emoji 🧪 | [链接](https://example.com) |\n" +
+		"```go\nfmt.Println(\"保持原样\")\n```\ntrailing spaces  "
+	finalBody, err := json.Marshal(map[string]any{
+		"thread": map[string]any{"id": "t1", "status": "IDLE"},
+		"run": map[string]any{
+			"id":          "r1",
+			"status":      "completed",
+			"finalOutput": map[string]any{"text": want},
+		},
+		"links": map[string]any{"thread": "u"},
+	})
+	if err != nil {
+		t.Fatalf("marshal final body: %v", err)
+	}
 	s := &threadServer{
 		flipAfter: 1,
-		finalBody: `{"thread":{"id":"t1","status":"IDLE"},"run":{"id":"r1","status":"completed","finalOutput":{"text":"Hello from the agent."}},"links":{"thread":"u"}}`,
+		finalBody: string(finalBody),
 	}
 	srv := httptest.NewServer(s.handler(t))
 	defer srv.Close()
@@ -148,8 +163,33 @@ func TestCreateWaitFinalOutput(t *testing.T) {
 	if err := root.Execute(); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
-	if strings.TrimSpace(out.String()) != "Hello from the agent." {
-		t.Fatalf("output = %q, want just the final output text", out.String())
+	if got := out.String(); got != want {
+		t.Fatalf("output bytes = %q, want exact API final output bytes %q", got, want)
+	}
+}
+
+func TestEventsWaitFinalOutputFailsClosedWhenCompletedOutputIsMissing(t *testing.T) {
+	s := &threadServer{
+		flipAfter: 0,
+		finalBody: `{"thread":{"id":"t1","status":"IDLE"},"run":{"id":"r1","status":"completed","finalOutput":null},"links":{"thread":"u"}}`,
+	}
+	srv := httptest.NewServer(s.handler(t))
+	defer srv.Close()
+
+	root, out := newTestRoot(t, srv.URL)
+	root.SilenceErrors = true
+	root.SilenceUsage = true
+	root.SetArgs(runArgs(srv.URL, "public-thread-api", "events", "wait", "--poll-interval", "1ms",
+		"--thread-id", "t1", "--final-output"))
+	err := root.Execute()
+	if err == nil {
+		t.Fatalf("expected missing final output error, output=%q", out.String())
+	}
+	if got, want := err.Error(), "completed run r1 has no final output"; got != want {
+		t.Fatalf("error = %q, want %q", got, want)
+	}
+	if out.Len() != 0 {
+		t.Fatalf("output = %q, want no partial output", out.String())
 	}
 }
 
