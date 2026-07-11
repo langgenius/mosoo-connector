@@ -76,13 +76,16 @@ func eventsForRunStrict(events []Event, runID string) []Event {
 	return out
 }
 
-// writeFinalOutput prints just the completed run's final output text.
-func writeFinalOutput(w io.Writer, run *RunSummary) {
-	text := finalOutputText(run)
-	if text == "" {
-		return
+// writeFinalOutput writes exactly the completed run's final output bytes.
+func writeFinalOutput(w io.Writer, run *RunSummary) error {
+	if run == nil {
+		return fmt.Errorf("no completed run is available for final output")
 	}
-	fmt.Fprintln(w, text)
+	if run.FinalOutput == nil {
+		return fmt.Errorf("completed run %s has no final output", run.ID)
+	}
+	_, err := io.WriteString(w, run.FinalOutput.Text)
+	return err
 }
 
 // writeSuccessSummary prints a human-readable completion summary.

@@ -358,7 +358,7 @@ func finishWait(cmd *cobra.Command, client *Client, st *ThreadState, waitErr err
 	case run.Status == StatusWaitingInput:
 		writePausedSummary(cmd.OutOrStdout(), st)
 	case finalOutputOnly:
-		writeFinalOutput(cmd.OutOrStdout(), run)
+		return writeFinalOutput(cmd.OutOrStdout(), run)
 	default:
 		writeSuccessSummary(cmd.OutOrStdout(), st)
 	}
