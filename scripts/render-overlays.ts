@@ -505,10 +505,42 @@ function buildThreadsOverlay(): Record<string, OverlayCommand> {
 			long: "Open a Server-Sent Events stream of thread events. Use -o raw for the event stream.",
 			example: "mosoo public-thread-api events stream --thread-id <thread-id> -o raw",
 		},
-		add: {
-			short: "Attach a file to a thread",
-			long: "Associate an uploaded file with a thread.",
-			example: "mosoo public-thread-api files add --thread-id <thread-id> --set fileId=<file-id>",
+		upload: {
+			short: "Upload a file for an agent",
+			long: "Upload one file before creating or continuing a thread, then reference the returned file ID in resources[].file_id.",
+			example: "mosoo public-thread-api files upload --agent-id <agent-id> --file <path>",
+			examples: [
+				{
+					summary: "Upload a file and capture the draft file ID for a thread request.",
+					command: "mosoo public-thread-api files upload --agent-id <agent-id> --file <path> -o json",
+					output_hints: {
+						id_path: "file.id",
+					},
+					follow_up_commands: [
+						"mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create.json -o json",
+					],
+				},
+			],
+			known_errors: [
+				...thread401,
+				{ status: 400, cause: "The multipart request must contain exactly one file field." },
+				{ status: 413, cause: "The upload exceeds the Public API file size limit." },
+			],
+		},
+		"download": {
+			short: "Download file content",
+			long: "Download the bytes of a ready thread attachment or agent artifact.",
+			example: "mosoo public-thread-api files download --file-id <file-id> -o raw",
+		},
+		"retrieve-file": {
+			short: "Retrieve file metadata",
+			long: "Retrieve public metadata for a draft or thread file.",
+			example: "mosoo public-thread-api files retrieve-file --file-id <file-id> -o json",
+		},
+		"delete-file": {
+			short: "Delete a file",
+			long: "Delete a pre-thread draft file or a file attached to a writable thread.",
+			example: "mosoo public-thread-api files delete-file --file-id <file-id> -o json",
 		},
 		"list-files": {
 			short: "List thread files",
@@ -550,6 +582,23 @@ function buildThreadsOverlay(): Record<string, OverlayCommand> {
 					},
 					follow_up_commands: [
 						"mosoo public-thread-api threads retrieve --thread-id <thread-id> -o json",
+						"mosoo public-thread-api events list-events --thread-id <thread-id> -o json",
+					],
+				},
+				{
+					summary: "Create a Thread with a file uploaded through the Agent endpoint.",
+					command: "mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create-with-file.json -o json",
+					body_shape: {
+						input: {
+							type: "user.message",
+							content: [{ type: "text", text: "Summarize the attachment." }],
+						},
+						resources: [{ type: "file", file_id: "<file-id>" }],
+					},
+					output_hints: {
+						id_path: "thread.id",
+					},
+					follow_up_commands: [
 						"mosoo public-thread-api events list-events --thread-id <thread-id> -o json",
 					],
 				},

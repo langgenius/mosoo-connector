@@ -12,9 +12,19 @@ interface OperationMetadata {
 }
 
 const operationMetadata: Record<string, Partial<Record<HttpMethod, OperationMetadata>>> = {
+	"/agents/{agentId}/files": {
+		post: { operationId: "AgentFiles_Upload", tags: ["Files"] },
+	},
 	"/agents/{agentId}/threads": {
 		get: { operationId: "Threads_ListForAgent", tags: ["Threads"] },
 		post: { operationId: "Threads_Create", tags: ["Threads"] },
+	},
+	"/files/{fileId}": {
+		delete: { operationId: "PublicFiles_DeleteFile", tags: ["Files"] },
+		get: { operationId: "PublicFiles_RetrieveFile", tags: ["Files"] },
+	},
+	"/files/{fileId}/content": {
+		get: { operationId: "PublicFiles_Download", tags: ["Files"] },
 	},
 	"/threads/{threadId}": {
 		delete: { operationId: "Threads_Delete", tags: ["Threads"] },
@@ -32,7 +42,6 @@ const operationMetadata: Record<string, Partial<Record<HttpMethod, OperationMeta
 	},
 	"/threads/{threadId}/files": {
 		get: { operationId: "ThreadFiles_ListFiles", tags: ["Files"] },
-		post: { operationId: "ThreadFiles_Add", tags: ["Files"] },
 	},
 	"/threads/{threadId}/files/{fileId}": {
 		delete: { operationId: "ThreadFiles_Remove", tags: ["Files"] },

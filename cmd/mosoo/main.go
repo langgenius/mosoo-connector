@@ -16,6 +16,7 @@ import (
 	"github.com/langgenius/mosoo-connector/internal/consolecommands"
 	"github.com/langgenius/mosoo-connector/internal/doctor"
 	"github.com/langgenius/mosoo-connector/internal/generated"
+	"github.com/langgenius/mosoo-connector/internal/publicfiles"
 	"github.com/langgenius/mosoo-connector/internal/publicthreads"
 	"github.com/langgenius/mosoo-connector/internal/setup"
 	"github.com/langgenius/mosoo-connector/internal/skillcommands"
@@ -53,6 +54,9 @@ func main() {
 		os.Exit(runtime.FormatError(err, "table", os.Stderr))
 	}
 	if err := skillcommands.Install(root); err != nil {
+		os.Exit(runtime.FormatError(err, "table", os.Stderr))
+	}
+	if err := publicfiles.Install(root); err != nil {
 		os.Exit(runtime.FormatError(err, "table", os.Stderr))
 	}
 	if err := publicthreads.Install(root); err != nil {
