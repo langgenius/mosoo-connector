@@ -143,7 +143,7 @@ Three API surfaces share one deployment but use different URL bases:
 | CLI module | Default hostname (from `MOSOO_HOST_BASE`) | Example paths |
 |------------|-------------------------------------------|---------------|
 | `console`, `console-rest` | `{base}/api` | `/graphql`, `/access-tokens`, `/files` |
-| `public-thread-api` | `{base}/api/v1` | `/agents/{id}/threads`, `/threads/{id}/events` |
+| `public-thread-api` | `{base}/api/v1` | `/agents/{id}/files`, `/agents/{id}/threads`, `/threads/{id}/events` |
 
 Defaults are baked at codegen time (`MOSOO_HOST_BASE`, default `http://127.0.0.1:8787`).
 Override any command with `--hostname` or `$MOSOO_HOST`.
@@ -241,3 +241,32 @@ mosoo commands show run --json
 
 Use `commands show` before executing an unfamiliar generated command so flags,
 body shape, auth, and output format are explicit.
+
+### Public Thread file uploads
+
+The Public API uses one multipart upload before a Thread references the file.
+Upload a local file to the Agent endpoint and save `file.id` from the response:
+
+```sh
+mosoo public-thread-api files upload \
+  --agent-id <agent-id> \
+  --file ./brief.txt \
+  -o json
+```
+
+Then put that ID in `resources[].file_id` when creating a Thread or sending a
+follow-up `user_message` event:
+
+```json
+{
+  "input": {
+    "content": [{ "type": "text", "text": "Summarize the attachment." }],
+    "type": "user.message"
+  },
+  "resources": [{ "type": "file", "file_id": "<file-id>" }]
+}
+```
+
+There is no public create-upload, PUT, complete, or post-create attach step.
+`GET /threads/{threadId}/files` lists claimed attachments and artifacts;
+metadata, content download, and deletion are exposed under `/files/{fileId}`.

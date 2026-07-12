@@ -46,7 +46,7 @@ For a backend or Worker integration with a published Agent:
    Environment with `Skill Runtime Environment Workflow` before publishing or
    starting a new Session.
 4. Prepare backend environment values with `Public API Tokens`.
-5. Upload files only when the thread needs attachments; use `Public Thread File Upload Workflow` and carry forward the returned `fileId`.
+5. Upload files only when the thread needs attachments; use `Public Thread File Upload Workflow`, then reference the returned `fileId` when creating or continuing the thread.
 6. Create or continue the thread, wait for completion, and inspect output with `Public Thread Wait, Final Output, And Transcript Workflow`.
 7. Edit Agent configuration only through `Agent Manifest Workflow`.
 
@@ -286,20 +286,33 @@ Carry these handoff values: `appId`, per-Agent `agentId`, `.mosoo.toml` path,
 
 ## Public Thread File Upload Workflow
 
-For Public Thread file uploads, run the generated commands in order and save the
-returned `fileId` before moving to the next step:
+For Public Thread file uploads, upload each file to the Agent endpoint before
+creating or continuing a Thread. Save `response.file.id`, then reference it as
+`resources[].file_id` in the Thread create body or a `user_message` event body:
 
 ```sh
-mosoo console-rest files create-upload --file upload.json -o json
-mosoo console-rest files upload-content --file-id <file-id> --file content-body.json -o json
-mosoo console-rest files complete-upload --file-id <file-id> --file complete.json -o json
-mosoo public-thread-api files add --thread-id <thread-id> --set fileId=<file-id> -o json
+mosoo public-thread-api files upload --agent-id <agent-id> --file <path> -o json
+mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create.json -o json
 ```
 
-Use `mosoo commands show <path...> --json` before each command to confirm body
-shape and host selection. If a step fails or times out, inspect state with
-`console-rest files get-upload` before retrying. Use `console-rest files
-abort-upload` only for a pending upload that should not be completed.
+The upload uses `multipart/form-data` with exactly one `file` field and returns
+a ready draft file. A create body references it like this:
+
+```json
+{
+  "input": {
+    "content": [{ "type": "text", "text": "Summarize the attachment." }],
+    "type": "user.message"
+  },
+  "resources": [{ "type": "file", "file_id": "<file-id>" }]
+}
+```
+
+The same `resources` shape is available on a follow-up `user_message` event.
+Mosoo claims the draft file into that Thread before queueing the Run. There is
+no public create-upload, PUT, complete, or post-create attach command. Use
+`mosoo commands show public-thread-api files upload --json` before uploading to
+confirm the generated flags and host selection.
 
 ## Public Thread Wait, Final Output, And Transcript Workflow
 

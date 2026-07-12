@@ -61,15 +61,28 @@
 
 ## Files
 
-### `mosoo public-thread-api files add`
+### `mosoo public-thread-api files delete-file`
 
-- Summary: Attach a file to a thread
-- HTTP: `POST /threads/{threadId}/files`
+- Summary: Delete a file
+- HTTP: `DELETE /files/{fileId}`
 - Auth: required
-- Body: required; media type `application/json`
+- Body: none
 - Flags:
-  - `--thread-id` (path, required, ulid): Thread ID returned by create thread. v1 IDs are bare ULIDs.
-- Example: `mosoo public-thread-api files add --thread-id <thread-id> --set fileId=<file-id>`
+  - `--file-id` (path, required, ulid): File ID returned by add or list Thread files. v1 IDs are bare ULIDs.
+- Output: response media `application/json`
+- Example: `mosoo public-thread-api files delete-file --file-id <file-id> -o json`
+
+### `mosoo public-thread-api files download`
+
+- Summary: Download file content
+- HTTP: `GET /files/{fileId}/content`
+- Auth: required
+- Body: none
+- Flags:
+  - `--file-id` (path, required, ulid): File ID returned by add or list Thread files. v1 IDs are bare ULIDs.
+  - `--disposition` (query, default `attachment`, one of: attachment|inline): Controls the Content-Disposition response header. Use attachment for downloads or inline for previewable content.
+- Output: response media `application/octet-stream`
+- Example: `mosoo public-thread-api files download --file-id <file-id> -o raw`
 
 ### `mosoo public-thread-api files list-files`
 
@@ -93,6 +106,36 @@
   - `--file-id` (path, required, ulid): File ID returned by add or list Thread files. v1 IDs are bare ULIDs.
 - Output: response media `application/json`
 - Example: `mosoo public-thread-api files remove --thread-id <thread-id> --file-id <file-id>`
+
+### `mosoo public-thread-api files retrieve-file`
+
+- Summary: Retrieve file metadata
+- HTTP: `GET /files/{fileId}`
+- Auth: required
+- Body: none
+- Flags:
+  - `--file-id` (path, required, ulid): File ID returned by add or list Thread files. v1 IDs are bare ULIDs.
+- Output: response media `application/json`
+- Example: `mosoo public-thread-api files retrieve-file --file-id <file-id> -o json`
+
+### `mosoo public-thread-api files upload`
+
+- Summary: Upload a file for an agent
+- HTTP: `POST /agents/{agentId}/files`
+- Auth: required
+- Body: required; media type `multipart/form-data`
+- Flags:
+  - `--agent-id` (path, required, ulid): Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs.
+- Known errors:
+  - HTTP 401: Invalid personal access token.
+  - HTTP 400: The multipart request must contain exactly one file field.
+  - HTTP 413: The upload exceeds the Public API file size limit.
+- Examples:
+  - Upload a file and capture the draft file ID for a thread request.
+    Command: `mosoo public-thread-api files upload --agent-id <agent-id> --file <path> -o json`
+    Output ID path: `file.id`
+    Follow-up commands:
+      - `mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create.json -o json`
 
 ## Threads
 
@@ -125,6 +168,12 @@
     Output ID path: `thread.id`
     Follow-up commands:
       - `mosoo public-thread-api threads retrieve --thread-id <thread-id> -o json`
+      - `mosoo public-thread-api events list-events --thread-id <thread-id> -o json`
+  - Create a Thread with a file uploaded through the Agent endpoint.
+    Command: `mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create-with-file.json -o json`
+    Body shape: `{"input":{"content":[{"text":"Summarize the attachment.","type":"text"}],"type":"user.message"},"resources":[{"file_id":"\u003cfile-id\u003e","type":"file"}]}`
+    Output ID path: `thread.id`
+    Follow-up commands:
       - `mosoo public-thread-api events list-events --thread-id <thread-id> -o json`
 
 ### `mosoo public-thread-api threads delete`
