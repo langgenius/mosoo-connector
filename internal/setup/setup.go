@@ -80,8 +80,12 @@ func wrapLoginCommand(cmd *cobra.Command) {
 			originalRun(cmd, args)
 		}
 
-		if err := mirrorCredential(loginHost, resolved); err != nil {
+		savedHosts, err := mirrorCredential(loginHost, resolved)
+		if err != nil {
 			return err
+		}
+		if len(savedHosts) > 1 {
+			fmt.Fprintf(cmd.ErrOrStderr(), "✓ Saved credentials for %s\n", strings.Join(savedHosts, ", "))
 		}
 		if !explicitHost && resolved.Source == target.SourceDefaultCloud {
 			insecure, _ := cmd.Root().PersistentFlags().GetBool("insecure")
@@ -128,29 +132,38 @@ func resolveAuthLoginHost(cmd *cobra.Command) (target.Resolution, string, bool, 
 	return resolved, hostname, false, nil
 }
 
-func mirrorCredential(loginHost string, resolved target.Resolution) error {
+func mirrorCredential(loginHost string, resolved target.Resolution) ([]string, error) {
 	hosts, err := latheconfig.LoadHosts()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	entry, ok := hosts.Get(loginHost)
 	if !ok {
-		return fmt.Errorf("auth login succeeded but no credential was saved for %s", loginHost)
+		return nil, fmt.Errorf("auth login succeeded but no credential was saved for %s", loginHost)
 	}
 
+	savedHosts := make([]string, 0, 3)
+	seen := map[string]bool{}
 	for _, host := range []string{
+		loginHost,
 		resolved.Hosts[target.SurfaceConsole],
 		resolved.Hosts[target.SurfacePublicThreadAPI],
 	} {
-		if strings.TrimSpace(host) == "" {
+		host = strings.TrimSpace(host)
+		if host == "" {
 			continue
 		}
+		if seen[host] {
+			continue
+		}
+		seen[host] = true
 		hosts.Set(host, entry)
+		savedHosts = append(savedHosts, host)
 	}
 	if err := hosts.Save(); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return savedHosts, nil
 }
 
 // NewCommand returns the Mosoo setup command. The root setup path is cloud-only

@@ -67,7 +67,7 @@ type State struct {
 type fileConfig struct {
 	Target       string `json:"target"`
 	BaseURL      string `json:"baseUrl"`
-	BaseURLSnake string `json:"base_url"`
+	BaseURLSnake string `json:"base_url,omitempty"`
 }
 
 // Install adds target flags and wires runtime target resolution into generated API commands.
