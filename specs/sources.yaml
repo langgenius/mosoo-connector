@@ -28,6 +28,7 @@ sources:
           - agentSessionList
           - agentSessionRetrieve
           - appCostCard
+          - appDeploymentRunList
           - appDeploymentStatus
           - appEnvironmentList
           - appInfo
@@ -107,6 +108,7 @@ sources:
           - unarchiveAgentSession
           - unpublishAgent
           - updateAgentConfig
+          - updateAppMcpServer
           - updateEnvironment
           - updateProfile
           - updateVendorCredential
@@ -170,11 +172,13 @@ sources:
             - revokeMcpCredential
             - setMcpServerEnabled
             - startMcpOAuth
+            - updateAppMcpServer
           group: MCP
         - match:
             - onboardingBootstrap
           group: Onboarding
         - match:
+            - appDeploymentRunList
             - appDeploymentStatus
             - appList
             - appOverview

@@ -314,15 +314,31 @@ mosoo public-thread-api threads transcript --thread-id <thread-id>
 
 1. Search for candidates with `mosoo search "<intent>" --json`; use `--limit` when needed. Search is only candidate discovery.
 2. Inspect the exact command with `mosoo commands show <path...> --json` before executing an unfamiliar command.
-3. If the command detail has `auth.required=true`, run `mosoo auth status --hostname <host>` before execution. Use `http.default_hostname` when present unless the user provides `--hostname` or `$MOSOO_HOST`.
+3. If the command detail has `auth.required=true`, run `mosoo doctor --json` and check the resolved target/auth state before execution. If credentials are missing, run `mosoo auth login` for the resolved target.
 4. Execute only after flags, body, auth, HTTP path, and output hints are clear from `commands show`.
 
-## Browser Login
+## Setup And Login
 
-Use `mosoo auth login --auth-type oauth --hostname <host> --provider google`
-when the user needs browser-based Mosoo login for CLI access. The browser
-session may come from Google OAuth or Mosoo's email login, but the CLI stores the
-issued Mosoo API token as `auth_type: bearer` after authorization.
+For first-time Mosoo Cloud usage, do not ask the user for a hostname:
+
+```sh
+mosoo setup
+mosoo auth login
+```
+
+`mosoo setup` stores the cloud service root. `mosoo auth login` defaults to
+Mosoo Cloud when no config exists and stores one credential for both the console
+API (`/api`) and Public Thread API (`/api/v1`) hosts derived from the root.
+
+For self-hosted or local runtimes, configure the root target first:
+
+```sh
+mosoo setup self-host --base-url https://mosoo.example.com
+mosoo setup local
+```
+
+Use `--hostname <surface-host>` only as an advanced one-off override for an
+exact API surface.
 
 ## Host Context
 
@@ -331,10 +347,10 @@ resolved target, base URL, and per-surface hosts. Console GraphQL and console
 REST commands use the `/api` surface. Public Thread API commands use the
 `/api/v1` surface.
 
-Use `--target local` or `--target cloud` for built-in targets. Use `--target
-custom --base-url <service-root>` for a non-default deployment so the CLI derives
-the correct surface hosts. Use `--hostname <surface-host>` or `MOSOO_HOST` only
-when overriding one exact surface host.
+Use `mosoo setup`, `mosoo setup local`, or `mosoo setup self-host` to persist a
+target. Use `--target local`, `--target cloud`, or `--target custom --base-url
+<service-root>` for per-command target selection. Use `--hostname
+<surface-host>` or `MOSOO_HOST` only when overriding one exact surface host.
 
 For runnable examples covering `--target`, `--base-url`, `--hostname`, and
 `MOSOO_HOST`, read `references/cli/host-context.md`.

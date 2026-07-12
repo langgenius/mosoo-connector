@@ -22,8 +22,9 @@ separate agent runtime.
 4. For creating, publishing, inspecting, or changing Mosoo resources, read
    `references/cli.md`, then follow its command-index links when command
    details are needed.
-5. For missing first-time setup, read `references/setup.md` and ask the user to
-   run the installer.
+5. For missing first-time setup, read `references/setup.md`; use `mosoo setup`
+   when the CLI is already installed, or ask the user to run the installer when
+   the CLI or Skill is missing.
 
 ## Routing
 

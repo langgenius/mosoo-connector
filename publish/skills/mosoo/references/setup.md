@@ -39,6 +39,26 @@ mosoo --version
 mosoo doctor --json
 ```
 
+If the Mosoo CLI is already installed, first-time cloud setup does not require
+the installer or any hostname input:
+
+```sh
+mosoo setup
+mosoo auth login
+mosoo doctor --json
+```
+
+`mosoo setup` stores the cloud service root (`https://try.mosoo.ai`). The CLI
+derives the console API (`/api`) and Public API (`/api/v1`) hosts internally.
+`mosoo auth login` saves one credential for both hosts.
+
+For self-hosted or local targets, use the explicit setup subcommands:
+
+```sh
+mosoo setup self-host --base-url https://mosoo.example.com
+mosoo setup local
+```
+
 The installer may install or update the Mosoo CLI, install or update this Mosoo
 Skill, guide login, write initial config, and run readiness checks. Public
 installs default to the Mosoo cloud target at `https://try.mosoo.ai`; pass

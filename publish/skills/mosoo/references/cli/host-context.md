@@ -11,6 +11,17 @@ mosoo doctor --json
 Console GraphQL and console REST commands use the `/api` surface. Public Thread
 API commands use the `/api/v1` surface.
 
+For first-time Mosoo Cloud usage, configure and authenticate without a hostname:
+
+```sh
+mosoo setup
+mosoo auth login
+```
+
+`mosoo setup` stores the service root, and the CLI derives `/api` and `/api/v1`
+internally. For self-hosted or local runtimes, use `mosoo setup self-host` or
+`mosoo setup local`.
+
 ## Target And Base URL
 
 Use `--target local` or `--target cloud` when one of the built-in targets is the
@@ -60,5 +71,5 @@ the surface that will be used:
 
 ```sh
 mosoo commands show console apps app-list --json
-mosoo auth status --hostname http://127.0.0.1:8787/api
+mosoo doctor --json
 ```

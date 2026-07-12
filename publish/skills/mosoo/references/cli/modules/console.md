@@ -7,8 +7,8 @@
 - Repository: https://github.com/langgenius/mosoo.git
 - Pinned tag: `local-snapshot`
 - Schema: `docs/graphql/console.graphql`
-- Expose queries: `accessibleAgentList`, `agent`, `agentChannelBindingList`, `agentCostCard`, `agentEditorState`, `agentManifest`, `agentSessionDiagnostics`, `agentSessionList`, `agentSessionRetrieve`, `appCostCard`, `appDeploymentStatus`, `appEnvironmentList`, `appInfo`, `appList`, `appOverview`, `appSkillList`, `availableAgentModels`, `controlPlaneOverview`, `environment`, `exportAgentPackage`, `fileList`, `listSessionResources`, `mcpOAuthFlowStatus`, `mcpRegistry`, `organizationBillingCostCard`, `session`, `sessionList`, `sessionMessages`, `sessionProcessEvents`, `skillDetail`, `threadAgentSessionList`, `threadAgentSessionRetrieve`, `threadSessionMessages`, `threadSessionProcessEvents`, `vendorCredentialList`, `viewer`
-- Expose mutations: `addSessionResource`, `archiveAgentSession`, `autoTitleSession`, `connectMcpBearer`, `createAgent`, `createAgentFork`, `createAgentSession`, `createApp`, `createAppMcpServer`, `createDiscordAgentChannelBinding`, `createEnvironment`, `createEnvironmentFork`, `createLarkAgentChannelBinding`, `createSkillFork`, `createSlackAgentChannelBinding`, `createTelegramAgentChannelBinding`, `createVendorCredential`, `deleteAgent`, `deleteAgentChannelBinding`, `deleteAgentSession`, `deleteAppDeployment`, `deleteEnvironment`, `deleteMcpServer`, `deleteOwnedSkill`, `deleteVendorCredential`, `deployApp`, `importAgentPackage`, `onboardingBootstrap`, `pollLarkAgentChannelRegistration`, `pollWeChatAgentChannelPairing`, `prewarmAgentSession`, `publishAgent`, `recreateSandbox`, `removeSessionResource`, `renameApp`, `renameSession`, `resetAgentState`, `restartDriver`, `revokeMcpCredential`, `setAppDefaultEnvironment`, `setDefaultVendorCredential`, `setEnvironmentVariableValue`, `setMcpServerEnabled`, `setSystemAgentModel`, `startAgentRun`, `startLarkAgentChannelRegistration`, `startMcpOAuth`, `startWeChatAgentChannelPairing`, `testVendorCredential`, `unarchiveAgentSession`, `unpublishAgent`, `updateAgentConfig`, `updateEnvironment`, `updateProfile`, `updateVendorCredential`
+- Expose queries: `accessibleAgentList`, `agent`, `agentChannelBindingList`, `agentCostCard`, `agentEditorState`, `agentManifest`, `agentSessionDiagnostics`, `agentSessionList`, `agentSessionRetrieve`, `appCostCard`, `appDeploymentRunList`, `appDeploymentStatus`, `appEnvironmentList`, `appInfo`, `appList`, `appOverview`, `appSkillList`, `availableAgentModels`, `controlPlaneOverview`, `environment`, `exportAgentPackage`, `fileList`, `listSessionResources`, `mcpOAuthFlowStatus`, `mcpRegistry`, `organizationBillingCostCard`, `session`, `sessionList`, `sessionMessages`, `sessionProcessEvents`, `skillDetail`, `threadAgentSessionList`, `threadAgentSessionRetrieve`, `threadSessionMessages`, `threadSessionProcessEvents`, `vendorCredentialList`, `viewer`
+- Expose mutations: `addSessionResource`, `archiveAgentSession`, `autoTitleSession`, `connectMcpBearer`, `createAgent`, `createAgentFork`, `createAgentSession`, `createApp`, `createAppMcpServer`, `createDiscordAgentChannelBinding`, `createEnvironment`, `createEnvironmentFork`, `createLarkAgentChannelBinding`, `createSkillFork`, `createSlackAgentChannelBinding`, `createTelegramAgentChannelBinding`, `createVendorCredential`, `deleteAgent`, `deleteAgentChannelBinding`, `deleteAgentSession`, `deleteAppDeployment`, `deleteEnvironment`, `deleteMcpServer`, `deleteOwnedSkill`, `deleteVendorCredential`, `deployApp`, `importAgentPackage`, `onboardingBootstrap`, `pollLarkAgentChannelRegistration`, `pollWeChatAgentChannelPairing`, `prewarmAgentSession`, `publishAgent`, `recreateSandbox`, `removeSessionResource`, `renameApp`, `renameSession`, `resetAgentState`, `restartDriver`, `revokeMcpCredential`, `setAppDefaultEnvironment`, `setDefaultVendorCredential`, `setEnvironmentVariableValue`, `setMcpServerEnabled`, `setSystemAgentModel`, `startAgentRun`, `startLarkAgentChannelRegistration`, `startMcpOAuth`, `startWeChatAgentChannelPairing`, `testVendorCredential`, `unarchiveAgentSession`, `unpublishAgent`, `updateAgentConfig`, `updateAppMcpServer`, `updateEnvironment`, `updateProfile`, `updateVendorCredential`
 - Group policies: `13`
 - Selection policy: max depth `5`
 - Resolved SHA: `local-snapshot`
@@ -236,6 +236,20 @@
   - HTTP 401: Missing, invalid, or revoked personal access token.
 
 ## Apps
+
+### `mosoo console apps app-deployment-run-list`
+
+- Summary: List app deployment runs
+- HTTP: `POST /graphql`
+- Auth: required
+- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
+- Flags:
+  - `--app-id` (variable, required): appId
+  - `--limit` (variable): limit
+- Notes:
+  - Uses POST /graphql on the console default hostname (/api).
+- Known errors:
+  - HTTP 401: Missing, invalid, or revoked personal access token.
 
 ### `mosoo console apps app-deployment-status`
 
@@ -978,6 +992,24 @@
   - `--input-app-id` (variable, required): input.appId
   - `--input-return-url` (variable): input.returnUrl
   - `--input-server-id` (variable, required): input.serverId
+
+### `mosoo console mcp update-app-mcp-server`
+
+- Summary: Update an app mcp server
+- HTTP: `POST /graphql`
+- Auth: required
+- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
+- Flags:
+  - `--input-app-id` (variable, required): input.appId
+  - `--input-description` (variable): input.description
+  - `--input-icon-url` (variable): input.iconUrl
+  - `--input-name` (variable, required): input.name
+  - `--input-server-id` (variable, required): input.serverId
+  - `--input-url` (variable, required): input.url
+- Notes:
+  - Uses POST /graphql on the console default hostname (/api).
+- Known errors:
+  - HTTP 401: Missing, invalid, or revoked personal access token.
 
 ## Onboarding
 

@@ -33,6 +33,7 @@ const (
 	SourceGlobalConfig  = "global-config"
 	SourceCwdMosooRepo  = "cwd-mosoo-repo"
 	SourceDefaultLocal  = "default-local"
+	SourceDefaultCloud  = "default-cloud"
 )
 
 const (
@@ -66,7 +67,7 @@ type State struct {
 type fileConfig struct {
 	Target       string `json:"target"`
 	BaseURL      string `json:"baseUrl"`
-	BaseURLSnake string `json:"base_url"`
+	BaseURLSnake string `json:"base_url,omitempty"`
 }
 
 // Install adds target flags and wires runtime target resolution into generated API commands.
@@ -109,6 +110,17 @@ func Install(root *cobra.Command) {
 
 // ResolveFromCommand resolves the current target using flags, environment, config, cwd, then defaults.
 func ResolveFromCommand(cmd *cobra.Command) (Resolution, error) {
+	return resolveFromCommand(cmd, LocalTarget)
+}
+
+// ResolveAuthLoginFromCommand resolves the target used by human auth login.
+// Unlike generated API commands, a first-time login with no config defaults to
+// Mosoo Cloud so users do not need to know an API hostname.
+func ResolveAuthLoginFromCommand(cmd *cobra.Command) (Resolution, error) {
+	return resolveFromCommand(cmd, CloudTarget)
+}
+
+func resolveFromCommand(cmd *cobra.Command, defaultTarget string) (Resolution, error) {
 	flags := cmd.Root().PersistentFlags()
 	if flags.Lookup("hostname") != nil && flags.Changed("hostname") {
 		hostname, _ := flags.GetString("hostname")
@@ -137,26 +149,74 @@ func ResolveFromCommand(cmd *cobra.Command) (Resolution, error) {
 	if err != nil {
 		return Resolution{}, err
 	}
-	return Resolve(cwd)
+	return ResolveWithDefault(cwd, defaultTarget)
 }
 
 // Resolve resolves a target from config and cwd context. It intentionally does not inspect
 // --hostname, MOSOO_HOST, --target, or target environment variables.
 func Resolve(cwd string) (Resolution, error) {
+	return ResolveWithDefault(cwd, LocalTarget)
+}
+
+// ResolveWithDefault resolves a target from config and cwd context, then falls
+// back to defaultTarget when no project/global config is present.
+func ResolveWithDefault(cwd, defaultTarget string) (Resolution, error) {
 	if path, ok := findProjectConfig(cwd); ok {
 		return readConfig(path, SourceProjectConfig)
 	}
 	if path, ok := globalConfigPath(); ok {
 		return readConfig(path, SourceGlobalConfig)
 	}
-	if root, ok := findMosooSourceRoot(cwd); ok {
-		resolved, err := resolutionFromTargetBase(LocalTarget, "", SourceCwdMosooRepo, "", root)
-		if err != nil {
-			return Resolution{}, err
-		}
-		return resolved, nil
+	if defaultTarget == "" {
+		defaultTarget = LocalTarget
 	}
-	return resolutionFromTargetBase(LocalTarget, "", SourceDefaultLocal, "", "")
+	if defaultTarget == LocalTarget {
+		if root, ok := findMosooSourceRoot(cwd); ok {
+			resolved, err := resolutionFromTargetBase(LocalTarget, "", SourceCwdMosooRepo, "", root)
+			if err != nil {
+				return Resolution{}, err
+			}
+			return resolved, nil
+		}
+	}
+	source := SourceDefaultLocal
+	if defaultTarget == CloudTarget {
+		source = SourceDefaultCloud
+	}
+	return resolutionFromTargetBase(defaultTarget, "", source, "", "")
+}
+
+// ResolveTargetBase resolves an explicit target/base pair without reading flags,
+// environment, cwd, or config files.
+func ResolveTargetBase(targetValue, baseURLValue, source string) (Resolution, error) {
+	return resolutionFromTargetBase(targetValue, baseURLValue, source, "", "")
+}
+
+// WriteGlobalConfig validates and saves a global Mosoo target config.
+func WriteGlobalConfig(targetValue, baseURLValue string) (string, error) {
+	resolved, err := resolutionFromTargetBase(targetValue, baseURLValue, SourceGlobalConfig, "", "")
+	if err != nil {
+		return "", err
+	}
+	path, err := globalConfigFilePath()
+	if err != nil {
+		return "", err
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return "", err
+	}
+	data, err := json.MarshalIndent(fileConfig{
+		Target:  resolved.Target,
+		BaseURL: resolved.BaseURL,
+	}, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	data = append(data, '\n')
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		return "", err
+	}
+	return path, nil
 }
 
 // ResolveExplicitHostname describes an explicit Lathe hostname override. Generated commands
@@ -350,17 +410,23 @@ func findProjectConfig(start string) (string, bool) {
 	}
 }
 
-func globalConfigPath() (string, bool) {
+func globalConfigFilePath() (string, error) {
 	cli := latheconfig.Active().CLI
 	if dir := strings.TrimSpace(os.Getenv(cli.ConfigDirEnv)); dir != "" {
-		path := filepath.Join(dir, "config.json")
-		return path, isFile(path)
+		return filepath.Join(dir, "config.json"), nil
 	}
 	dir, err := os.UserConfigDir()
 	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, cli.ConfigDir, "config.json"), nil
+}
+
+func globalConfigPath() (string, bool) {
+	path, err := globalConfigFilePath()
+	if err != nil {
 		return "", false
 	}
-	path := filepath.Join(dir, cli.ConfigDir, "config.json")
 	return path, isFile(path)
 }
 

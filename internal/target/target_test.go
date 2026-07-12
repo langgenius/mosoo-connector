@@ -3,6 +3,7 @@ package target
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	latheconfig "github.com/lathe-cli/lathe/pkg/config"
@@ -101,6 +102,23 @@ func TestResolveDetectsMosooSourceRoot(t *testing.T) {
 	}
 	if resolved.ProjectRoot != dir {
 		t.Fatalf("ProjectRoot = %q, want %q", resolved.ProjectRoot, dir)
+	}
+}
+
+func TestWriteGlobalConfigOmitsLegacyBaseURLSnakeField(t *testing.T) {
+	configDir := filepath.Join(t.TempDir(), "config")
+	bindTestManifest(t, configDir)
+
+	path, err := WriteGlobalConfig(CloudTarget, DefaultCloudBaseURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(data), "base_url") {
+		t.Fatalf("config should not write empty legacy base_url field:\n%s", string(data))
 	}
 }
 
