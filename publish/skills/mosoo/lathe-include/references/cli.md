@@ -42,14 +42,18 @@ For a backend or Worker integration with a published Agent:
 
 1. Resolve runtime and hosts with `Runtime State` and `Host Context`.
 2. Provision or select the App and Agent with `Agent App Provisioning Workflow`.
-3. Prepare backend environment values with `Public API Tokens`.
-4. Upload files only when the thread needs attachments; use `Public Thread File Upload Workflow` and carry forward the returned `fileId`.
-5. Create or continue the thread, wait for completion, and inspect output with `Public Thread Wait, Final Output, And Transcript Workflow`.
-6. Edit Agent configuration only through `Agent Manifest Workflow`.
+3. If a bound Skill has runtime dependencies, prepare and bind an App-local
+   Environment with `Skill Runtime Environment Workflow` before publishing or
+   starting a new Session.
+4. Prepare backend environment values with `Public API Tokens`.
+5. Upload files only when the thread needs attachments; use `Public Thread File Upload Workflow` and carry forward the returned `fileId`.
+6. Create or continue the thread, wait for completion, and inspect output with `Public Thread Wait, Final Output, And Transcript Workflow`.
+7. Edit Agent configuration only through `Agent Manifest Workflow`.
 
 Carry these handoff values between workflow sections: `appId`, `agentId`,
-`threadId`, `fileId`, env file path, and manifest file path. If any value is
-missing, return to the section that produces it instead of guessing.
+`environmentId`, `threadId`, `fileId`, env file path, and manifest file path. If
+any value is missing, return to the section that produces it instead of
+guessing.
 
 For deploying a public GitHub repository as an Agent app (Mosoo pulls the repo's
 default-branch HEAD, hosts it on a Mosoo-owned Cloudflare URL, and binds the
@@ -80,6 +84,89 @@ environment files and redact token values in logs, examples, and command
 output.
 
 Use `mosoo agent env export` or `mosoo agent env write --file <path>` to prepare `MOSOO_API_BASE`, `MOSOO_AGENT_ID`, and `MOSOO_API_TOKEN` for backend or Worker workflows; when `MOSOO_API_TOKEN` is unset, the helper uses the token from `mosoo auth login` for the selected Public API host.
+
+## Skill Runtime Environment Workflow
+
+Use this workflow when a Skill declares Python, Node.js, system, or other
+runtime dependencies; includes setup instructions; requires runtime environment
+variables; or fails because a module, package, command, or env var is missing.
+Do not port the Skill to another language or remove the dependency merely to fit
+the current sandbox.
+
+A Mosoo Environment is an App-local runtime template. Runtime installs its
+declared packages, runs its setup script before the Agent process starts, and
+injects its env vars. An Agent selects the Environment by `environmentId`, and
+each new Session freezes the selected Environment revision. Environment does
+not contain Skills, Files, or MCP servers. The current Mosoo product stores
+network-policy intent, but Runtime does not enforce that policy yet; do not
+present it as a security boundary.
+
+Follow these steps:
+
+1. Inspect the Skill package and its dependency manifests, imports, setup
+   instructions, and documented environment-variable names. Treat the Skill's
+   declared implementation and dependencies as requirements unless the user
+   explicitly asks for a port or dependency removal.
+2. Resolve the App and inspect its available runtime templates:
+
+```sh
+mosoo console environments app-environment-list --app-id <app-id> -o json
+mosoo console environments environment --app-id <app-id> --environment-id <environment-id> -o json
+```
+
+3. Reuse a suitable App-local Environment, or create/copy one when an
+   independent template is needed. To update an Environment, fetch it first and
+   preserve every unchanged package, env-var name, setup, and policy field; the
+   update is a complete configuration update.
+
+```sh
+mosoo commands show console environments create-environment --json
+mosoo console environments create-environment --file environment-create.json -o json
+mosoo commands show console environments update-environment --json
+mosoo console environments update-environment --file environment-update.json -o json
+```
+
+Declare repeatable packages in `packages` and use `setupScript` only for setup
+that cannot be expressed as package declarations. Pin versions when the Skill
+requires them. A failing setup script prevents the Session from starting.
+
+4. Keep secret values out of committed JSON. Create the Environment with
+   `envVars: []`, then write each Skill runtime secret through the dedicated
+   mutation:
+
+```sh
+mosoo console environments set-environment-variable-value \
+  --input-app-id <app-id> \
+  --input-environment-id <environment-id> \
+  --input-key <secret-name> \
+  --input-value "$SECRET_VALUE" \
+  -o json
+```
+
+Environment env vars are for values the Skill process must read inside the
+sandbox. Prefer Mosoo's dedicated Vendor Credential or MCP Credential resource
+when one exists. Keep `MOSOO_API_TOKEN` in the calling backend or Worker; do not
+inject it into the Agent Environment.
+
+5. Set the Environment as the App default when it should be preselected for new
+   Agents, or bind it explicitly to the target Agent through the manifest
+   round-trip workflow:
+
+```sh
+mosoo console environments set-app-default-environment --input-app-id <app-id> --input-environment-id <environment-id> -o json
+mosoo agent manifest probe --app-id <app-id> --agent-id <agent-id> --out agent.yaml
+# Set environment.environmentId in agent.yaml and preserve all other fields.
+mosoo agent manifest apply --app-id <app-id> --agent-id <agent-id> --file agent.yaml --dry-run
+mosoo agent manifest apply --app-id <app-id> --agent-id <agent-id> --file agent.yaml
+```
+
+6. Publish if needed, start a new Session, and run the Skill's smallest useful
+   smoke test. Environment edits affect future Sessions only; do not use an
+   already-started Session to verify a new revision.
+
+Carry these handoff values: `appId`, `agentId`, `environmentId`, Environment
+JSON path, Agent manifest path, required package list, setup requirements, and
+required env-var names. Never record secret values in these handoff artifacts.
 
 ## Agent App Provisioning Workflow
 
