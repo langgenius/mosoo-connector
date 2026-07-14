@@ -76,8 +76,8 @@ func BuildReport(cmd *cobra.Command) (Report, error) {
 		return Report{}, err
 	}
 
-	apiCheck := checkAPI(cmd.Context(), resolved.Hosts[target.SurfaceConsole])
-	auth, authCheck := evaluateAuth(resolved)
+	apiCheck, apiRequiresAuth := checkAPI(cmd.Context(), resolved.Hosts[target.SurfaceConsole])
+	auth, authCheck := evaluateAuth(resolved, apiRequiresAuth)
 
 	return newReport(resolved, apiCheck, auth, authCheck), nil
 }
@@ -107,9 +107,9 @@ func newReport(resolved target.Resolution, apiCheck Check, auth AuthState, authC
 	}
 }
 
-func checkAPI(ctx context.Context, consoleHost string) Check {
+func checkAPI(ctx context.Context, consoleHost string) (Check, bool) {
 	if consoleHost == "" {
-		return Check{Name: "api", OK: false, Code: "api_console_host_empty", Message: "console host is empty"}
+		return Check{Name: "api", OK: false, Code: "api_console_host_empty", Message: "console host is empty"}, false
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
@@ -118,27 +118,22 @@ func checkAPI(ctx context.Context, consoleHost string) Check {
 	endpoint := strings.TrimRight(consoleHost, "/") + "/access-tokens"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
-		return Check{Name: "api", OK: false, Code: "api_request_invalid", Message: err.Error()}
+		return Check{Name: "api", OK: false, Code: "api_request_invalid", Message: err.Error()}, false
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return Check{Name: "api", OK: false, Code: "api_unreachable", Message: err.Error()}
+		return Check{Name: "api", OK: false, Code: "api_unreachable", Message: err.Error()}, false
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound || resp.StatusCode >= http.StatusInternalServerError {
-		return Check{Name: "api", OK: false, Code: "api_unready_status", Message: fmt.Sprintf("GET %s returned %s", endpoint, resp.Status)}
+		return Check{Name: "api", OK: false, Code: "api_unready_status", Message: fmt.Sprintf("GET %s returned %s", endpoint, resp.Status)}, false
 	}
-	return Check{Name: "api", OK: true, Code: "api_reachable", Message: fmt.Sprintf("GET %s returned %s", endpoint, resp.Status)}
+	return Check{Name: "api", OK: true, Code: "api_reachable", Message: fmt.Sprintf("GET %s returned %s", endpoint, resp.Status)}, resp.StatusCode == http.StatusUnauthorized
 }
 
-func checkAuth(resolved target.Resolution) (bool, bool, Check) {
-	auth, check := evaluateAuth(resolved)
-	return auth.Authenticated, auth.Required, check
-}
-
-func evaluateAuth(resolved target.Resolution) (AuthState, Check) {
-	authRequired := requiresAuth(resolved)
+func evaluateAuth(resolved target.Resolution, apiRequiresAuth bool) (AuthState, Check) {
+	authRequired := apiRequiresAuth || requiresAuth(resolved)
 	auth := AuthState{
 		Required:        authRequired,
 		Authenticated:   false,
