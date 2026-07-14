@@ -1,7 +1,10 @@
 package doctor
 
 import (
+	"context"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -9,6 +12,7 @@ import (
 	"github.com/langgenius/mosoo-connector/internal/target"
 	latheconfig "github.com/lathe-cli/lathe/pkg/config"
 	"github.com/lathe-cli/lathe/pkg/lathe"
+	"github.com/spf13/cobra"
 )
 
 func bindTestManifest(t *testing.T) {
@@ -23,42 +27,67 @@ func bindTestManifest(t *testing.T) {
 	t.Setenv("MOSOO_HOST", "")
 }
 
-func TestCheckAuthSkipsLocalTarget(t *testing.T) {
+func TestReportUsesProbeToDetectCustomLocalAuth(t *testing.T) {
 	bindTestManifest(t)
 
-	authenticated, authRequired, check := checkAuth(target.Resolution{
-		Target:  target.LocalTarget,
-		BaseURL: target.DefaultLocalBaseURL,
-		Hosts:   target.HostsForBaseURL(target.DefaultLocalBaseURL),
-	})
+	for _, tc := range []struct {
+		name         string
+		status       int
+		authRequired bool
+		authCode     string
+	}{
+		{name: "no auth service", status: http.StatusOK, authCode: "auth_not_required"},
+		{name: "auth required", status: http.StatusUnauthorized, authRequired: true, authCode: "auth_missing_credentials"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != "/api/access-tokens" {
+					http.NotFound(w, r)
+					return
+				}
+				w.WriteHeader(tc.status)
+			}))
+			t.Cleanup(srv.Close)
 
-	if authenticated {
-		t.Fatal("authenticated = true, want false")
-	}
-	if authRequired {
-		t.Fatal("authRequired = true, want false")
-	}
-	if !check.OK {
-		t.Fatalf("check.OK = false, message = %q", check.Message)
-	}
-	if !strings.Contains(check.Message, "not required") {
-		t.Fatalf("check.Message = %q, want local auth exemption", check.Message)
+			root := &cobra.Command{Use: "mosoo"}
+			target.Install(root)
+			cmd := NewCommand()
+			cmd.SetContext(context.Background())
+			root.AddCommand(cmd)
+			if err := root.PersistentFlags().Set("target", target.CustomTarget); err != nil {
+				t.Fatal(err)
+			}
+			if err := root.PersistentFlags().Set("base-url", srv.URL); err != nil {
+				t.Fatal(err)
+			}
+
+			report, err := BuildReport(cmd)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if report.Auth.Required != tc.authRequired {
+				t.Fatalf("auth.required = %t, want %t", report.Auth.Required, tc.authRequired)
+			}
+			if report.Checks[3].Code != tc.authCode {
+				t.Fatalf("auth check code = %q, want %q", report.Checks[3].Code, tc.authCode)
+			}
+		})
 	}
 }
 
 func TestCheckAuthRequiresCloudCredentials(t *testing.T) {
 	bindTestManifest(t)
 
-	authenticated, authRequired, check := checkAuth(target.Resolution{
+	auth, check := evaluateAuth(target.Resolution{
 		Target:  target.CloudTarget,
 		BaseURL: target.DefaultCloudBaseURL,
 		Hosts:   target.HostsForBaseURL(target.DefaultCloudBaseURL),
-	})
+	}, false)
 
-	if authenticated {
+	if auth.Authenticated {
 		t.Fatal("authenticated = true, want false")
 	}
-	if !authRequired {
+	if !auth.Required {
 		t.Fatal("authRequired = false, want true")
 	}
 	if check.OK {
