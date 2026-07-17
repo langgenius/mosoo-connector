@@ -145,8 +145,9 @@ Three API surfaces share one deployment but use different URL bases:
 | `console`, `console-rest` | `{base}/api` | `/graphql`, `/access-tokens`, `/files` |
 | `public-thread-api` | `{base}/api/v1` | `/agents/{id}/files`, `/agents/{id}/threads`, `/threads/{id}/events` |
 
-Defaults are baked at codegen time (`MOSOO_HOST_BASE`, default `http://127.0.0.1:8787`).
-Override any command with `--hostname` or `$MOSOO_HOST`.
+Generated specs carry baked fallback hostnames from codegen (`MOSOO_HOST_BASE`).
+Normal Mosoo commands resolve a target before using those fallbacks. Override
+any command with `--hostname` or `$MOSOO_HOST`.
 
 ## Target resolution
 
@@ -160,17 +161,15 @@ Explicit hostname overrides always win:
   -> MOSOO_TARGET / MOSOO_BASE_URL
   -> project config .mosoo/config.json
   -> global config in the OS config dir (or $MOSOO_CONFIG_DIR/config.json)
-  -> current directory looks like the Mosoo source repo
-  -> default local target
+  -> default Mosoo Cloud target
 ```
 
-Generated API commands still default to the local Mosoo development stack when
-no target config exists:
+Generated API commands default to Mosoo Cloud when no target config exists:
 
 ```json
 {
-  "target": "local",
-  "baseUrl": "http://127.0.0.1:8787"
+  "target": "cloud",
+  "baseUrl": "https://try.mosoo.ai"
 }
 ```
 

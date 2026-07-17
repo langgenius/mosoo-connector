@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	latheconfig "github.com/lathe-cli/lathe/pkg/config"
+	latheruntime "github.com/lathe-cli/lathe/pkg/runtime"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +25,7 @@ func bindTestManifest(t *testing.T, configDir string) {
 	t.Setenv(BaseURLEnv, "")
 }
 
-func TestResolveDefaultsToLocal(t *testing.T) {
+func TestResolveDefaultsToCloud(t *testing.T) {
 	dir := t.TempDir()
 	bindTestManifest(t, filepath.Join(t.TempDir(), "config"))
 
@@ -32,13 +33,13 @@ func TestResolveDefaultsToLocal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resolved.Target != LocalTarget {
-		t.Fatalf("Target = %q, want %q", resolved.Target, LocalTarget)
+	if resolved.Target != CloudTarget {
+		t.Fatalf("Target = %q, want %q", resolved.Target, CloudTarget)
 	}
-	if resolved.Source != SourceDefaultLocal {
-		t.Fatalf("Source = %q, want %q", resolved.Source, SourceDefaultLocal)
+	if resolved.Source != SourceDefaultCloud {
+		t.Fatalf("Source = %q, want %q", resolved.Source, SourceDefaultCloud)
 	}
-	if resolved.Hosts[SurfaceConsole] != DefaultLocalBaseURL+"/api" {
+	if resolved.Hosts[SurfaceConsole] != DefaultCloudBaseURL+"/api" {
 		t.Fatalf("console host = %q", resolved.Hosts[SurfaceConsole])
 	}
 }
@@ -93,7 +94,7 @@ func TestResolveDetectsMosooSourceRoot(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resolved, err := Resolve(nested)
+	resolved, err := ResolveWithDefault(nested, LocalTarget)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,6 +103,54 @@ func TestResolveDetectsMosooSourceRoot(t *testing.T) {
 	}
 	if resolved.ProjectRoot != dir {
 		t.Fatalf("ProjectRoot = %q, want %q", resolved.ProjectRoot, dir)
+	}
+}
+
+func TestResolveBaseURLStripsAPISuffix(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		baseURL    string
+		wantTarget string
+		wantBase   string
+		wantHost   string
+	}{
+		{
+			name:       "cloud console api host",
+			baseURL:    DefaultCloudBaseURL + "/api",
+			wantTarget: CloudTarget,
+			wantBase:   DefaultCloudBaseURL,
+			wantHost:   DefaultCloudBaseURL + "/api",
+		},
+		{
+			name:       "cloud public api host",
+			baseURL:    DefaultCloudBaseURL + "/api/v1",
+			wantTarget: CloudTarget,
+			wantBase:   DefaultCloudBaseURL,
+			wantHost:   DefaultCloudBaseURL + "/api",
+		},
+		{
+			name:       "local console api host",
+			baseURL:    DefaultLocalBaseURL + "/api",
+			wantTarget: LocalTarget,
+			wantBase:   DefaultLocalBaseURL,
+			wantHost:   DefaultLocalBaseURL + "/api",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			resolved, err := ResolveTargetBase("", tc.baseURL, SourceTargetFlag)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if resolved.Target != tc.wantTarget {
+				t.Fatalf("Target = %q, want %q", resolved.Target, tc.wantTarget)
+			}
+			if resolved.BaseURL != tc.wantBase {
+				t.Fatalf("BaseURL = %q, want %q", resolved.BaseURL, tc.wantBase)
+			}
+			if resolved.Hosts[SurfaceConsole] != tc.wantHost {
+				t.Fatalf("console host = %q, want %q", resolved.Hosts[SurfaceConsole], tc.wantHost)
+			}
+		})
 	}
 }
 
@@ -189,6 +238,45 @@ func TestInstallSetsHostnameForGeneratedSurface(t *testing.T) {
 	Install(root)
 
 	root.SetArgs([]string{SurfaceConsole, "viewer"})
+	if err := root.Execute(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestInstallSetsCloudHostnameForShortcutWithoutConfig(t *testing.T) {
+	configDir := filepath.Join(t.TempDir(), "config")
+	bindTestManifest(t, configDir)
+
+	root := &cobra.Command{Use: "mosoo"}
+	root.PersistentFlags().String("hostname", "", "")
+
+	console := &cobra.Command{Use: SurfaceConsole}
+	apps := &cobra.Command{Use: "apps"}
+	overview := &cobra.Command{Use: "control-plane-overview"}
+	latheruntime.AttachCatalogCommand(overview, SurfaceConsole, latheruntime.CommandSpec{
+		Use: "control-plane-overview",
+		Shortcuts: []latheruntime.CommandShortcut{
+			{Use: "ls"},
+		},
+	})
+	apps.AddCommand(overview)
+	console.AddCommand(apps)
+	root.AddCommand(console)
+
+	shortcut := &cobra.Command{
+		Use: "ls",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			got, _ := cmd.Root().PersistentFlags().GetString("hostname")
+			if want := DefaultCloudBaseURL + "/api"; got != want {
+				t.Fatalf("hostname = %q, want %q", got, want)
+			}
+			return nil
+		},
+	}
+	root.AddCommand(shortcut)
+	Install(root)
+
+	root.SetArgs([]string{"ls"})
 	if err := root.Execute(); err != nil {
 		t.Fatal(err)
 	}

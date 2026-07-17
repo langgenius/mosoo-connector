@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	latheconfig "github.com/lathe-cli/lathe/pkg/config"
+	latheruntime "github.com/lathe-cli/lathe/pkg/runtime"
 	"github.com/spf13/cobra"
 )
 
@@ -110,7 +111,7 @@ func Install(root *cobra.Command) {
 
 // ResolveFromCommand resolves the current target using flags, environment, config, cwd, then defaults.
 func ResolveFromCommand(cmd *cobra.Command) (Resolution, error) {
-	return resolveFromCommand(cmd, LocalTarget)
+	return resolveFromCommand(cmd, CloudTarget)
 }
 
 // ResolveAuthLoginFromCommand resolves the target used by human auth login.
@@ -155,7 +156,7 @@ func resolveFromCommand(cmd *cobra.Command, defaultTarget string) (Resolution, e
 // Resolve resolves a target from config and cwd context. It intentionally does not inspect
 // --hostname, MOSOO_HOST, --target, or target environment variables.
 func Resolve(cwd string) (Resolution, error) {
-	return ResolveWithDefault(cwd, LocalTarget)
+	return ResolveWithDefault(cwd, CloudTarget)
 }
 
 // ResolveWithDefault resolves a target from config and cwd context, then falls
@@ -263,6 +264,9 @@ func HasExplicitHostname(cmd *cobra.Command) bool {
 }
 
 func SurfaceForCommand(cmd *cobra.Command) (string, bool) {
+	if surface, ok := surfaceForCatalogCommand(cmd); ok {
+		return surface, true
+	}
 	parts := strings.Fields(cmd.CommandPath())
 	for i := 1; i < len(parts); i++ {
 		switch parts[i] {
@@ -271,6 +275,23 @@ func SurfaceForCommand(cmd *cobra.Command) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func surfaceForCatalogCommand(cmd *cobra.Command) (string, bool) {
+	parts := strings.Fields(cmd.CommandPath())
+	if len(parts) <= 1 {
+		return "", false
+	}
+	entry, ok := latheruntime.FindCatalogCommand(cmd.Root(), parts[1:], latheruntime.CatalogOptions{IncludeHidden: true})
+	if !ok {
+		return "", false
+	}
+	switch entry.Service {
+	case SurfaceConsole, SurfaceConsoleREST, SurfacePublicThreadAPI:
+		return entry.Service, true
+	default:
+		return "", false
+	}
 }
 
 func HostsForBaseURL(baseURL string) map[string]string {
@@ -283,11 +304,13 @@ func HostsForBaseURL(baseURL string) map[string]string {
 }
 
 func resolutionFromTargetBase(targetValue, baseURLValue, source, configPath, projectRoot string) (Resolution, error) {
+	explicitTarget := strings.TrimSpace(targetValue) != ""
+	explicitBaseURL := strings.TrimSpace(baseURLValue) != ""
 	targetValue = strings.ToLower(strings.TrimSpace(targetValue))
 	baseURLValue = strings.TrimSpace(baseURLValue)
 
 	if targetValue == "" {
-		if baseURLValue != "" {
+		if explicitBaseURL {
 			targetValue = CustomTarget
 		} else {
 			targetValue = LocalTarget
@@ -314,6 +337,9 @@ func resolutionFromTargetBase(targetValue, baseURLValue, source, configPath, pro
 	baseURL, err := normalizeBaseURL(baseURLValue)
 	if err != nil {
 		return Resolution{}, err
+	}
+	if !explicitTarget && explicitBaseURL {
+		targetValue = targetForBaseURL(baseURL)
 	}
 	return Resolution{
 		Target:      targetValue,
@@ -342,7 +368,7 @@ func readConfig(path, source string) (Resolution, error) {
 }
 
 func normalizeBaseURL(raw string) (string, error) {
-	value := strings.TrimRight(strings.TrimSpace(raw), "/")
+	value := stripAPISuffix(strings.TrimRight(strings.TrimSpace(raw), "/"))
 	if value == "" {
 		return "", fmt.Errorf("baseUrl must not be empty")
 	}
