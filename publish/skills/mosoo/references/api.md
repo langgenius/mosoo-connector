@@ -4,6 +4,13 @@ Use this reference when application backend code calls an already published
 Mosoo Agent. For creating, publishing, or changing Mosoo resources, use the
 generated CLI workflow in `references/cli.md` instead.
 
+## Documentation sources
+
+- Human documentation: `https://mosoo.ai/docs/`
+- Machine-oriented integration guide: `https://mosoo.ai/docs/coding-agents/`
+- Complete documentation index: `https://mosoo.ai/docs/llms.txt`
+- Published OpenAPI document: `https://mosoo.ai/docs/openapi/mosoo-openapi.en.generated.json`
+
 The checked-in Mosoo OpenAPI document at `GET /api/v1/openapi.json` is the wire
 contract. This guide explains the integration workflow and intentionally does
 not duplicate every generated schema field.
@@ -61,7 +68,7 @@ curl -X POST "$MOSOO_API_BASE/agents/$MOSOO_AGENT_ID/threads" \
 
 Persist `response.thread.id` and use it for later Thread operations.
 
-Continue an idle Thread:
+Submit an ordered event batch to a Thread:
 
 ```sh
 curl -X POST "$MOSOO_API_BASE/threads/$MOSOO_THREAD_ID/events" \
@@ -79,6 +86,10 @@ curl -X POST "$MOSOO_API_BASE/threads/$MOSOO_THREAD_ID/events" \
   }'
 ```
 
+The `events` array must contain at least one event. Supported variants are
+`user_message`, `permission_decision`, and `user_interrupt`; a batch may contain
+more than one event.
+
 Read or stream the public event projection:
 
 ```sh
@@ -91,7 +102,9 @@ curl -N "$MOSOO_API_BASE/threads/$MOSOO_THREAD_ID/events/stream?limit=100" \
 
 Treat event IDs as stable and reconcile after reconnecting through the snapshot
 endpoint. Runtime transcripts, private diagnostics, and provider-native state
-are not part of the public event contract.
+are not part of the public event contract. Group public events by `runId` when
+reconstructing output, and after completion prefer `run.finalOutput.text` when
+it is present.
 
 ## File workflow
 
@@ -139,8 +152,8 @@ For a follow-up, put the same resource shape on the `user_message` event:
 
 Mosoo validates and claims referenced drafts into the Thread before queueing the
 Run. Drafts cannot be claimed across App or caller boundaries. The public
-multipart endpoint accepts one file, enforces an 8 MiB file and bounded-envelope
-limit, and returns a ready draft.
+multipart endpoint accepts one file up to 67108864 bytes and returns a ready
+draft.
 
 There is no public create-upload, PUT-content, complete-upload, or
 `POST /threads/{threadId}/files` step. Do not use Console REST upload-session
@@ -186,7 +199,7 @@ All paths are relative to `MOSOO_API_BASE` (`/api/v1`).
 | `POST` | `/threads/{threadId}/archive` | Archive a Thread |
 | `POST` | `/threads/{threadId}/unarchive` | Unarchive a Thread |
 | `GET` | `/threads/{threadId}/events` | Read the stable public event snapshot |
-| `POST` | `/threads/{threadId}/events` | Send one user message, permission decision, or interrupt |
+| `POST` | `/threads/{threadId}/events` | Submit an ordered batch of user messages, permission decisions, or interrupts |
 | `GET` | `/threads/{threadId}/events/stream` | Stream public events with SSE |
 | `GET` | `/threads/{threadId}/files` | List claimed attachments and Agent artifacts |
 | `DELETE` | `/threads/{threadId}/files/{fileId}` | Remove a file from a writable Thread |
@@ -195,14 +208,12 @@ All paths are relative to `MOSOO_API_BASE` (`/api/v1`).
 ## Lifecycle and limits
 
 - Creating a Thread may omit `input`; that creates an idle Thread without a Run.
-- A request to `/threads/{threadId}/events` carries exactly one action.
-- A `user_message` is accepted only when the Thread is idle.
-- Permission decisions and interrupts require an active Run.
-- Create and event JSON bodies are capped at 40,192 bytes.
-- A user message accepts at most 32 file resources and 32,000 text characters.
-- One token may hold at most four concurrent SSE streams.
-- Streams close after at most five minutes; reconnect and reconcile by event ID.
-- Archived, rescheduling, and terminated Threads reject event and file mutation.
+- A submitted event batch contains at least one event.
+- Create-Thread input text is limited to 32000 characters.
+- `client_external_ref` is limited to 255 characters.
+- Public file uploads are limited to 67108864 bytes.
+- Event lists default to 100 entries and accept at most 1000.
+- Thread lists return at most 100 Threads.
 
 ## Errors and retries
 
@@ -211,12 +222,11 @@ than matching the human message.
 
 | Status | Typical meaning | Action |
 | --- | --- | --- |
-| `400` | Invalid body, query, multipart envelope, or file resource | Correct the request; do not retry unchanged |
+| `400` | Invalid request shape, value, JSON, multipart envelope, or file resource | Correct the request; do not retry unchanged |
 | `401` | Missing, invalid, or revoked token | Re-authenticate or rotate the token |
 | `403` | The caller cannot use the Agent, Thread, or file | Check token and resource ownership |
 | `404` | The resource is absent or not visible | Verify IDs returned by this API |
-| `409` | Lifecycle conflict, inactive Agent, or idempotency conflict | Inspect state; retry only when the conflict is transient |
-| `413` | Multipart upload exceeds the public limit | Reduce or split the input outside this API |
+| `409` | Unpublished or inactive Agent, readiness block, or idempotency conflict | Inspect state; retry only when the conflict is transient |
 | `429` | Token request budget exceeded | Back off using `Retry-After` |
 | `500` | Unexpected Mosoo failure | Retry briefly with backoff and preserve diagnostics |
 
