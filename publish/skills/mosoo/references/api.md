@@ -4,6 +4,13 @@ Use this reference when application backend code calls an already published
 Mosoo Agent. For creating, publishing, or changing Mosoo resources, use the
 generated CLI workflow in `references/cli.md` instead.
 
+## Documentation sources
+
+- Human documentation: `https://mosoo.ai/docs/`
+- Machine-oriented integration guide: `https://mosoo.ai/docs/coding-agents/`
+- Complete documentation index: `https://mosoo.ai/docs/llms.txt`
+- Published OpenAPI document: `https://mosoo.ai/docs/openapi/mosoo-openapi.en.generated.json`
+
 The checked-in Mosoo OpenAPI document at `GET /api/v1/openapi.json` is the wire
 contract. This guide explains the integration workflow and intentionally does
 not duplicate every generated schema field.
