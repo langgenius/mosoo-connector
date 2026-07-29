@@ -1,8 +1,22 @@
 # mosoo-connector
 
-Generated Go CLI for Mosoo integrators: Public Thread API, Console GraphQL, and console REST.
+**AI agent CLI and coding-agent Skill for Mosoo.**
 
-## Build
+The generated `mosoo` CLI configures, publishes, runs, and inspects Agents through the Mosoo Agent API and control plane. Use it from a terminal or install the bundled Skill so Codex, Claude Code, and other coding agents can discover the same commands. It supports Mosoo Cloud, local development, and self-hosted targets.
+
+This repository is Mosoo client tooling, not an Agent runtime or a general-purpose OpenAPI generator.
+
+## Quick Start
+
+```sh
+go install github.com/langgenius/mosoo-connector/cmd/mosoo@latest
+mosoo setup
+mosoo auth login
+mosoo doctor --json
+mosoo ls -o json
+```
+
+## Development Build
 
 ```sh
 make build
@@ -37,13 +51,7 @@ Override the API host base baked into per-module defaults:
 make build MOSOO_HOST_BASE=https://api.example.com
 ```
 
-## Install
-
-Install the latest published Go module without cloning the repository:
-
-```sh
-go install github.com/langgenius/mosoo-connector/cmd/mosoo@latest
-```
+## Other Install Options
 
 Install a specific release:
 
