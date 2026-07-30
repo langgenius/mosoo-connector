@@ -6,7 +6,7 @@
   "generatedAt": "2026-06-24T00:00:00Z",
   "hosts": {
     "install": "https://install.mosoo.ai",
-    "api": "https://try.mosoo.ai"
+    "api": "https://cloud.mosoo.ai"
   },
   "routes": [
     {
@@ -72,9 +72,9 @@
   },
   "defaults": {
     "target": "cloud",
-    "baseUrl": "https://try.mosoo.ai",
-    "consoleLoginHost": "https://try.mosoo.ai/api",
-    "publicApiLoginHost": "https://try.mosoo.ai/api/v1",
+    "baseUrl": "https://cloud.mosoo.ai",
+    "consoleLoginHost": "https://cloud.mosoo.ai/api",
+    "publicApiLoginHost": "https://cloud.mosoo.ai/api/v1",
     "installDir": "$HOME/.local/bin",
     "skillDir": "$CODEX_HOME/skills/mosoo"
   },
@@ -150,6 +150,6 @@
   "environment": {
     "MOSOO_RELEASE_BASE_URL": "https://github.com/langgenius/mosoo-connector/releases/latest/download",
     "MOSOO_TARGET": "cloud",
-    "MOSOO_BASE_URL": "https://try.mosoo.ai"
+    "MOSOO_BASE_URL": "https://cloud.mosoo.ai"
   }
 }

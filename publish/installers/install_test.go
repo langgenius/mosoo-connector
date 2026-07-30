@@ -58,7 +58,7 @@ token="$(cat)"
 	if count := strings.Count(got, "ARGS:auth login"); count != 1 {
 		t.Fatalf("auth login calls = %d, want 1\n%s", count, got)
 	}
-	if !strings.Contains(got, "ARGS:auth login --hostname https://try.mosoo.ai/api --with-token") {
+	if !strings.Contains(got, "ARGS:auth login --hostname https://cloud.mosoo.ai/api --with-token") {
 		t.Fatalf("missing console API login call:\n%s", got)
 	}
 	if strings.Contains(got, "/api/v1") {

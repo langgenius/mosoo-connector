@@ -177,7 +177,7 @@ Generated API commands default to Mosoo Cloud when no target config exists:
 ```json
 {
   "target": "cloud",
-  "baseUrl": "https://try.mosoo.ai"
+  "baseUrl": "https://cloud.mosoo.ai"
 }
 ```
 
@@ -188,7 +188,7 @@ mosoo setup
 mosoo auth login
 ```
 
-`mosoo setup` stores the root target (`https://try.mosoo.ai`) in config. The CLI
+`mosoo setup` stores the root target (`https://cloud.mosoo.ai`) in config. The CLI
 derives the console API (`/api`) and Public API (`/api/v1`) hosts internally.
 `mosoo auth login` defaults to Mosoo Cloud when no config exists, validates the
 token against the console API, and stores the same credential for both derived
@@ -225,7 +225,7 @@ backdoor with an `@mosoo.ai` email, create a personal access token, and write th
 CLI credentials for both hostname bases. This only works against a loopback Mosoo
 API with the development backdoor enabled.
 
-For cloud and custom targets, sign in at `https://try.mosoo.ai` or the configured
+For cloud and custom targets, sign in at `https://cloud.mosoo.ai` or the configured
 web app, use a Mosoo API token from that logged-in web session, then run
 `mosoo auth login`. `--hostname` remains available as an advanced override for
 one-off host selection.
