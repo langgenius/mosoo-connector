@@ -48,7 +48,7 @@ mosoo auth login
 mosoo doctor --json
 ```
 
-`mosoo setup` stores the cloud service root (`https://try.mosoo.ai`). The CLI
+`mosoo setup` stores the cloud service root (`https://cloud.mosoo.ai`). The CLI
 derives the console API (`/api`) and Public API (`/api/v1`) hosts internally.
 `mosoo auth login` saves one credential for both hosts.
 
@@ -61,7 +61,7 @@ mosoo setup local
 
 The installer may install or update the Mosoo CLI, install or update this Mosoo
 Skill, guide login, write initial config, and run readiness checks. Public
-installs default to the Mosoo cloud target at `https://try.mosoo.ai`; pass
+installs default to the Mosoo cloud target at `https://cloud.mosoo.ai`; pass
 `--target local` for a local development API. It should not make Cloudflare or
 Wrangler a default prerequisite.
 

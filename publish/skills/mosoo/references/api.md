@@ -31,7 +31,7 @@ Thread API.
 Application backends need these values:
 
 ```sh
-MOSOO_API_BASE=https://try.mosoo.ai/api/v1
+MOSOO_API_BASE=https://cloud.mosoo.ai/api/v1
 MOSOO_AGENT_ID=<published-agent-id>
 MOSOO_API_TOKEN=<access-token>
 ```

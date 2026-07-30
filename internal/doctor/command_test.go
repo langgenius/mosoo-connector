@@ -116,8 +116,8 @@ func TestReportJSONHasStructuredReadinessSections(t *testing.T) {
 		Authenticated:   false,
 		CredentialHosts: []string{},
 		MissingHosts: []string{
-			"https://try.mosoo.ai/api",
-			"https://try.mosoo.ai/api/v1",
+			"https://cloud.mosoo.ai/api",
+			"https://cloud.mosoo.ai/api/v1",
 		},
 	}
 	report := NewReport(target.Resolution{
@@ -129,7 +129,7 @@ func TestReportJSONHasStructuredReadinessSections(t *testing.T) {
 		Name:    "api",
 		OK:      true,
 		Code:    "api_reachable",
-		Message: "GET https://try.mosoo.ai/api/access-tokens returned 401 Unauthorized",
+		Message: "GET https://cloud.mosoo.ai/api/access-tokens returned 401 Unauthorized",
 	}, auth)
 
 	raw, err := json.Marshal(report)

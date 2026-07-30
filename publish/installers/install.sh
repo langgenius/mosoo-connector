@@ -15,7 +15,7 @@ SKILL_SHA256="${MOSOO_SKILL_SHA256:-}"
 TARGET="${MOSOO_TARGET:-cloud}"
 BASE_URL="${MOSOO_BASE_URL:-}"
 DEV_EMAIL="${MOSOO_DEV_EMAIL:-}"
-LOGIN_URL="${MOSOO_LOGIN_URL:-https://try.mosoo.ai}"
+LOGIN_URL="${MOSOO_LOGIN_URL:-https://cloud.mosoo.ai}"
 
 ASSUME_YES=false
 DRY_RUN=false
@@ -196,7 +196,7 @@ default_base_url() {
 	local target="$1"
 	case "$target" in
 		""|local) printf '%s\n' "${BASE_URL:-http://127.0.0.1:8787}" ;;
-		cloud) printf '%s\n' "${BASE_URL:-https://try.mosoo.ai}" ;;
+		cloud) printf '%s\n' "${BASE_URL:-https://cloud.mosoo.ai}" ;;
 		custom) [ -n "$BASE_URL" ] || die "--base-url is required for --target custom"; printf '%s\n' "$BASE_URL" ;;
 		*) die "--target must be one of local, cloud, or custom" ;;
 	esac
