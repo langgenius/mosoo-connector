@@ -50,7 +50,7 @@ func NewCommand() *cobra.Command {
 	var jsonOutput bool
 	cmd := &cobra.Command{
 		Use:   "doctor",
-		Short: "Check Mosoo CLI target resolution and readiness",
+		Short: "Check mosoo CLI target resolution and readiness",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			report, err := BuildReport(cmd)
 			if err != nil {
@@ -236,11 +236,11 @@ func actionForCode(code string) string {
 	case "api_request_invalid":
 		return "Check the configured target base URL."
 	case "api_unreachable":
-		return "Start the Mosoo service or choose a reachable target with --target or --base-url."
+		return "Start the mosoo service or choose a reachable target with --target or --base-url."
 	case "api_unready_status":
-		return "Verify the selected Mosoo API is healthy before using generated API commands."
+		return "Verify the selected mosoo API is healthy before using generated API commands."
 	case "auth_store_unavailable":
-		return "Check the local Mosoo credential store and retry auth login."
+		return "Check the local mosoo credential store and retry auth login."
 	case "auth_missing_credentials":
 		return "Run mosoo auth login for the resolved target."
 	case "build_metadata_missing":

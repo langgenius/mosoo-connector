@@ -1,4 +1,4 @@
 interface:
-  display_name: "Mosoo"
-  short_description: "Route Mosoo setup, CLI, and API work"
-  default_prompt: "Use $mosoo to check Mosoo runtime state and choose the right CLI or API workflow."
+  display_name: "mosoo"
+  short_description: "Route mosoo setup, CLI, and API work"
+  default_prompt: "Use $mosoo to check mosoo runtime state and choose the right CLI or API workflow."

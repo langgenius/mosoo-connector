@@ -62,7 +62,7 @@ brews:
     directory: Formula
     commit_msg_template: "chore(homebrew): update mosoo to {{ .Tag }}"
     homepage: "https://github.com/langgenius/mosoo-connector"
-    description: "Generated CLI for Mosoo integrators"
+    description: "Generated CLI for mosoo integrators"
     test: |
       assert_match "mosoo {{ .Tag }}", shell_output("#{bin}/mosoo --version")
       system "#{bin}/mosoo", "commands", "--json"

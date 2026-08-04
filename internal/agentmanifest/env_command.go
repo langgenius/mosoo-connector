@@ -97,8 +97,8 @@ func newEnvCommand() *cobra.Command {
 
 func addEnvValueFlags(cmd *cobra.Command, opts *envCommandOptions) {
 	cmd.Flags().StringVar(&opts.apiBase, "api-base", "", "Public API base URL (defaults to MOSOO_API_BASE or the resolved target public API host)")
-	cmd.Flags().StringVar(&opts.agentID, "agent-id", "", "Published Mosoo Agent ID (defaults to MOSOO_AGENT_ID)")
-	cmd.Flags().StringVar(&opts.apiToken, "api-token", "", "Mosoo API token (defaults to MOSOO_API_TOKEN or the logged-in Public API host token)")
+	cmd.Flags().StringVar(&opts.agentID, "agent-id", "", "Published mosoo Agent ID (defaults to MOSOO_AGENT_ID)")
+	cmd.Flags().StringVar(&opts.apiToken, "api-token", "", "mosoo API token (defaults to MOSOO_API_TOKEN or the logged-in Public API host token)")
 	cmd.Flags().BoolVar(&opts.json, "json", false, "Print machine-readable JSON")
 }
 
@@ -131,7 +131,7 @@ func resolveEnvValues(cmd *cobra.Command, opts *envCommandOptions) (envValues, e
 func apiTokenFromAuthStore(apiBase string) (string, error) {
 	hosts, err := latheconfig.LoadHosts()
 	if err != nil {
-		return "", fmt.Errorf("load Mosoo auth hosts: %w", err)
+		return "", fmt.Errorf("load mosoo auth hosts: %w", err)
 	}
 	entry, ok := hosts.Get(apiBase)
 	if !ok {

@@ -30,7 +30,7 @@ tmp_dirs=()
 
 usage() {
 	cat <<'EOF'
-Mosoo Installer
+mosoo Installer
 
 Usage:
   install.sh [options]
@@ -46,13 +46,13 @@ Options:
   -y, --yes                 Run with default approvals; never prompt.
       --dry-run             Print the plan and commands without changing files.
       --bin-dir DIR         Install mosoo CLI into DIR. Default: ~/.local/bin.
-      --skill-dir DIR       Install Mosoo Skill into DIR. Default: $CODEX_HOME/skills/mosoo or ~/.codex/skills/mosoo.
+      --skill-dir DIR       Install mosoo Skill into DIR. Default: $CODEX_HOME/skills/mosoo or ~/.codex/skills/mosoo.
       --source-root DIR     Install from a local mosoo-connector checkout for development.
       --cli-url URL         Download CLI archive from URL.
       --skill-url URL       Download Skill archive from URL.
       --target TARGET       Runtime target for login and doctor: local, cloud, or custom. Default: cloud.
       --base-url URL        Base URL for --target custom, or override local/cloud base URL.
-      --write-config        Write the selected target and base URL to global Mosoo config.
+      --write-config        Write the selected target and base URL to global mosoo config.
       --no-cli              Skip CLI install/update.
       --no-skill            Skip Skill install/update.
       --no-login            Skip auth login.
@@ -356,7 +356,7 @@ install_skill() {
 
 	if [ -n "$SOURCE_ROOT" ]; then
 		skill_source="$SOURCE_ROOT/publish/skills/mosoo"
-		[ -f "$skill_source/SKILL.md" ] || die "local Mosoo Skill not found: $skill_source"
+		[ -f "$skill_source/SKILL.md" ] || die "local mosoo Skill not found: $skill_source"
 	else
 		tmp="$(mktemp_dir)"
 		archive="$tmp/mosoo-skill.tar.gz"
@@ -411,7 +411,7 @@ store_api_token() {
 	token="$2"
 	console="$(console_host)"
 
-	[ -n "$token" ] || die "Mosoo API token must not be empty"
+	[ -n "$token" ] || die "mosoo API token must not be empty"
 	printf '%s\n' "$token" | "$mosoo" auth login --hostname "$console" --with-token
 }
 
@@ -443,7 +443,7 @@ run_local_development_login() {
 
 	if "$DRY_RUN"; then
 		print_cmd curl -fsSL -c cookies.txt -H "content-type: application/json" -H "origin: $origin" --data '{"email":"dev@mosoo.ai"}' "$login_url"
-			print_cmd curl -fsSL -b cookies.txt -H "content-type: application/json" -H "origin: $origin" --data '{"label":"Mosoo CLI local install"}' "$token_url"
+			print_cmd curl -fsSL -b cookies.txt -H "content-type: application/json" -H "origin: $origin" --data '{"label":"mosoo CLI local install"}' "$token_url"
 		print_cmd "$BIN_DIR/mosoo" auth login --hostname "$console" --with-token
 		return
 	fi
@@ -464,14 +464,14 @@ run_local_development_login() {
 	token_response="$tmp/token-response.json"
 
 	printf '{"email":%s}\n' "$(json_string "$email")" >"$login_body"
-	printf '{"label":"Mosoo CLI local install"}\n' >"$token_body"
+	printf '{"label":"mosoo CLI local install"}\n' >"$token_body"
 
 	curl -fsSL -c "$cookie_jar" \
 		-H "content-type: application/json" \
 		-H "origin: $origin" \
 		--data @"$login_body" \
 		"$login_url" >/dev/null ||
-		die "local development login failed; ensure the local Mosoo API is running and the development backdoor is enabled"
+		die "local development login failed; ensure the local mosoo API is running and the development backdoor is enabled"
 
 	curl -fsSL -b "$cookie_jar" \
 		-H "content-type: application/json" \
@@ -505,22 +505,22 @@ run_login() {
 		token="$MOSOO_API_TOKEN"
 	elif "$ASSUME_YES"; then
 		warn "MOSOO_API_TOKEN is not set; skipping non-interactive cloud login"
-		log "Sign in to Mosoo Cloud first, then rerun this installer:"
+		log "Sign in to mosoo Cloud first, then rerun this installer:"
 		log "  $LOGIN_URL"
 		return
 	else
 		[ -r /dev/tty ] || die "cannot prompt for token without a TTY"
 		cat >/dev/tty <<EOF
-Cloud login needs a Mosoo API token from a logged-in Mosoo web session.
+Cloud login needs a mosoo API token from a logged-in mosoo web session.
 
-1. Open Mosoo Cloud:
+1. Open mosoo Cloud:
    $LOGIN_URL
 2. Sign in or create an account with email verification.
 3. Copy the install command from the web app, or create and copy an API token.
 4. Paste the API token here, or rerun this installer with MOSOO_API_TOKEN set.
 
 EOF
-		printf 'Enter Mosoo API token: ' >/dev/tty
+		printf 'Enter mosoo API token: ' >/dev/tty
 		read -rs token </dev/tty || die "failed to read token"
 		printf '\n' >/dev/tty
 	fi
@@ -629,16 +629,16 @@ main() {
 	need_cmd dirname
 	print_plan
 
-	if "$INSTALL_CLI" && confirm "Install or update Mosoo CLI at $BIN_DIR/mosoo?" "y"; then
+	if "$INSTALL_CLI" && confirm "Install or update mosoo CLI at $BIN_DIR/mosoo?" "y"; then
 		install_cli
 	fi
-	if "$INSTALL_SKILL" && confirm "Install or update Mosoo Skill at $SKILL_DIR?" "y"; then
+	if "$INSTALL_SKILL" && confirm "Install or update mosoo Skill at $SKILL_DIR?" "y"; then
 		install_skill
 	fi
-	if "$WRITE_CONFIG" && confirm "Write Mosoo target config?" "y"; then
+	if "$WRITE_CONFIG" && confirm "Write mosoo target config?" "y"; then
 		write_target_config
 	fi
-	if "$RUN_LOGIN" && confirm "Run Mosoo auth login now?" "y"; then
+	if "$RUN_LOGIN" && confirm "Run mosoo auth login now?" "y"; then
 		run_login
 	fi
 	if "$SETUP_CLOUDFLARE" && confirm "Run optional Cloudflare/Wrangler onboarding checks?" "n"; then
@@ -648,7 +648,7 @@ main() {
 		run_doctor
 	fi
 
-	log "Mosoo install finished."
+	log "mosoo install finished."
 }
 
 main "$@"

@@ -1,7 +1,7 @@
 # CLI Host Context Examples
 
 Use this reference when a command example needs to be runnable against a known
-Mosoo runtime. Start by resolving the active target:
+mosoo runtime. Start by resolving the active target:
 
 ```sh
 mosoo doctor --json
@@ -11,7 +11,7 @@ mosoo doctor --json
 Console GraphQL and console REST commands use the `/api` surface. Public Thread
 API commands use the `/api/v1` surface.
 
-For first-time Mosoo Cloud usage, configure and authenticate without a hostname:
+For first-time mosoo Cloud usage, configure and authenticate without a hostname:
 
 ```sh
 mosoo setup

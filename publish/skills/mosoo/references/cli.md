@@ -10,12 +10,12 @@ Run:
 mosoo doctor --json
 ```
 
-Use the result to decide whether the current task targets local Mosoo runtime or
-Mosoo cloud runtime before running API commands.
+Use the result to decide whether the current task targets local mosoo runtime or
+mosoo cloud runtime before running API commands.
 
 ## Command Selection
 
-Use generated CLI commands for Mosoo resource operations, and use
+Use generated CLI commands for mosoo resource operations, and use
 `references/api.md` for application code that calls an already published Agent.
 Do not invent a wrapper command when the generated catalog already exposes the
 operation.
@@ -34,7 +34,7 @@ Use this reference when a user asks you to operate `mosoo`, inspect its API comm
 
 ## Common Workflow Recipes
 
-Use this section as the entry point for end-to-end Mosoo CLI tasks. It defines
+Use this section as the entry point for end-to-end mosoo CLI tasks. It defines
 workflow order and handoff values only; keep detailed command flags and request
 shapes in the owning workflow sections below.
 
@@ -55,8 +55,8 @@ Carry these handoff values between workflow sections: `appId`, `agentId`,
 any value is missing, return to the section that produces it instead of
 guessing.
 
-For deploying a public GitHub repository as an Agent app (Mosoo pulls the repo's
-default-branch HEAD, hosts it on a Mosoo-owned Cloudflare URL, and binds the
+For deploying a public GitHub repository as an Agent app (mosoo pulls the repo's
+default-branch HEAD, hosts it on a mosoo-owned Cloudflare URL, and binds the
 App's Agents into the deployed app's env): use `Deploy App From Public Repo
 Workflow`. It reuses `Agent App Provisioning Workflow` for App/Agent resolution
 and adds the manifest, lock file, deploy, and status steps.
@@ -67,16 +67,16 @@ and adds the manifest, lock file, deploy, and status steps.
 Workers that call a published Agent through the Public API. Do not expose it in
 browser or frontend code.
 
-Users can create multiple Mosoo API tokens and assign each token an
+Users can create multiple mosoo API tokens and assign each token an
 application-level purpose or logical scope in their own app backend. For
 example, an app can keep one token for a production Agent integration, another
 token for smoke tests, and its own metadata that decides which app users or
 workflows may use each token.
 
-Mosoo validates the token. The calling app is responsible for selecting the
+mosoo validates the token. The calling app is responsible for selecting the
 right token, storing any app-level scope metadata, and enforcing business rules
-before calling Mosoo. For multi-user apps, keep tenant and user mapping in the
-app backend; a single token does not switch Mosoo identity based on request
+before calling mosoo. For multi-user apps, keep tenant and user mapping in the
+app backend; a single token does not switch mosoo identity based on request
 payload fields.
 
 When writing app env files, store token values only in backend or Worker
@@ -93,11 +93,11 @@ variables; or fails because a module, package, command, or env var is missing.
 Do not port the Skill to another language or remove the dependency merely to fit
 the current sandbox.
 
-A Mosoo Environment is an App-local runtime template. Runtime installs its
+A mosoo Environment is an App-local runtime template. Runtime installs its
 declared packages, runs its setup script before the Agent process starts, and
 injects its env vars. An Agent selects the Environment by `environmentId`, and
 each new Session freezes the selected Environment revision. Environment does
-not contain Skills, Files, or MCP servers. The current Mosoo product stores
+not contain Skills, Files, or MCP servers. The current mosoo product stores
 network-policy intent, but Runtime does not enforce that policy yet; do not
 present it as a security boundary.
 
@@ -144,7 +144,7 @@ mosoo console environments set-environment-variable-value \
 ```
 
 Environment env vars are for values the Skill process must read inside the
-sandbox. Prefer Mosoo's dedicated Vendor Credential or MCP Credential resource
+sandbox. Prefer mosoo's dedicated Vendor Credential or MCP Credential resource
 when one exists. Keep `MOSOO_API_TOKEN` in the calling backend or Worker; do not
 inject it into the Agent Environment.
 
@@ -202,9 +202,9 @@ retrying; do not recreate resources until the current remote state is known.
 
 ## Deploy App From Public Repo Workflow
 
-Use this workflow to deploy a public GitHub repository as a Mosoo Agent app.
-Mosoo clones the repo's default-branch HEAD, builds and hosts it on a
-Mosoo-owned Cloudflare URL, and binds the App's Agents so the deployed app calls
+Use this workflow to deploy a public GitHub repository as a mosoo Agent app.
+mosoo clones the repo's default-branch HEAD, builds and hosts it on a
+mosoo-owned Cloudflare URL, and binds the App's Agents so the deployed app calls
 them through injected env vars with no secret in code. v0 deploys public GitHub
 repositories only; the deployed commit is always the default-branch HEAD.
 
@@ -309,7 +309,7 @@ a ready draft file. A create body references it like this:
 ```
 
 The same `resources` shape is available on a follow-up `user_message` event.
-Mosoo claims the draft file into that Thread before queueing the Run. There is
+mosoo claims the draft file into that Thread before queueing the Run. There is
 no public create-upload, PUT, complete, or post-create attach command. Use
 `mosoo commands show public-thread-api files upload --json` before uploading to
 confirm the generated flags and host selection.
@@ -332,7 +332,7 @@ mosoo public-thread-api threads transcript --thread-id <thread-id>
 
 ## Setup And Login
 
-For first-time Mosoo Cloud usage, do not ask the user for a hostname:
+For first-time mosoo Cloud usage, do not ask the user for a hostname:
 
 ```sh
 mosoo setup
@@ -340,7 +340,7 @@ mosoo auth login
 ```
 
 `mosoo setup` stores the cloud service root. `mosoo auth login` defaults to
-Mosoo Cloud when no config exists and stores one credential for both the console
+mosoo Cloud when no config exists and stores one credential for both the console
 API (`/api`) and Public Thread API (`/api/v1`) hosts derived from the root.
 
 For self-hosted or local runtimes, configure the root target first:
