@@ -60,7 +60,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Agents",
 		Use:   "agent",
 		Short: "Agent",
-		Long:  "Agent via the Mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Agent via the mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -85,7 +85,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Agents",
 		Use:   "agent-editor-state",
 		Short: "Agent editor state",
-		Long:  "Agent editor state via the Mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Agent editor state via the mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -179,7 +179,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Agents",
 		Use:   "create-agent-fork",
 		Short: "Create an agent fork",
-		Long:  "Create an agent fork via the Mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Create an agent fork via the mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -205,7 +205,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Agents",
 		Use:   "delete-agent",
 		Short: "Delete an agent",
-		Long:  "Delete an agent via the Mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Delete an agent via the mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -230,7 +230,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Agents",
 		Use:   "export-agent-package",
 		Short: "Export an agent package",
-		Long:  "Export an agent package via the Mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Export an agent package via the mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -255,7 +255,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Agents",
 		Use:   "import-agent-package",
 		Short: "Import an agent package",
-		Long:  "Import an agent package via the Mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Import an agent package via the mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -307,7 +307,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Agents",
 		Use:   "recreate-sandbox",
 		Short: "Recreate a sandbox",
-		Long:  "Recreate a sandbox via the Mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Recreate a sandbox via the mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -336,7 +336,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Agents",
 		Use:   "reset-agent-state",
 		Short: "Reset an agent state",
-		Long:  "Reset an agent state via the Mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Reset an agent state via the mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -365,7 +365,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Agents",
 		Use:   "restart-driver",
 		Short: "Restart a driver",
-		Long:  "Restart a driver via the Mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Restart a driver via the mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -394,7 +394,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Agents",
 		Use:   "unpublish-agent",
 		Short: "Unpublish an agent",
-		Long:  "Unpublish an agent via the Mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Unpublish an agent via the mosoo Console GraphQL API (Agents surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -419,7 +419,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Apps",
 		Use:   "app-deployment-run-list",
 		Short: "List app deployment runs",
-		Long:  "List app deployment runs via the Mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host.",
+		Long:  "List app deployment runs via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -444,7 +444,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Apps",
 		Use:   "app-deployment-status",
 		Short: "App deployment status",
-		Long:  "App deployment status via the Mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host.",
+		Long:  "App deployment status via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -552,7 +552,7 @@ var Specs = []runtime.CommandSpec{
 		Group:   "Apps",
 		Use:     "create-app",
 		Short:   "Create an app",
-		Long:    "Create an app via the Mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host.",
+		Long:    "Create an app via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host.",
 		Example: "mosoo console apps create-app --input-organization-id <organization-id> --input-name \"CLI Example App\" -o json\n",
 		Examples: []runtime.CommandExample{
 			{Summary: "Create a minimal App and capture its id for follow-up commands.", Command: "mosoo console apps create-app --input-organization-id <organization-id> --input-name \"CLI Example App\" -o json", BodyShape: []byte("{\"input\":{\"name\":\"CLI Example App\",\"organizationId\":\"\\u003corganization-id\\u003e\"}}"), OutputHints: &runtime.ExampleOutputHints{IDPath: "data.createApp.id"}, FollowUpCommands: []string{"mosoo console apps app-overview --app-id <app-id> -o json"},
@@ -582,7 +582,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Apps",
 		Use:   "delete-app-deployment",
 		Short: "Delete an app deployment",
-		Long:  "Delete an app deployment via the Mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Delete an app deployment via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -606,7 +606,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Apps",
 		Use:   "deploy-app",
 		Short: "Deploy app",
-		Long:  "Deploy app via the Mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Deploy app via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -632,7 +632,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Apps",
 		Use:   "rename-app",
 		Short: "Rename an app",
-		Long:  "Rename an app via the Mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Rename an app via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -657,7 +657,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Channels",
 		Use:   "agent-channel-binding-list",
 		Short: "List agent channel bindings",
-		Long:  "List agent channel bindings via the Mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
+		Long:  "List agent channel bindings via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -682,7 +682,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Channels",
 		Use:   "create-discord-agent-channel-binding",
 		Short: "Create a discord agent channel binding",
-		Long:  "Create a discord agent channel binding via the Mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Create a discord agent channel binding via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -710,7 +710,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Channels",
 		Use:   "create-lark-agent-channel-binding",
 		Short: "Create a lark agent channel binding",
-		Long:  "Create a lark agent channel binding via the Mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Create a lark agent channel binding via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -741,7 +741,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Channels",
 		Use:   "create-slack-agent-channel-binding",
 		Short: "Create a slack agent channel binding",
-		Long:  "Create a slack agent channel binding via the Mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Create a slack agent channel binding via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -770,7 +770,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Channels",
 		Use:   "create-telegram-agent-channel-binding",
 		Short: "Create a telegram agent channel binding",
-		Long:  "Create a telegram agent channel binding via the Mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Create a telegram agent channel binding via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -797,7 +797,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Channels",
 		Use:   "delete-agent-channel-binding",
 		Short: "Delete an agent channel binding",
-		Long:  "Delete an agent channel binding via the Mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Delete an agent channel binding via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -822,7 +822,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Channels",
 		Use:   "poll-lark-agent-channel-registration",
 		Short: "Poll lark agent channel registration",
-		Long:  "Poll lark agent channel registration via the Mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Poll lark agent channel registration via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -849,7 +849,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Channels",
 		Use:   "poll-we-chat-agent-channel-pairing",
 		Short: "Poll we chat agent channel pairing",
-		Long:  "Poll we chat agent channel pairing via the Mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Poll we chat agent channel pairing via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -875,7 +875,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Channels",
 		Use:   "start-lark-agent-channel-registration",
 		Short: "Start lark agent channel registration",
-		Long:  "Start lark agent channel registration via the Mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Start lark agent channel registration via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -901,7 +901,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Channels",
 		Use:   "start-we-chat-agent-channel-pairing",
 		Short: "Start we chat agent channel pairing",
-		Long:  "Start we chat agent channel pairing via the Mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Start we chat agent channel pairing via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -926,7 +926,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Common",
 		Use:   "app-info",
 		Short: "App info",
-		Long:  "App info via the Mosoo Console GraphQL API (Common surface). Requires a personal access token logged in to the /api host.",
+		Long:  "App info via the mosoo Console GraphQL API (Common surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -947,7 +947,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Cost",
 		Use:   "agent-cost-card",
 		Short: "Agent cost card",
-		Long:  "Agent cost card via the Mosoo Console GraphQL API (Cost surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Agent cost card via the mosoo Console GraphQL API (Cost surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -974,7 +974,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Cost",
 		Use:   "app-cost-card",
 		Short: "App cost card",
-		Long:  "App cost card via the Mosoo Console GraphQL API (Cost surface). Requires a personal access token logged in to the /api host.",
+		Long:  "App cost card via the mosoo Console GraphQL API (Cost surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1000,7 +1000,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Cost",
 		Use:   "organization-billing-cost-card",
 		Short: "Organization billing cost card",
-		Long:  "Organization billing cost card via the Mosoo Console GraphQL API (Cost surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Organization billing cost card via the mosoo Console GraphQL API (Cost surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1026,7 +1026,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Credentials",
 		Use:   "available-agent-models",
 		Short: "Available agent models",
-		Long:  "Available agent models via the Mosoo Console GraphQL API (Credentials surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Available agent models via the mosoo Console GraphQL API (Credentials surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1063,7 +1063,7 @@ var Specs = []runtime.CommandSpec{
 			{Summary: "Create an OpenAI provider credential from an environment variable", Command: "mosoo console credentials create-vendor-credential \\\n  --input-app-id <app-id> \\\n  --input-vendor-id openai \\\n  --input-name \"OpenAI\" \\\n  --input-api-key-env OPENAI_API_KEY \\\n  -o json", BodyShape: []byte("{\"input\":{\"apiKey\":\"$OPENAI_API_KEY\",\"appId\":\"\\u003capp-id\\u003e\",\"name\":\"OpenAI\",\"vendorId\":\"openai\"}}"), OutputHints: &runtime.ExampleOutputHints{IDPath: "data.createVendorCredential.id"}, FollowUpCommands: []string{"mosoo console credentials vendor-credential-list --app-id <app-id> -o json"},
 			},
 		},
-		Notes: []string{"Uses POST /graphql on the console default hostname (/api).", "For preset providers such as openai or anthropic, omit input.models unless Mosoo asks for explicit model configuration.", "Use --input-api-key-env, --input-api-key-file, or --input-api-key-stdin so provider keys do not appear in shell history.", "Current Lathe required variable flags must be present; safe input modes satisfy the required input.apiKey variable."},
+		Notes: []string{"Uses POST /graphql on the console default hostname (/api).", "For preset providers such as openai or anthropic, omit input.models unless mosoo asks for explicit model configuration.", "Use --input-api-key-env, --input-api-key-file, or --input-api-key-stdin so provider keys do not appear in shell history.", "Current Lathe required variable flags must be present; safe input modes satisfy the required input.apiKey variable."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
 		},
@@ -1091,7 +1091,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Credentials",
 		Use:   "delete-vendor-credential",
 		Short: "Delete a vendor credential",
-		Long:  "Delete a vendor credential via the Mosoo Console GraphQL API (Credentials surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Delete a vendor credential via the mosoo Console GraphQL API (Credentials surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1116,7 +1116,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Credentials",
 		Use:   "set-default-vendor-credential",
 		Short: "Set default vendor credential",
-		Long:  "Set default vendor credential via the Mosoo Console GraphQL API (Credentials surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Set default vendor credential via the mosoo Console GraphQL API (Credentials surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1175,7 +1175,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Credentials",
 		Use:   "update-vendor-credential",
 		Short: "Update a vendor credential",
-		Long:  "Update a vendor credential via the Mosoo Console GraphQL API (Credentials surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Update a vendor credential via the mosoo Console GraphQL API (Credentials surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1230,7 +1230,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Environments",
 		Use:   "app-environment-list",
 		Short: "List app environments",
-		Long:  "List app environments via the Mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
+		Long:  "List app environments via the mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1254,7 +1254,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Environments",
 		Use:   "create-environment",
 		Short: "Create an environment",
-		Long:  "Create an environment via the Mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Create an environment via the mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1285,7 +1285,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Environments",
 		Use:   "create-environment-fork",
 		Short: "Create an environment fork",
-		Long:  "Create an environment fork via the Mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Create an environment fork via the mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1310,7 +1310,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Environments",
 		Use:   "delete-environment",
 		Short: "Delete an environment",
-		Long:  "Delete an environment via the Mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Delete an environment via the mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1335,7 +1335,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Environments",
 		Use:   "environment",
 		Short: "Environment",
-		Long:  "Environment via the Mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Environment via the mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1360,7 +1360,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Environments",
 		Use:   "set-app-default-environment",
 		Short: "Set app default environment",
-		Long:  "Set app default environment via the Mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Set app default environment via the mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1385,7 +1385,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Environments",
 		Use:   "set-environment-variable-value",
 		Short: "Set environment variable value",
-		Long:  "Set environment variable value via the Mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Set environment variable value via the mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1412,7 +1412,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Environments",
 		Use:   "update-environment",
 		Short: "Update an environment",
-		Long:  "Update an environment via the Mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Update an environment via the mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1444,7 +1444,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Files",
 		Use:   "file-list",
 		Short: "List files",
-		Long:  "List files via the Mosoo Console GraphQL API (Files surface). Requires a personal access token logged in to the /api host.",
+		Long:  "List files via the mosoo Console GraphQL API (Files surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1472,7 +1472,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "MCP",
 		Use:   "connect-mcp-bearer",
 		Short: "Connect a mcp bearer",
-		Long:  "Connect a mcp bearer via the Mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Connect a mcp bearer via the mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1499,7 +1499,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "MCP",
 		Use:   "create-app-mcp-server",
 		Short: "Create an app mcp server",
-		Long:  "Create an app mcp server via the Mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Create an app mcp server via the mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1530,7 +1530,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "MCP",
 		Use:   "delete-mcp-server",
 		Short: "Delete a mcp server",
-		Long:  "Delete a mcp server via the Mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Delete a mcp server via the mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1574,7 +1574,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "MCP",
 		Use:   "mcp-registry",
 		Short: "Mcp registry",
-		Long:  "Mcp registry via the Mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Mcp registry via the mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1598,7 +1598,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "MCP",
 		Use:   "revoke-mcp-credential",
 		Short: "Revoke a mcp credential",
-		Long:  "Revoke a mcp credential via the Mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Revoke a mcp credential via the mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1623,7 +1623,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "MCP",
 		Use:   "set-mcp-server-enabled",
 		Short: "Set mcp server enabled",
-		Long:  "Set mcp server enabled via the Mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Set mcp server enabled via the mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1670,7 +1670,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "MCP",
 		Use:   "update-app-mcp-server",
 		Short: "Update an app mcp server",
-		Long:  "Update an app mcp server via the Mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Update an app mcp server via the mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1699,7 +1699,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Onboarding",
 		Use:   "onboarding-bootstrap",
 		Short: "Onboarding bootstrap",
-		Long:  "Onboarding bootstrap via the Mosoo Console GraphQL API (Onboarding surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Onboarding bootstrap via the mosoo Console GraphQL API (Onboarding surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1723,7 +1723,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "add-session-resource",
 		Short: "Add a session resource",
-		Long:  "Add a session resource via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Add a session resource via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1751,7 +1751,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "agent-session-diagnostics",
 		Short: "Agent session diagnostics",
-		Long:  "Agent session diagnostics via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Agent session diagnostics via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1776,7 +1776,7 @@ var Specs = []runtime.CommandSpec{
 		Group:   "Sessions",
 		Use:     "agent-session-list",
 		Short:   "List agent sessions",
-		Long:    "List agent sessions via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:    "List agent sessions via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Example: "mosoo console sessions agent-session-list\n",
 		Notes:   []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
@@ -1807,7 +1807,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "agent-session-retrieve",
 		Short: "Agent session retrieve",
-		Long:  "Agent session retrieve via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Agent session retrieve via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1832,7 +1832,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "archive-agent-session",
 		Short: "Archive an agent session",
-		Long:  "Archive an agent session via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Archive an agent session via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1857,7 +1857,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "auto-title-session",
 		Short: "Auto a title session",
-		Long:  "Auto a title session via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Auto a title session via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1883,7 +1883,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "create-agent-session",
 		Short: "Create an agent session",
-		Long:  "Create an agent session via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Create an agent session via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1910,7 +1910,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "delete-agent-session",
 		Short: "Delete an agent session",
-		Long:  "Delete an agent session via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Delete an agent session via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1935,7 +1935,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "list-session-resources",
 		Short: "List session resources",
-		Long:  "List session resources via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "List session resources via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1960,7 +1960,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "prewarm-agent-session",
 		Short: "Prewarm an agent session",
-		Long:  "Prewarm an agent session via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Prewarm an agent session via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -1985,7 +1985,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "remove-session-resource",
 		Short: "Remove a session resource",
-		Long:  "Remove a session resource via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Remove a session resource via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2011,7 +2011,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "rename-session",
 		Short: "Rename a session",
-		Long:  "Rename a session via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Rename a session via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2037,7 +2037,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "session",
 		Short: "Session",
-		Long:  "Session via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Session via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2062,7 +2062,7 @@ var Specs = []runtime.CommandSpec{
 		Group:   "Sessions",
 		Use:     "session-list",
 		Short:   "List sessions",
-		Long:    "List sessions via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:    "List sessions via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Example: "mosoo console sessions session-list\n",
 		Notes:   []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
@@ -2091,7 +2091,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "session-messages",
 		Short: "Session messages",
-		Long:  "Session messages via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Session messages via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2116,7 +2116,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "session-process-events",
 		Short: "Session process events",
-		Long:  "Session process events via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Session process events via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2177,7 +2177,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "thread-agent-session-list",
 		Short: "List thread agent sessions",
-		Long:  "List thread agent sessions via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "List thread agent sessions via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2205,7 +2205,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "thread-agent-session-retrieve",
 		Short: "Thread agent session retrieve",
-		Long:  "Thread agent session retrieve via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Thread agent session retrieve via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2230,7 +2230,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "thread-session-messages",
 		Short: "Thread session messages",
-		Long:  "Thread session messages via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Thread session messages via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2283,7 +2283,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Sessions",
 		Use:   "unarchive-agent-session",
 		Short: "Unarchive an agent session",
-		Long:  "Unarchive an agent session via the Mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Unarchive an agent session via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2308,7 +2308,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Skills",
 		Use:   "app-skill-list",
 		Short: "List app skills",
-		Long:  "List app skills via the Mosoo Console GraphQL API (Skills surface). Requires a personal access token logged in to the /api host.",
+		Long:  "List app skills via the mosoo Console GraphQL API (Skills surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2332,7 +2332,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Skills",
 		Use:   "create-skill-fork",
 		Short: "Create a skill fork",
-		Long:  "Create a skill fork via the Mosoo Console GraphQL API (Skills surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Create a skill fork via the mosoo Console GraphQL API (Skills surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2357,7 +2357,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Skills",
 		Use:   "delete-owned-skill",
 		Short: "Delete an owned skill",
-		Long:  "Delete an owned skill via the Mosoo Console GraphQL API (Skills surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Delete an owned skill via the mosoo Console GraphQL API (Skills surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2382,7 +2382,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "Skills",
 		Use:   "skill-detail",
 		Short: "Skill detail",
-		Long:  "Skill detail via the Mosoo Console GraphQL API (Skills surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Skill detail via the mosoo Console GraphQL API (Skills surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2407,7 +2407,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "User",
 		Use:   "set-system-agent-model",
 		Short: "Set system agent model",
-		Long:  "Set system agent model via the Mosoo Console GraphQL API (User surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Set system agent model via the mosoo Console GraphQL API (User surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2432,7 +2432,7 @@ var Specs = []runtime.CommandSpec{
 		Group: "User",
 		Use:   "update-profile",
 		Short: "Update a profile",
-		Long:  "Update a profile via the Mosoo Console GraphQL API (User surface). Requires a personal access token logged in to the /api host.",
+		Long:  "Update a profile via the mosoo Console GraphQL API (User surface). Requires a personal access token logged in to the /api host.",
 		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
@@ -2457,7 +2457,7 @@ var Specs = []runtime.CommandSpec{
 		Group:   "User",
 		Use:     "viewer",
 		Short:   "Show the signed-in viewer",
-		Long:    "Show the signed-in viewer via the Mosoo Console GraphQL API (User surface). Requires a personal access token logged in to the /api host.",
+		Long:    "Show the signed-in viewer via the mosoo Console GraphQL API (User surface). Requires a personal access token logged in to the /api host.",
 		Example: "mosoo console user viewer\n",
 		Notes:   []string{"Uses POST /graphql on the console default hostname (/api)."},
 		KnownErrors: []runtime.KnownError{

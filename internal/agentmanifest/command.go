@@ -108,15 +108,15 @@ func NewCommand() *cobra.Command {
 	opts := &commandOptions{}
 	agentCmd := &cobra.Command{
 		Use:   "agent",
-		Short: "Operate Mosoo Agents",
+		Short: "Operate mosoo Agents",
 	}
 	manifestCmd := &cobra.Command{
 		Use:   "manifest",
 		Short: "Inspect and apply Agent manifests",
 		Long:  "Inspect and apply Agent manifest YAML while preserving remote Agent config fields that the local file does not explicitly change.",
 	}
-	manifestCmd.PersistentFlags().StringVar(&opts.appID, "app-id", "", "Mosoo App ID")
-	manifestCmd.PersistentFlags().StringVar(&opts.agentID, "agent-id", "", "Mosoo Agent ID")
+	manifestCmd.PersistentFlags().StringVar(&opts.appID, "app-id", "", "mosoo App ID")
+	manifestCmd.PersistentFlags().StringVar(&opts.agentID, "agent-id", "", "mosoo Agent ID")
 	manifestCmd.PersistentFlags().BoolVar(&opts.json, "json", false, "Print machine-readable JSON")
 
 	probeCmd := &cobra.Command{

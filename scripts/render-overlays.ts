@@ -239,7 +239,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 			},
 		],
 		notes: [
-			"For preset providers such as openai or anthropic, omit input.models unless Mosoo asks for explicit model configuration.",
+			"For preset providers such as openai or anthropic, omit input.models unless mosoo asks for explicit model configuration.",
 			"Use --input-api-key-env, --input-api-key-file, or --input-api-key-stdin so provider keys do not appear in shell history.",
 			"Current Lathe required variable flags must be present; safe input modes satisfy the required input.apiKey variable.",
 		],
@@ -439,7 +439,7 @@ function buildConsoleOverlay(): Record<string, OverlayCommand> {
 		const flags = requiredFlags(field);
 		const base: OverlayCommand = {
 			short: humanizeGraphQLField(field),
-			long: `${humanizeGraphQLField(field)} via the Mosoo Console GraphQL API (${group} surface). Requires a personal access token logged in to the /api host.`,
+			long: `${humanizeGraphQLField(field)} via the mosoo Console GraphQL API (${group} surface). Requires a personal access token logged in to the /api host.`,
 			...(exampleFields.has(field) ? { example: consoleExample(group, use, flags) } : {}),
 			notes: ["Uses POST /graphql on the console default hostname (/api)."],
 			known_errors: [{ status: 401, cause: "Missing, invalid, or revoked personal access token." }],

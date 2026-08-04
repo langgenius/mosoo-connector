@@ -22,7 +22,7 @@ type probeFunc func(context.Context, target.Resolution, bool) error
 
 var probeTargetAPI probeFunc = ProbeTargetAPI
 
-// Install adds Mosoo-specific setup UX around the Lathe-generated app.
+// Install adds mosoo-specific setup UX around the Lathe-generated app.
 func Install(root *cobra.Command) error {
 	if err := wrapAuthLogin(root); err != nil {
 		return err
@@ -38,7 +38,7 @@ func wrapAuthLogin(root *cobra.Command) error {
 	if authCmd == nil {
 		return errors.New("auth command is not mounted")
 	}
-	authCmd.Short = "Authenticate Mosoo CLI targets"
+	authCmd.Short = "Authenticate mosoo CLI targets"
 	loginCmd := findChild(authCmd, "login")
 	if loginCmd == nil {
 		return errors.New("auth login command is not mounted")
@@ -61,7 +61,7 @@ func wrapLoginCommand(cmd *cobra.Command) {
 
 	originalRun := cmd.Run
 	originalRunE := cmd.RunE
-	cmd.Short = "Authenticate with the resolved Mosoo target"
+	cmd.Short = "Authenticate with the resolved mosoo target"
 	cmd.Run = nil
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		resolved, loginHost, explicitHost, err := resolveAuthLoginHost(cmd)
@@ -96,7 +96,7 @@ func wrapLoginCommand(cmd *cobra.Command) {
 			if err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.ErrOrStderr(), "✓ Saved Mosoo target config to %s\n", configPath)
+			fmt.Fprintf(cmd.ErrOrStderr(), "✓ Saved mosoo target config to %s\n", configPath)
 		}
 		return nil
 	}
@@ -166,12 +166,12 @@ func mirrorCredential(loginHost string, resolved target.Resolution) ([]string, e
 	return savedHosts, nil
 }
 
-// NewCommand returns the Mosoo setup command. The root setup path is cloud-only
+// NewCommand returns the mosoo setup command. The root setup path is cloud-only
 // by design; self-hosted URL knobs live on the self-host/custom/local subcommands.
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "setup",
-		Short: "Configure Mosoo Cloud as the default target",
+		Short: "Configure mosoo Cloud as the default target",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if err := rejectRootSetupTargetFlags(cmd); err != nil {
 				return err
@@ -206,7 +206,7 @@ func newSelfHostCommand(use string, aliases []string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     use,
 		Aliases: aliases,
-		Short:   "Configure a self-hosted Mosoo target",
+		Short:   "Configure a self-hosted mosoo target",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			baseURL, err := resolveSetupBaseURL(opts, "")
 			if err != nil {
@@ -223,7 +223,7 @@ func newLocalCommand() *cobra.Command {
 	var opts setupOptions
 	cmd := &cobra.Command{
 		Use:   "local",
-		Short: "Configure a local Mosoo target",
+		Short: "Configure a local mosoo target",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			baseURL, err := resolveSetupBaseURL(opts, target.DefaultLocalBaseURL)
 			if err != nil {
@@ -237,9 +237,9 @@ func newLocalCommand() *cobra.Command {
 }
 
 func addSelfHostFlags(cmd *cobra.Command, opts *setupOptions) {
-	cmd.Flags().StringVar(&opts.baseURL, "base-url", "", "Mosoo root base URL")
-	cmd.Flags().StringVar(&opts.apiURL, "api-url", "", "Mosoo console API URL; /api or /api/v1 is stripped before saving")
-	cmd.Flags().StringVar(&opts.appURL, "app-url", "", "Mosoo web app origin used to derive the root base URL")
+	cmd.Flags().StringVar(&opts.baseURL, "base-url", "", "mosoo root base URL")
+	cmd.Flags().StringVar(&opts.apiURL, "api-url", "", "mosoo console API URL; /api or /api/v1 is stripped before saving")
+	cmd.Flags().StringVar(&opts.appURL, "app-url", "", "mosoo web app origin used to derive the root base URL")
 }
 
 func resolveSetupBaseURL(opts setupOptions, defaultBaseURL string) (string, error) {
@@ -323,7 +323,7 @@ func configureTarget(cmd *cobra.Command, targetName, baseURL string) error {
 	}
 
 	out := cmd.OutOrStdout()
-	fmt.Fprintf(out, "Configured Mosoo target: %s\n", resolved.Target)
+	fmt.Fprintf(out, "Configured mosoo target: %s\n", resolved.Target)
 	fmt.Fprintf(out, "Base URL: %s\n", resolved.BaseURL)
 	fmt.Fprintf(out, "Console API: %s\n", resolved.Hosts[target.SurfaceConsole])
 	fmt.Fprintf(out, "Public API: %s\n", resolved.Hosts[target.SurfacePublicThreadAPI])

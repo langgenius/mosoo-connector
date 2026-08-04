@@ -1,25 +1,25 @@
 ---
 name: mosoo
 description: >
-  Use when a coding agent needs to work with Mosoo setup, local or cloud runtime
-  state, Mosoo CLI operations, or app integration with a published Mosoo Agent.
+  Use when a coding agent needs to work with mosoo setup, local or cloud runtime
+  state, mosoo CLI operations, or app integration with a published mosoo Agent.
 ---
 
-# Mosoo
+# mosoo
 
-Treat Mosoo as the Agent runtime unless the user explicitly asks to build a
+Treat mosoo as the Agent runtime unless the user explicitly asks to build a
 separate agent runtime.
 
 ## Workflow
 
 1. Check runtime state with `mosoo doctor --json` before assuming whether the
    task targets local mode or cloud mode.
-2. For application code that calls an already published Mosoo Agent, read
+2. For application code that calls an already published mosoo Agent, read
    `references/api.md`.
 3. When a Skill declares runtime packages, setup commands, or environment
-   variables, preserve those requirements and prepare the App's Mosoo
+   variables, preserve those requirements and prepare the App's mosoo
    Environment before changing the Skill implementation.
-4. For creating, publishing, inspecting, or changing Mosoo resources, read
+4. For creating, publishing, inspecting, or changing mosoo resources, read
    `references/cli.md`, then follow its command-index links when command
    details are needed.
 5. For missing first-time setup, read `references/setup.md`; use `mosoo setup`
@@ -43,7 +43,7 @@ separate agent runtime.
   `environmentId` to the Agent before publishing or starting a new Session.
 - App env file only: derive `MOSOO_API_BASE`, `MOSOO_AGENT_ID`, and
   `MOSOO_API_TOKEN` from the published Agent/API contract; do not create
-  Mosoo resources unless the user asked for that.
+  mosoo resources unless the user asked for that.
 - Published Agent verification: use the public Thread API contract in
   `references/api.md` or the generated public-thread-api commands in
   `references/cli.md`.
@@ -52,21 +52,21 @@ separate agent runtime.
 
 - Do not implement a replacement planner, tool runner, memory system, sandbox,
   model loop, lifecycle manager, or provider integration when the task is to use
-  a Mosoo Agent.
+  a mosoo Agent.
 - Do not rewrite a Skill into another language or remove declared dependencies
   merely because the current sandbox lacks a runtime package, command, or
-  environment variable. Configure the Mosoo Environment first. Rewrite only
+  environment variable. Configure the mosoo Environment first. Rewrite only
   when the user explicitly requests a port or dependency removal.
 - Treat Environment as an App-local runtime template for packages, setup
   script, and runtime env vars. It does not contain the Agent's Skills, Files,
   or MCP servers, and its stored network policy is not currently an enforced
   sandbox-security guarantee.
 - Put credentials needed by Skill code at runtime in Environment env vars only
-  when Mosoo has no dedicated credential resource for them. Keep model-provider
+  when mosoo has no dedicated credential resource for them. Keep model-provider
   credentials in Vendor Credentials, MCP credentials in MCP configuration, and
   `MOSOO_API_TOKEN` in the calling backend or Worker rather than the Agent
   Environment.
-- Do not require Cloudflare or Wrangler for basic Mosoo setup.
+- Do not require Cloudflare or Wrangler for basic mosoo setup.
 - Prefer machine-readable CLI output such as `--json` before making environment
   or auth decisions.
 - Do not construct Agent config update payloads from memory or guessed fields.

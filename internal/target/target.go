@@ -43,7 +43,7 @@ const (
 	SurfacePublicThreadAPI = "public-thread-api"
 )
 
-// Resolution describes the Mosoo service target selected for this invocation.
+// Resolution describes the mosoo service target selected for this invocation.
 type Resolution struct {
 	Target           string            `json:"target"`
 	Source           string            `json:"source"`
@@ -75,10 +75,10 @@ type fileConfig struct {
 func Install(root *cobra.Command) {
 	flags := root.PersistentFlags()
 	if flags.Lookup("target") == nil {
-		flags.String("target", "", "Mosoo target for generated API commands: local|cloud|custom")
+		flags.String("target", "", "mosoo target for generated API commands: local|cloud|custom")
 	}
 	if flags.Lookup("base-url") == nil {
-		flags.String("base-url", "", "Mosoo service base URL used with --target or target config")
+		flags.String("base-url", "", "mosoo service base URL used with --target or target config")
 	}
 
 	previousPreRun := root.PersistentPreRun
@@ -116,7 +116,7 @@ func ResolveFromCommand(cmd *cobra.Command) (Resolution, error) {
 
 // ResolveAuthLoginFromCommand resolves the target used by human auth login.
 // Unlike generated API commands, a first-time login with no config defaults to
-// Mosoo Cloud so users do not need to know an API hostname.
+// mosoo Cloud so users do not need to know an API hostname.
 func ResolveAuthLoginFromCommand(cmd *cobra.Command) (Resolution, error) {
 	return resolveFromCommand(cmd, CloudTarget)
 }
@@ -193,7 +193,7 @@ func ResolveTargetBase(targetValue, baseURLValue, source string) (Resolution, er
 	return resolutionFromTargetBase(targetValue, baseURLValue, source, "", "")
 }
 
-// WriteGlobalConfig validates and saves a global Mosoo target config.
+// WriteGlobalConfig validates and saves a global mosoo target config.
 func WriteGlobalConfig(targetValue, baseURLValue string) (string, error) {
 	resolved, err := resolutionFromTargetBase(targetValue, baseURLValue, SourceGlobalConfig, "", "")
 	if err != nil {

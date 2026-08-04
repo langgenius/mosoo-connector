@@ -634,7 +634,7 @@
   - `--input-vendor-id` (variable, required): input.vendorId
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
-  - For preset providers such as openai or anthropic, omit input.models unless Mosoo asks for explicit model configuration.
+  - For preset providers such as openai or anthropic, omit input.models unless mosoo asks for explicit model configuration.
   - Use --input-api-key-env, --input-api-key-file, or --input-api-key-stdin so provider keys do not appear in shell history.
   - Current Lathe required variable flags must be present; safe input modes satisfy the required input.apiKey variable.
 - Known errors:

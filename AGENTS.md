@@ -12,7 +12,7 @@
 
 ## Lathe And Generated Files
 
-This repository is a codegen wrapper around Mosoo API specs and Lathe. Do not blindly edit Lathe-generated outputs to fix behavior, docs, examples, or command metadata.
+This repository is a codegen wrapper around mosoo API specs and Lathe. Do not blindly edit Lathe-generated outputs to fix behavior, docs, examples, or command metadata.
 
 - Treat `internal/generated/**`, `cmd/mosoo/cli.yaml`, `specs/sources.yaml`, and `publish/skills/mosoo/references/cli/catalog.md` plus `publish/skills/mosoo/references/cli/modules/*.md` as generated outputs.
 - Prefer changing the source of generation, then regenerate with the existing pipeline.
@@ -27,7 +27,7 @@ This repo pins Lathe through `go.mod` and builds a repo-local binary at `.cache/
 
 - Build the local Lathe tool with `make tools`.
 - The normal repo flow is `make build`, not a bare `lathe bootstrap`.
-- `make build` exports Mosoo specs, renders `specs/sources.yaml`, renders `overlays/*.yaml`, runs Lathe codegen, renders published CLI references, and builds `bin/mosoo`.
+- `make build` exports mosoo specs, renders `specs/sources.yaml`, renders `overlays/*.yaml`, runs Lathe codegen, renders published CLI references, and builds `bin/mosoo`.
 - The Lathe command used by the build is:
 
 ```sh

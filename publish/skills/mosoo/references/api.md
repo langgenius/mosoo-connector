@@ -1,7 +1,7 @@
-# Mosoo Public Thread API
+# mosoo Public Thread API
 
 Use this reference when application backend code calls an already published
-Mosoo Agent. For creating, publishing, or changing Mosoo resources, use the
+mosoo Agent. For creating, publishing, or changing mosoo resources, use the
 generated CLI workflow in `references/cli.md` instead.
 
 ## Documentation sources
@@ -11,14 +11,14 @@ generated CLI workflow in `references/cli.md` instead.
 - Complete documentation index: `https://mosoo.ai/docs/llms.txt`
 - Published OpenAPI document: `https://mosoo.ai/docs/openapi/mosoo-openapi.en.generated.json`
 
-The checked-in Mosoo OpenAPI document at `GET /api/v1/openapi.json` is the wire
+The checked-in mosoo OpenAPI document at `GET /api/v1/openapi.json` is the wire
 contract. This guide explains the integration workflow and intentionally does
 not duplicate every generated schema field.
 
 ## Boundary
 
 Your application owns its UI, backend routes, users, business data, correlation
-IDs, API token storage, and persisted `thread.id` values. Mosoo owns the
+IDs, API token storage, and persisted `thread.id` values. mosoo owns the
 published Agent runtime, provider and tool configuration, sandbox execution,
 Thread lifecycle, and public events.
 
@@ -150,7 +150,7 @@ For a follow-up, put the same resource shape on the `user_message` event:
 }
 ```
 
-Mosoo validates and claims referenced drafts into the Thread before queueing the
+mosoo validates and claims referenced drafts into the Thread before queueing the
 Run. Drafts cannot be claimed across App or caller boundaries. The public
 multipart endpoint accepts one file up to 67108864 bytes and returns a ready
 draft.
@@ -228,7 +228,7 @@ than matching the human message.
 | `404` | The resource is absent or not visible | Verify IDs returned by this API |
 | `409` | Unpublished or inactive Agent, readiness block, or idempotency conflict | Inspect state; retry only when the conflict is transient |
 | `429` | Token request budget exceeded | Back off using `Retry-After` |
-| `500` | Unexpected Mosoo failure | Retry briefly with backoff and preserve diagnostics |
+| `500` | Unexpected mosoo failure | Retry briefly with backoff and preserve diagnostics |
 
 Retry create and event requests with the same `Idempotency-Key` only when the
 method, route, and body are unchanged. Use a new key for a reconciled request.

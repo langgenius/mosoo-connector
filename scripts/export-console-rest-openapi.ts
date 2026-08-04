@@ -100,7 +100,7 @@ const paths: OpenApiPaths = {
 			operationId: "AccessTokens_Create",
 			summary: "Create a personal access token",
 			description:
-				"Creates a new Mosoo access token (mst_...) for CLI and API use. Today this route accepts a viewer session cookie; Bearer PAT support is planned.",
+				"Creates a new mosoo access token (mst_...) for CLI and API use. Today this route accepts a viewer session cookie; Bearer PAT support is planned.",
 			tags: ["Access Tokens"],
 			security: bearerSecurity,
 			requestBody: {
@@ -576,7 +576,7 @@ const paths: OpenApiPaths = {
 const document = {
 	openapi: "3.1.0",
 	info: {
-		title: "Mosoo Console REST API",
+		title: "mosoo Console REST API",
 		description:
 			"Viewer-authenticated REST helpers for files, access tokens, and skill packages. Routes are mounted under /api.",
 		version: "v1",
@@ -588,7 +588,7 @@ const document = {
 			consoleBearer: {
 				type: "http",
 				scheme: "bearer",
-				bearerFormat: "Mosoo Access Token or viewer session",
+				bearerFormat: "mosoo Access Token or viewer session",
 				description:
 					"Send Authorization: Bearer mst_... for PAT-authenticated calls. Some routes still require a viewer session cookie until PAT support lands on these paths.",
 			},

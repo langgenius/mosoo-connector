@@ -1,6 +1,6 @@
 # Setup Reference
 
-First-time setup is handled by the Mosoo installer.
+First-time setup is handled by the mosoo installer.
 
 Run:
 
@@ -39,7 +39,7 @@ mosoo --version
 mosoo doctor --json
 ```
 
-If the Mosoo CLI is already installed, first-time cloud setup does not require
+If the mosoo CLI is already installed, first-time cloud setup does not require
 the installer or any hostname input:
 
 ```sh
@@ -59,9 +59,9 @@ mosoo setup self-host --base-url https://mosoo.example.com
 mosoo setup local
 ```
 
-The installer may install or update the Mosoo CLI, install or update this Mosoo
+The installer may install or update the mosoo CLI, install or update this mosoo
 Skill, guide login, write initial config, and run readiness checks. Public
-installs default to the Mosoo cloud target at `https://cloud.mosoo.ai`; pass
+installs default to the mosoo cloud target at `https://cloud.mosoo.ai`; pass
 `--target local` for a local development API. It should not make Cloudflare or
 Wrangler a default prerequisite.
 
