@@ -13,7 +13,7 @@ func TestBuildCreateBodySetsAndStrings(t *testing.T) {
 		"input.content[0].type=text",
 	}, []string{
 		"input.content[0].text=Say hello",
-		"client_external_ref=demo-001",
+		"userId=demo-001",
 	})
 	if err != nil {
 		t.Fatalf("buildCreateBody: %v", err)
@@ -34,8 +34,8 @@ func TestBuildCreateBodySetsAndStrings(t *testing.T) {
 	if first["type"] != "text" || first["text"] != "Say hello" {
 		t.Fatalf("content[0] = %#v", first)
 	}
-	if got["client_external_ref"] != "demo-001" {
-		t.Fatalf("client_external_ref = %#v", got["client_external_ref"])
+	if got["userId"] != "demo-001" {
+		t.Fatalf("userId = %#v", got["userId"])
 	}
 }
 
@@ -62,14 +62,14 @@ func TestBuildCreateBodyInfersTypesButSetStrForcesString(t *testing.T) {
 func TestBuildCreateBodyFileFallback(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "body.json")
-	if err := os.WriteFile(path, []byte(`{"client_external_ref":"from-file"}`), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte(`{"userId":"from-file"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	raw, err := buildCreateBody(path, nil, nil)
 	if err != nil {
 		t.Fatalf("buildCreateBody: %v", err)
 	}
-	if string(raw) != `{"client_external_ref":"from-file"}` {
+	if string(raw) != `{"userId":"from-file"}` {
 		t.Fatalf("file body = %q", raw)
 	}
 }

@@ -5,10 +5,12 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"testing"
 
+	generatedthreads "github.com/langgenius/mosoo-connector/internal/generated/threads"
 	latheruntime "github.com/lathe-cli/lathe/pkg/runtime"
 	"github.com/spf13/cobra"
 )
@@ -63,12 +65,26 @@ func TestInstallAttachesCatalogEntriesForHelpers(t *testing.T) {
 	if create.Body == nil || create.Body.MediaType != "application/json" {
 		t.Fatalf("create body = %+v", create.Body)
 	}
+	if !create.Body.Required || create.Body.Schema == nil || !slices.Contains(create.Body.Schema.Required, "userId") {
+		t.Fatalf("create body must require userId: %+v", create.Body)
+	}
+	for index, example := range create.Examples {
+		var body map[string]any
+		if err := json.Unmarshal(example.BodyShape, &body); err != nil {
+			t.Fatalf("create example %d body: %v", index, err)
+		}
+		if body["userId"] == nil {
+			t.Fatalf("create example %d missing userId: %s", index, example.BodyShape)
+		}
+		if _, stale := body["client_external_ref"]; stale {
+			t.Fatalf("create example %d contains removed client_external_ref: %s", index, example.BodyShape)
+		}
+	}
 	for _, want := range []string{"agent-id", "file", "set", "wait", "final-output"} {
 		if !catalogHasFlag(create, want) {
 			t.Fatalf("create catalog missing --%s flag: %+v", want, create.Flags)
 		}
 	}
-
 	for _, path := range [][]string{
 		{"public-thread-api", "events", "wait"},
 		{"public-thread-api", "threads", "transcript"},
@@ -77,6 +93,23 @@ func TestInstallAttachesCatalogEntriesForHelpers(t *testing.T) {
 			t.Fatalf("catalog does not include %v", path)
 		}
 	}
+}
+
+func TestGeneratedSendExampleUsesCurrentRequestID(t *testing.T) {
+	for _, spec := range generatedthreads.Specs {
+		if spec.Use != "send" {
+			continue
+		}
+		if len(spec.Examples) == 0 {
+			t.Fatal("generated events send command has no example")
+		}
+		body := string(spec.Examples[0].BodyShape)
+		if !strings.Contains(body, `"requestId"`) || strings.Contains(body, `"clientRequestId"`) {
+			t.Fatalf("events send example uses stale request ID: %s", body)
+		}
+		return
+	}
+	t.Fatal("generated events send command is missing")
 }
 
 func catalogHasFlag(cmd latheruntime.CatalogCommand, name string) bool {

@@ -194,6 +194,14 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked personal access token."
+  bound-capability-run-provenance:
+    short: "Bound capability run provenance"
+    long: "Bound capability run provenance via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host."
+    notes:
+      - "Uses POST /graphql on the console default hostname (/api)."
+    known_errors:
+      - status: 401
+        cause: "Missing, invalid, or revoked personal access token."
   connect-mcp-bearer:
     short: "Connect a mcp bearer"
     long: "Connect a mcp bearer via the mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host."

@@ -483,7 +483,7 @@ function buildThreadsOverlay(): Record<string, OverlayCommand> {
 							{
 								type: "user_message",
 								text: "Continue the task with this follow-up.",
-								clientRequestId: "cli-send-001",
+								requestId: "cli-send-001",
 							},
 						],
 					},
@@ -566,7 +566,7 @@ function buildThreadsOverlay(): Record<string, OverlayCommand> {
 					summary: "Create a Thread with an initial user message and capture the Thread ID.",
 					command: "mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create.json -o json",
 					body_shape: {
-						client_external_ref: "demo-thread-001",
+						userId: "demo-user-001",
 						input: {
 							type: "user.message",
 							content: [
@@ -589,6 +589,7 @@ function buildThreadsOverlay(): Record<string, OverlayCommand> {
 					summary: "Create a Thread with a file uploaded through the Agent endpoint.",
 					command: "mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create-with-file.json -o json",
 					body_shape: {
+						userId: "demo-user-001",
 						input: {
 							type: "user.message",
 							content: [{ type: "text", text: "Summarize the attachment." }],
