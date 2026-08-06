@@ -281,3 +281,29 @@ func TestInstallSetsCloudHostnameForShortcutWithoutConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestValidateExplicitHostnameForSurfaceRejectsWrongAPIAddress(t *testing.T) {
+	bindTestManifest(t, filepath.Join(t.TempDir(), "config"))
+	root := &cobra.Command{Use: "mosoo"}
+	root.PersistentFlags().String("hostname", "", "")
+	root.SetArgs([]string{"--hostname", "https://try.mosoo.ai/api", SurfacePublicThreadAPI})
+
+	if err := root.ParseFlags([]string{"--hostname", "https://try.mosoo.ai/api"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := ValidateExplicitHostnameForSurface(root, SurfacePublicThreadAPI); err == nil {
+		t.Fatal("expected public API surface validation to reject /api")
+	}
+}
+
+func TestValidateExplicitHostnameForSurfaceAcceptsPublicAPI(t *testing.T) {
+	bindTestManifest(t, filepath.Join(t.TempDir(), "config"))
+	root := &cobra.Command{Use: "mosoo"}
+	root.PersistentFlags().String("hostname", "", "")
+	if err := root.ParseFlags([]string{"--hostname", "https://try.mosoo.ai/api/v1"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := ValidateExplicitHostnameForSurface(root, SurfacePublicThreadAPI); err != nil {
+		t.Fatal(err)
+	}
+}

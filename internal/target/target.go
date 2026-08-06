@@ -2,6 +2,7 @@ package target
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -94,8 +95,11 @@ func Install(root *cobra.Command) {
 		}
 
 		surface, ok := SurfaceForCommand(cmd)
-		if !ok || HasExplicitHostname(cmd) {
+		if !ok {
 			return nil
+		}
+		if HasExplicitHostname(cmd) {
+			return ValidateExplicitHostnameForSurface(cmd, surface)
 		}
 		resolved, err := ResolveFromCommand(cmd)
 		if err != nil {
@@ -124,10 +128,16 @@ func ResolveAuthLoginFromCommand(cmd *cobra.Command) (Resolution, error) {
 func resolveFromCommand(cmd *cobra.Command, defaultTarget string) (Resolution, error) {
 	flags := cmd.Root().PersistentFlags()
 	if flags.Lookup("hostname") != nil && flags.Changed("hostname") {
+		if hasTargetBaseOverride(cmd) {
+			return Resolution{}, errors.New("--hostname cannot be combined with --target or --base-url; choose an exact surface host or a target base URL")
+		}
 		hostname, _ := flags.GetString("hostname")
 		return ResolveExplicitHostname(hostname, SourceHostnameFlag)
 	}
 	if envHost := strings.TrimSpace(os.Getenv(latheconfig.Active().CLI.HostEnv)); envHost != "" {
+		if hasTargetBaseOverride(cmd) {
+			return Resolution{}, errors.New("MOSOO_HOST cannot be combined with --target or --base-url; choose an exact surface host or a target base URL")
+		}
 		return ResolveExplicitHostname(envHost, SourceHostEnv)
 	}
 
@@ -151,6 +161,44 @@ func resolveFromCommand(cmd *cobra.Command, defaultTarget string) (Resolution, e
 		return Resolution{}, err
 	}
 	return ResolveWithDefault(cwd, defaultTarget)
+}
+
+func hasTargetBaseOverride(cmd *cobra.Command) bool {
+	flags := cmd.Root().PersistentFlags()
+	for _, name := range []string{"target", "base-url"} {
+		if flags.Lookup(name) != nil && flags.Changed(name) {
+			return true
+		}
+	}
+	return strings.TrimSpace(os.Getenv(TargetEnv)) != "" || strings.TrimSpace(os.Getenv(BaseURLEnv)) != ""
+}
+
+func explicitHostname(cmd *cobra.Command) (string, error) {
+	flags := cmd.Root().PersistentFlags()
+	if flags.Lookup("hostname") != nil && flags.Changed("hostname") {
+		hostname, _ := flags.GetString("hostname")
+		return strings.TrimSpace(hostname), nil
+	}
+	hostname := strings.TrimSpace(os.Getenv(latheconfig.Active().CLI.HostEnv))
+	if hostname != "" {
+		return hostname, nil
+	}
+	return "", errors.New("explicit hostname is empty")
+}
+
+func parseHostname(hostname string) (*url.URL, error) {
+	value := strings.TrimSpace(hostname)
+	if value == "" {
+		return nil, errors.New("hostname must not be empty")
+	}
+	if !strings.Contains(value, "://") {
+		value = "https://" + value
+	}
+	parsed, err := url.Parse(value)
+	if err != nil || parsed.Host == "" {
+		return nil, fmt.Errorf("hostname must be a valid URL: %q", hostname)
+	}
+	return parsed, nil
 }
 
 // Resolve resolves a target from config and cwd context. It intentionally does not inspect
@@ -261,6 +309,36 @@ func HasExplicitHostname(cmd *cobra.Command) bool {
 		return true
 	}
 	return strings.TrimSpace(os.Getenv(latheconfig.Active().CLI.HostEnv)) != ""
+}
+
+// ValidateExplicitHostnameForSurface prevents a service root or another API
+// surface from being silently used as the host for the current command.
+// --hostname is an exact-surface escape hatch; normal target selection should
+// use --target/--base-url so the CLI can derive the correct surface host.
+func ValidateExplicitHostnameForSurface(cmd *cobra.Command, surface string) error {
+	hostname, err := explicitHostname(cmd)
+	if err != nil {
+		return err
+	}
+	parsed, err := parseHostname(hostname)
+	if err != nil {
+		return err
+	}
+
+	expectedSuffix := ""
+	switch surface {
+	case SurfaceConsole, SurfaceConsoleREST:
+		expectedSuffix = "/api"
+	case SurfacePublicThreadAPI:
+		expectedSuffix = "/api/v1"
+	default:
+		return nil
+	}
+	path := strings.TrimRight(parsed.EscapedPath(), "/")
+	if !strings.HasSuffix(path, expectedSuffix) {
+		return fmt.Errorf("--hostname %q is not a valid %s surface; expected a URL ending in %s (use --base-url for the service root)", hostname, surface, expectedSuffix)
+	}
+	return nil
 }
 
 func SurfaceForCommand(cmd *cobra.Command) (string, bool) {
