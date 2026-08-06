@@ -36,6 +36,7 @@ sources:
           - appOverview
           - appSkillList
           - availableAgentModels
+          - boundCapabilityRunProvenance
           - controlPlaneOverview
           - environment
           - exportAgentPackage
@@ -190,6 +191,7 @@ sources:
           group: Apps
         - match:
             - agentSessionDiagnostics
+            - boundCapabilityRunProvenance
             - agentSessionRetrieve
             - session
             - sessionMessages

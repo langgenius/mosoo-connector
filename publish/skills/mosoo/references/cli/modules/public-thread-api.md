@@ -35,14 +35,14 @@
 - Flags:
   - `--thread-id` (path, required, ulid): Thread ID returned by create thread. v1 IDs are bare ULIDs.
   - `--idempotency-key` (header): Optional key for retry-safe create-thread and send-events calls. Reusing the same key with the same request returns the original response. Reusing the key while the original request is still processing returns 409.
-- Output: list path `events`; columns `type`, `clientRequestId`, `run`; response media `application/json`
+- Output: list path `events`; columns `type`, `requestId`, `run`; response media `application/json`
 - Known errors:
   - HTTP 401: Invalid personal access token.
   - HTTP 409: Idempotency key reused while the original request is still processing.
 - Examples:
   - Send a user message event to an existing thread.
     Command: `mosoo public-thread-api events send --thread-id <thread-id> --file events.json -o json`
-    Body shape: `{"events":[{"clientRequestId":"cli-send-001","text":"Continue the task with this follow-up.","type":"user_message"}]}`
+    Body shape: `{"events":[{"requestId":"cli-send-001","text":"Continue the task with this follow-up.","type":"user_message"}]}`
     Output list path: `events`
     Follow-up commands:
       - `mosoo public-thread-api events list-events --thread-id <thread-id> -o json`
@@ -155,7 +155,7 @@
 - Summary: Create a thread for an agent
 - HTTP: `POST /agents/{agentId}/threads`
 - Auth: required
-- Body: optional; media type `application/json`
+- Body: required; media type `application/json`
 - Flags:
   - `--agent-id` (path, required, ulid): Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs.
   - `--idempotency-key` (header): Optional key for retry-safe create-thread and send-events calls. Reusing the same key with the same request returns the original response. Reusing the key while the original request is still processing returns 409.
@@ -164,14 +164,14 @@
 - Examples:
   - Create a Thread with an initial user message and capture the Thread ID.
     Command: `mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create.json -o json`
-    Body shape: `{"client_external_ref":"demo-thread-001","input":{"content":[{"text":"Say hello from the API.","type":"text"}],"type":"user.message"}}`
+    Body shape: `{"input":{"content":[{"text":"Say hello from the API.","type":"text"}],"type":"user.message"},"userId":"demo-user-001"}`
     Output ID path: `thread.id`
     Follow-up commands:
       - `mosoo public-thread-api threads retrieve --thread-id <thread-id> -o json`
       - `mosoo public-thread-api events list-events --thread-id <thread-id> -o json`
   - Create a Thread with a file uploaded through the Agent endpoint.
     Command: `mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create-with-file.json -o json`
-    Body shape: `{"input":{"content":[{"text":"Summarize the attachment.","type":"text"}],"type":"user.message"},"resources":[{"file_id":"\u003cfile-id\u003e","type":"file"}]}`
+    Body shape: `{"input":{"content":[{"text":"Summarize the attachment.","type":"text"}],"type":"user.message"},"resources":[{"file_id":"\u003cfile-id\u003e","type":"file"}],"userId":"demo-user-001"}`
     Output ID path: `thread.id`
     Follow-up commands:
       - `mosoo public-thread-api events list-events --thread-id <thread-id> -o json`
@@ -196,7 +196,7 @@
 - Flags:
   - `--agent-id` (path, required, ulid): Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs.
   - `--archived` (query): Filter by archived state: true returns only archived Threads, false only active ones. Omit to return all Threads.
-- Output: list path `threads`; columns `kind`, `id`, `agent_id`, `attributed_user`, `client_external_ref`, `created_at`; response media `application/json`
+- Output: list path `threads`; columns `kind`, `id`, `agent_id`, `created_at`, `last_run_id`, `source`; response media `application/json`
 - Example: `mosoo public-thread-api threads list-for-agent --agent-id <agent-id>`
 
 ### `mosoo public-thread-api threads retrieve`

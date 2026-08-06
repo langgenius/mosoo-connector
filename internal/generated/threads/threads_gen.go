@@ -56,7 +56,7 @@ var Specs = []runtime.CommandSpec{
 		Long:    "Send user messages, permission decisions, or interrupts to a thread session.",
 		Example: "mosoo public-thread-api events send --thread-id <thread-id> --file events.json\n",
 		Examples: []runtime.CommandExample{
-			{Summary: "Send a user message event to an existing thread.", Command: "mosoo public-thread-api events send --thread-id <thread-id> --file events.json -o json", BodyShape: []byte("{\"events\":[{\"clientRequestId\":\"cli-send-001\",\"text\":\"Continue the task with this follow-up.\",\"type\":\"user_message\"}]}"), OutputHints: &runtime.ExampleOutputHints{ListPath: "events"}, FollowUpCommands: []string{"mosoo public-thread-api events list-events --thread-id <thread-id> -o json"},
+			{Summary: "Send a user message event to an existing thread.", Command: "mosoo public-thread-api events send --thread-id <thread-id> --file events.json -o json", BodyShape: []byte("{\"events\":[{\"requestId\":\"cli-send-001\",\"text\":\"Continue the task with this follow-up.\",\"type\":\"user_message\"}]}"), OutputHints: &runtime.ExampleOutputHints{ListPath: "events"}, FollowUpCommands: []string{"mosoo public-thread-api events list-events --thread-id <thread-id> -o json"},
 			},
 		},
 		KnownErrors: []runtime.KnownError{
@@ -76,7 +76,7 @@ var Specs = []runtime.CommandSpec{
 			MediaType: "application/json",
 			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"events": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{}}}, Required: []string{"events"}},
 		},
-		Output: runtime.OutputHints{ListPath: "events", DefaultColumns: []string{"type", "clientRequestId", "run"}, ResponseMediaType: "application/json",
+		Output: runtime.OutputHints{ListPath: "events", DefaultColumns: []string{"type", "requestId", "run"}, ResponseMediaType: "application/json",
 		},
 		Security: &runtime.SecurityHint{},
 	},
@@ -236,9 +236,9 @@ var Specs = []runtime.CommandSpec{
 		Long:    "Create a new thread against an agent API endpoint.",
 		Example: "mosoo public-thread-api threads create --agent-id <agent-id> --file body.json\n",
 		Examples: []runtime.CommandExample{
-			{Summary: "Create a Thread with an initial user message and capture the Thread ID.", Command: "mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create.json -o json", BodyShape: []byte("{\"client_external_ref\":\"demo-thread-001\",\"input\":{\"content\":[{\"text\":\"Say hello from the API.\",\"type\":\"text\"}],\"type\":\"user.message\"}}"), OutputHints: &runtime.ExampleOutputHints{IDPath: "thread.id"}, FollowUpCommands: []string{"mosoo public-thread-api threads retrieve --thread-id <thread-id> -o json", "mosoo public-thread-api events list-events --thread-id <thread-id> -o json"},
+			{Summary: "Create a Thread with an initial user message and capture the Thread ID.", Command: "mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create.json -o json", BodyShape: []byte("{\"input\":{\"content\":[{\"text\":\"Say hello from the API.\",\"type\":\"text\"}],\"type\":\"user.message\"},\"userId\":\"demo-user-001\"}"), OutputHints: &runtime.ExampleOutputHints{IDPath: "thread.id"}, FollowUpCommands: []string{"mosoo public-thread-api threads retrieve --thread-id <thread-id> -o json", "mosoo public-thread-api events list-events --thread-id <thread-id> -o json"},
 			},
-			{Summary: "Create a Thread with a file uploaded through the Agent endpoint.", Command: "mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create-with-file.json -o json", BodyShape: []byte("{\"input\":{\"content\":[{\"text\":\"Summarize the attachment.\",\"type\":\"text\"}],\"type\":\"user.message\"},\"resources\":[{\"file_id\":\"\\u003cfile-id\\u003e\",\"type\":\"file\"}]}"), OutputHints: &runtime.ExampleOutputHints{IDPath: "thread.id"}, FollowUpCommands: []string{"mosoo public-thread-api events list-events --thread-id <thread-id> -o json"},
+			{Summary: "Create a Thread with a file uploaded through the Agent endpoint.", Command: "mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create-with-file.json -o json", BodyShape: []byte("{\"input\":{\"content\":[{\"text\":\"Summarize the attachment.\",\"type\":\"text\"}],\"type\":\"user.message\"},\"resources\":[{\"file_id\":\"\\u003cfile-id\\u003e\",\"type\":\"file\"}],\"userId\":\"demo-user-001\"}"), OutputHints: &runtime.ExampleOutputHints{IDPath: "thread.id"}, FollowUpCommands: []string{"mosoo public-thread-api events list-events --thread-id <thread-id> -o json"},
 			},
 		},
 		KnownErrors: []runtime.KnownError{
@@ -253,9 +253,9 @@ var Specs = []runtime.CommandSpec{
 			{Name: "Idempotency-Key", Flag: "idempotency-key", In: "header", GoType: "string", Help: "Optional key for retry-safe create-thread and send-events calls. Reusing the same key with the same request returns the original response. Reusing the key while the original request is still processing returns 409. (header)", Required: false},
 		},
 		RequestBody: &runtime.RequestBody{
-			Required:  false,
+			Required:  true,
 			MediaType: "application/json",
-			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"client_external_ref": &runtime.SchemaSpec{Type: "string"}, "input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"content": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"text": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "text"}}}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "content"}}, "resources": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"file_id": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "file_id"}}}}},
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"content": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"text": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "text"}}}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "content"}}, "resources": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"file_id": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "file_id"}}}, "userId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"userId"}},
 		},
 	},
 	{
@@ -288,7 +288,7 @@ var Specs = []runtime.CommandSpec{
 			{Name: "agentId", Flag: "agent-id", In: "path", GoType: "string", Help: "Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs. (path, required, ulid)", Required: true, Format: "ulid"},
 			{Name: "archived", Flag: "archived", In: "query", GoType: "bool", Help: "Filter by archived state: true returns only archived Threads, false only active ones. Omit to return all Threads. (query)", Required: false},
 		},
-		Output: runtime.OutputHints{ListPath: "threads", DefaultColumns: []string{"kind", "id", "agent_id", "attributed_user", "client_external_ref", "created_at"}, ResponseMediaType: "application/json",
+		Output: runtime.OutputHints{ListPath: "threads", DefaultColumns: []string{"kind", "id", "agent_id", "created_at", "last_run_id", "source"}, ResponseMediaType: "application/json",
 		},
 		Security: &runtime.SecurityHint{},
 	},

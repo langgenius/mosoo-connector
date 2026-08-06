@@ -17,10 +17,11 @@ not duplicate every generated schema field.
 
 ## Boundary
 
-Your application owns its UI, backend routes, users, business data, correlation
-IDs, API token storage, and persisted `thread.id` values. mosoo owns the
-published Agent runtime, provider and tool configuration, sandbox execution,
-Thread lifecycle, and public events.
+Your application owns its UI, backend routes, user authentication, business
+data, correlation IDs, API token storage, and persisted `thread.id` values. Its
+trusted backend supplies an opaque `userId` when creating each Thread. mosoo
+owns the published Agent runtime, provider and tool configuration, sandbox
+execution, Thread lifecycle, and public events.
 
 Do not expose `MOSOO_API_TOKEN` in frontend or browser code. Do not send model,
 provider, channel, Skill, MCP, or runtime configuration through the Public
@@ -56,7 +57,7 @@ curl -X POST "$MOSOO_API_BASE/agents/$MOSOO_AGENT_ID/threads" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: ticket-182-create" \
   -d '{
-    "client_external_ref": "ticket-182",
+    "userId": "customer-123",
     "input": {
       "type": "user.message",
       "content": [
@@ -79,7 +80,7 @@ curl -X POST "$MOSOO_API_BASE/threads/$MOSOO_THREAD_ID/events" \
     "events": [
       {
         "type": "user_message",
-        "clientRequestId": "ticket-182-message-1",
+        "requestId": "ticket-182-message-1",
         "text": "List the three highest-priority actions."
       }
     ]
@@ -122,6 +123,7 @@ The response contains a ready draft at `response.file`. Save
 
 ```json
 {
+  "userId": "customer-123",
   "input": {
     "type": "user.message",
     "content": [
@@ -210,7 +212,7 @@ All paths are relative to `MOSOO_API_BASE` (`/api/v1`).
 - Creating a Thread may omit `input`; that creates an idle Thread without a Run.
 - A submitted event batch contains at least one event.
 - Create-Thread input text is limited to 32000 characters.
-- `client_external_ref` is limited to 255 characters.
+- `userId` is required, immutable for the Thread, and limited to 255 characters.
 - Public file uploads are limited to 67108864 bytes.
 - Event lists default to 100 entries and accept at most 1000.
 - Thread lists return at most 100 Threads.
