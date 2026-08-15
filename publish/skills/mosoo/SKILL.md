@@ -25,6 +25,9 @@ separate agent runtime.
 5. For missing first-time setup, read `references/setup.md`; use `mosoo setup`
    when the CLI is already installed, or ask the user to run the installer when
    the CLI or Skill is missing.
+6. For contract-sensitive Public Thread work, compare `references/provenance.json`
+   with the `contract` object from `mosoo doctor --json`. Different upstream
+   commits or OpenAPI SHA-256 values mean the CLI and Skill are out of sync.
 
 ## Routing
 

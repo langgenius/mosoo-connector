@@ -1,7 +1,9 @@
 GO ?= go
 BUN ?= bun
 MOSOO_REPO ?= https://github.com/langgenius/mosoo.git
-MOSOO_REF ?= main
+CONTRACT_PROVENANCE_FILE := specs/mosoo-contract.json
+PINNED_MOSOO_REF := $(shell sed -n 's/^[[:space:]]*"upstreamCommit": "\([0-9a-f]*\)",*$$/\1/p' "$(CONTRACT_PROVENANCE_FILE)" 2>/dev/null)
+MOSOO_REF ?= $(PINNED_MOSOO_REF)
 MOSOO_HOST_BASE ?= http://127.0.0.1:8787
 LATHE_MODULE := github.com/lathe-cli/lathe/pkg/lathe
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || printf dev)
@@ -24,7 +26,6 @@ CONSOLE_REST_SPEC_FILE := docs/openapi/console-rest.openapi.json
 SOURCE_NAME := threads
 CONSOLE_SOURCE_NAME := console
 CONSOLE_REST_SOURCE_NAME := consolerest
-PINNED_TAG := local-snapshot
 SYNC_DIR := .cache/specs-sync/$(SOURCE_NAME)
 CONSOLE_SYNC_DIR := .cache/specs-sync/$(CONSOLE_SOURCE_NAME)
 CONSOLE_REST_SYNC_DIR := .cache/specs-sync/$(CONSOLE_REST_SOURCE_NAME)
@@ -33,13 +34,15 @@ PUBLISH_SKILL_DIR := publish/skills/mosoo
 PUBLISH_CLI_REFERENCE_DIR := $(PUBLISH_SKILL_DIR)/references/cli
 
 .DEFAULT_GOAL := help
-.PHONY: help build install verify-install clean tools _codegen
+.PHONY: help build install verify-install clean tools catalog-test contract-gate _codegen
 
 help:
 	@printf '%s\n' \
 		'make build                  Generate and build bin/mosoo' \
 		'make install                Install mosoo to $(BINDIR)/mosoo' \
-		'make verify-install        Verify $(BINDIR)/mosoo reports this build metadata' \
+		'make verify-install         Verify $(BINDIR)/mosoo reports this build metadata' \
+		'make catalog-test          Run generated catalog regression tests' \
+		'make contract-gate         Regenerate the pinned contract and require a clean diff' \
 		'make tools                  Build local codegen tools under $(TOOLS_DIR)' \
 		'make clean                  Remove generated files and caches' \
 		'Generated CLI references: $(PUBLISH_CLI_REFERENCE_DIR)' \
@@ -73,6 +76,19 @@ verify-install:
 
 tools: $(LATHE_BIN)
 
+catalog-test:
+	$(GO) test ./internal/consolecommands ./internal/publicfiles ./internal/publicthreads ./internal/skillcommands ./internal/target
+
+contract-gate:
+	$(MAKE) build MOSOO_REF="$(MOSOO_REF)"
+	git diff --exit-code
+	@test -z "$$(git status --porcelain --untracked-files=all)" || { \
+		git status --short; \
+		echo "contract generation left the worktree dirty" >&2; \
+		exit 1; \
+	}
+	$(MAKE) catalog-test
+
 $(LATHE_BIN): go.mod go.sum
 	@mkdir -p "$(dir $@)"
 	$(GO) build -trimpath -o "$@" "$(LATHE_PKG)"
@@ -81,6 +97,10 @@ clean:
 	rm -rf .cache bin cmd/mosoo/cli.yaml internal/generated skills "$(PUBLISH_CLI_REFERENCE_DIR)" specs/sources.yaml specs/sources.test.yaml overlays
 
 _codegen: $(LATHE_BIN)
+	@if ! printf '%s\n' "$(MOSOO_REF)" | grep -Eq '^[0-9a-f]{40}$$'; then \
+		echo "MOSOO_REF must be an explicit 40-character Mosoo commit SHA (got: $(MOSOO_REF))" >&2; \
+		exit 1; \
+	fi
 	@mkdir -p .cache specs "$(SYNC_DIR)/docs/openapi" "$(CONSOLE_SYNC_DIR)/docs/graphql" "$(CONSOLE_REST_SYNC_DIR)/docs/openapi"
 	@if [ -d "$(MOSOO_DIR)/.git" ]; then \
 		git -C "$(MOSOO_DIR)" fetch --all --tags --quiet; \
@@ -92,12 +112,17 @@ _codegen: $(LATHE_BIN)
 	else \
 		git -C "$(MOSOO_DIR)" -c advice.detachedHead=false checkout --quiet "$(MOSOO_REF)"; \
 	fi
+	@test "$$(git -C "$(MOSOO_DIR)" rev-parse HEAD)" = "$(MOSOO_REF)" || { \
+		echo "Mosoo checkout did not resolve to $(MOSOO_REF)" >&2; \
+		exit 1; \
+	}
 	git -C "$(MOSOO_DIR)" submodule update --init --recursive
 	cd "$(MOSOO_DIR)" && $(BUN) install --frozen-lockfile
 	$(BUN) scripts/export-public-api-openapi.ts
+	MOSOO_REF=$(MOSOO_REF) MOSOO_REPO_URL=$(MOSOO_REPO) $(BUN) scripts/render-contract-provenance.ts
 	$(BUN) scripts/export-console-graphql.ts
 	$(BUN) scripts/export-console-rest-openapi.ts
-	MOSOO_HOST_BASE=$(MOSOO_HOST_BASE) MOSOO_REPO_URL=$(MOSOO_REPO) $(BUN) scripts/render-sources-yaml.ts
+	MOSOO_REF=$(MOSOO_REF) MOSOO_HOST_BASE=$(MOSOO_HOST_BASE) MOSOO_REPO_URL=$(MOSOO_REPO) $(BUN) scripts/render-sources-yaml.ts
 	$(BUN) scripts/render-overlays.ts
 	cp "$(MOSOO_DIR)/$(SPEC_FILE)" "$(SYNC_DIR)/$(SPEC_FILE)"
 	cp "$(MOSOO_DIR)/$(GRAPHQL_SPEC_FILE)" "$(CONSOLE_SYNC_DIR)/$(GRAPHQL_SPEC_FILE)"

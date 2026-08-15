@@ -2,6 +2,7 @@ package doctor
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,19 +11,21 @@ import (
 	"time"
 
 	"github.com/langgenius/mosoo-connector/internal/buildinfo"
+	"github.com/langgenius/mosoo-connector/internal/contractprovenance"
 	"github.com/langgenius/mosoo-connector/internal/target"
 	latheconfig "github.com/lathe-cli/lathe/pkg/config"
 	"github.com/spf13/cobra"
 )
 
 type Report struct {
-	SchemaVersion int            `json:"schemaVersion"`
-	Ready         bool           `json:"ready"`
-	Target        target.State   `json:"target"`
-	Auth          AuthState      `json:"auth"`
-	Install       buildinfo.Info `json:"install"`
-	Failures      []Failure      `json:"failures"`
-	Checks        []Check        `json:"checks"`
+	SchemaVersion int                     `json:"schemaVersion"`
+	Ready         bool                    `json:"ready"`
+	Target        target.State            `json:"target"`
+	Auth          AuthState               `json:"auth"`
+	Install       buildinfo.Info          `json:"install"`
+	Contract      contractprovenance.Info `json:"contract"`
+	Failures      []Failure               `json:"failures"`
+	Checks        []Check                 `json:"checks"`
 }
 
 type AuthState struct {
@@ -88,20 +91,23 @@ func NewReport(resolved target.Resolution, apiCheck Check, auth AuthState) Repor
 
 func newReport(resolved target.Resolution, apiCheck Check, auth AuthState, authCheck Check) Report {
 	install := buildinfo.Current()
+	contract := contractprovenance.Current()
 	checks := []Check{
 		{Name: "cli", OK: true, Code: "cli_available"},
 		{Name: "target", OK: true, Code: "target_resolved", Message: fmt.Sprintf("%s from %s", resolved.Target, resolved.Source)},
 		apiCheck,
 		authCheck,
 		checkFromInstallState(install),
+		checkFromContractState(contract),
 	}
 
 	return Report{
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		Ready:         checksReady(checks),
 		Target:        target.StateFromResolution(resolved),
 		Auth:          auth,
 		Install:       install,
+		Contract:      contract,
 		Failures:      failuresForChecks(checks),
 		Checks:        checks,
 	}
@@ -204,6 +210,20 @@ func checkFromInstallState(install buildinfo.Info) Check {
 	return Check{Name: "install", OK: false, Code: "build_metadata_missing", Message: fmt.Sprintf("%s (%s, %s)", install.Version, install.Commit, install.Date)}
 }
 
+func checkFromContractState(contract contractprovenance.Info) Check {
+	commitBytes, commitErr := hex.DecodeString(contract.UpstreamCommit)
+	digestBytes, digestErr := hex.DecodeString(contract.PublicThreadOpenAPI.SHA256)
+	if contract.SchemaVersion != 1 || len(commitBytes) != 20 || commitErr != nil || len(digestBytes) != 32 || digestErr != nil {
+		return Check{Name: "contract", OK: false, Code: "contract_provenance_missing", Message: "embedded Mosoo contract provenance is incomplete"}
+	}
+	return Check{
+		Name:    "contract",
+		OK:      true,
+		Code:    "contract_provenance_present",
+		Message: fmt.Sprintf("Mosoo %s; Public Thread OpenAPI sha256 %s", contract.UpstreamCommit, contract.PublicThreadOpenAPI.SHA256),
+	}
+}
+
 func checksReady(checks []Check) bool {
 	for _, check := range checks {
 		if !check.OK {
@@ -245,6 +265,8 @@ func actionForCode(code string) string {
 		return "Run mosoo auth login for the resolved target."
 	case "build_metadata_missing":
 		return "Build the CLI through the Makefile, install a tagged Go module, or inject Lathe Version, Commit, and Date with Go ldflags."
+	case "contract_provenance_missing":
+		return "Rebuild the CLI and Skill through the pinned connector contract generation pipeline."
 	default:
 		return "Inspect the failed check message and correct the environment before retrying."
 	}
@@ -264,6 +286,8 @@ func printHuman(cmd *cobra.Command, report Report) {
 	fmt.Fprintf(out, "authRequired: %t\n", report.Auth.Required)
 	fmt.Fprintf(out, "authenticated: %t\n", report.Auth.Authenticated)
 	fmt.Fprintf(out, "install: %s (%s, %s)\n", report.Install.Version, report.Install.Commit, report.Install.Date)
+	fmt.Fprintf(out, "contract.upstreamCommit: %s\n", report.Contract.UpstreamCommit)
+	fmt.Fprintf(out, "contract.publicThreadOpenAPI.sha256: %s\n", report.Contract.PublicThreadOpenAPI.SHA256)
 	fmt.Fprintf(out, "ready: %t\n", report.Ready)
 	fmt.Fprintln(out, "checks:")
 	for _, check := range report.Checks {

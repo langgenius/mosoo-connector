@@ -1,16 +1,16 @@
-name: Release
+name: Contract integrity
 
 on:
+  pull_request:
   push:
-    tags:
-      - v*
+    branches:
+      - main
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
-  release:
+  generated-contract:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -23,18 +23,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
-      - name: Verify generated contract
+      - name: Regenerate pinned Mosoo contract
         run: |
           upstream_sha="$(sed -n 's/^[[:space:]]*"upstreamCommit": "\([0-9a-f]*\)",*$/\1/p' specs/mosoo-contract.json)"
           make contract-gate MOSOO_REF="$upstream_sha"
-
-      - name: Test
-        run: go test ./...
-
-      - uses: goreleaser/goreleaser-action@v7
-        with:
-          distribution: goreleaser
-          version: "~> v2"
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

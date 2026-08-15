@@ -12,6 +12,7 @@ This directory contains source files for externally fetchable mosoo CLI distribu
   mosoo Skill entrypoint is `skills/mosoo/SKILL.md`; the CLI guide is rendered
   into `skills/mosoo/references/cli.md` from Lathe include resources under
   `skills/mosoo/lathe-include/`; and generated CLI command indexes are rendered
-  into `skills/mosoo/references/cli/`.
+  into `skills/mosoo/references/cli/`. Contract provenance is generated into
+  `skills/mosoo/references/provenance.json` from `specs/mosoo-contract.json`.
 
 Keep repository-internal code generation and export scripts under `scripts/`.

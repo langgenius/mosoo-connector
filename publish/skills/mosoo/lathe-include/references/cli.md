@@ -335,6 +335,13 @@ mosoo public-thread-api threads transcript --thread-id <thread-id>
 3. If the command detail has `auth.required=true`, run `mosoo doctor --json` and check the resolved target/auth state before execution. If credentials are missing, run `mosoo auth login` for the resolved target.
 4. Execute only after flags, body, auth, HTTP path, and output hints are clear from `commands show`.
 
+## Contract Provenance
+
+`mosoo doctor --json` reports the pinned Mosoo `upstreamCommit` and normalized
+Public Thread OpenAPI `sha256` under `contract`. The bundled Skill carries the
+same record in `references/provenance.json`. If those values differ, update the
+older CLI or Skill before copying a Public Thread request shape from it.
+
 ## Setup And Login
 
 For first-time mosoo Cloud usage, do not ask the user for a hostname:
