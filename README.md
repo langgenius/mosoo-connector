@@ -266,6 +266,7 @@ follow-up `user_message` event:
 
 ```json
 {
+  "userId": "demo-user-001",
   "input": {
     "content": [{ "type": "text", "text": "Summarize the attachment." }],
     "type": "user.message"

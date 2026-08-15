@@ -300,6 +300,7 @@ a ready draft file. A create body references it like this:
 
 ```json
 {
+  "userId": "demo-user-001",
   "input": {
     "content": [{ "type": "text", "text": "Summarize the attachment." }],
     "type": "user.message"
@@ -315,6 +316,10 @@ no public create-upload, PUT, complete, or post-create attach command. Use
 confirm the generated flags and host selection.
 
 ## Public Thread Wait, Final Output, And Transcript Workflow
+
+Every create body is required and must contain a non-blank string `userId`.
+Omitting `input` creates an idle Thread, but omitting the body or `userId` is
+rejected locally before the CLI makes a network request.
 
 ```sh
 mosoo public-thread-api threads create --agent-id <agent-id> --file body.json --wait -o json

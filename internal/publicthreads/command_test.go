@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync/atomic"
@@ -68,6 +70,14 @@ func TestInstallAttachesCatalogEntriesForHelpers(t *testing.T) {
 	if !create.Body.Required || create.Body.Schema == nil || !slices.Contains(create.Body.Schema.Required, "userId") {
 		t.Fatalf("create body must require userId: %+v", create.Body)
 	}
+	fields := make([]string, 0, len(create.Body.Schema.Properties))
+	for field := range create.Body.Schema.Properties {
+		fields = append(fields, field)
+	}
+	slices.Sort(fields)
+	if want := []string{"input", "resources", "userId"}; !slices.Equal(fields, want) {
+		t.Fatalf("create body fields = %v, want %v", fields, want)
+	}
 	for index, example := range create.Examples {
 		var body map[string]any
 		if err := json.Unmarshal(example.BodyShape, &body); err != nil {
@@ -78,6 +88,13 @@ func TestInstallAttachesCatalogEntriesForHelpers(t *testing.T) {
 		}
 		if _, stale := body["client_external_ref"]; stale {
 			t.Fatalf("create example %d contains removed client_external_ref: %s", index, example.BodyShape)
+		}
+		path := filepath.Join(t.TempDir(), "body.json")
+		if err := os.WriteFile(path, example.BodyShape, 0o600); err != nil {
+			t.Fatalf("write create example %d: %v", index, err)
+		}
+		if _, err := buildCreateBody(path, nil, nil); err != nil {
+			t.Fatalf("create example %d rejected by CLI body path: %v", index, err)
 		}
 	}
 	for _, want := range []string{"agent-id", "file", "set", "wait", "final-output"} {
@@ -167,6 +184,28 @@ func runArgs(host string, args ...string) []string {
 	return append([]string{"--hostname", host}, args...)
 }
 
+func TestCreateRejectsInvalidUserIDBeforeNetwork(t *testing.T) {
+	var requests int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&requests, 1)
+		http.Error(w, "unexpected request", http.StatusInternalServerError)
+	}))
+	defer srv.Close()
+
+	root, _ := newTestRoot(t, srv.URL)
+	root.SilenceErrors = true
+	root.SilenceUsage = true
+	root.SetArgs(runArgs(srv.URL, "public-thread-api", "threads", "create",
+		"--agent-id", "agent1", "--set", "input.type=user.message"))
+	err := root.Execute()
+	if err == nil || !strings.Contains(err.Error(), "must include userId") {
+		t.Fatalf("error = %v, want missing userId error", err)
+	}
+	if got := atomic.LoadInt32(&requests); got != 0 {
+		t.Fatalf("network requests = %d, want 0", got)
+	}
+}
+
 func TestCreateWaitFinalOutput(t *testing.T) {
 	want := "\n001|中文长文本校验-Aa0-表格字符|END001\n" +
 		"| 列一 | 列二 |\n| --- | --- |\n| emoji 🧪 | [链接](https://example.com) |\n" +
@@ -192,7 +231,7 @@ func TestCreateWaitFinalOutput(t *testing.T) {
 
 	root, out := newTestRoot(t, srv.URL)
 	root.SetArgs(runArgs(srv.URL, "public-thread-api", "threads", "create", "--poll-interval", "1ms",
-		"--agent-id", "agent1", "--set", "input.type=user.message", "--final-output"))
+		"--agent-id", "agent1", "--set", "input.type=user.message", "--set-str", "userId=test-user", "--final-output"))
 	if err := root.Execute(); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
@@ -243,7 +282,7 @@ func TestCreateWaitFailureReport(t *testing.T) {
 	root.SilenceErrors = true
 	root.SilenceUsage = true
 	root.SetArgs(runArgs(srv.URL, "public-thread-api", "threads", "create", "--poll-interval", "1ms",
-		"--agent-id", "agent1", "--set", "input.type=user.message", "--wait"))
+		"--agent-id", "agent1", "--set", "input.type=user.message", "--set-str", "userId=test-user", "--wait"))
 	err := root.Execute()
 	if err == nil {
 		t.Fatal("expected non-nil error for failed run")

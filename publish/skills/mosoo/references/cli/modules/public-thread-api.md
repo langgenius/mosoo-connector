@@ -160,6 +160,7 @@
   - `--agent-id` (path, required, ulid): Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs.
   - `--idempotency-key` (header): Optional key for retry-safe create-thread and send-events calls. Reusing the same key with the same request returns the original response. Reusing the key while the original request is still processing returns 409.
 - Known errors:
+  - HTTP 400: The body is missing or userId is missing, non-string, or blank.
   - HTTP 404: Agent not found or not accessible to this token.
 - Examples:
   - Create a Thread with an initial user message and capture the Thread ID.
