@@ -125,6 +125,21 @@ curl -fsSL https://install.mosoo.ai/install.sh | bash
 
 The installer is interactive by default and asks for `y` or `n` before high-impact
 steps. Use `--yes` for automation and `--dry-run` to preview the plan.
+After a successful Skill copy, it retires the former
+`$HOME/.codex/skills/mosoo` target when that path differs from the active
+`$CODEX_HOME/skills/mosoo` target, preventing two stale Mosoo Skills from being
+discovered at once.
+
+## Non-production contract smoke
+
+The manually dispatched `Non-production Public Thread smoke` workflow reads its
+deployment URL, Agent ID, user ID, and environment label from the protected
+`public-thread-smoke-non-production` GitHub environment and its token from an
+environment secret. The script refuses `prod`/`production`, known production
+Mosoo hosts, non-HTTPS targets, and environment labels that do not explicitly
+identify a development, staging, preview, test, QA, sandbox, or non-production
+deployment. It submits the minimal `{ "userId": "..." }` create shape, verifies
+`thread.id`, and deletes the smoke Thread afterward.
 
 ## Published Skill layout
 

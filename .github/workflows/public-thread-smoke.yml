@@ -1,0 +1,23 @@
+name: Non-production Public Thread smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  create-thread:
+    runs-on: ubuntu-latest
+    environment: public-thread-smoke-non-production
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Submit minimal create Thread request
+        env:
+          MOSOO_SMOKE_BASE_URL: ${{ vars.MOSOO_SMOKE_BASE_URL }}
+          MOSOO_SMOKE_AGENT_ID: ${{ vars.MOSOO_SMOKE_AGENT_ID }}
+          MOSOO_SMOKE_USER_ID: ${{ vars.MOSOO_SMOKE_USER_ID }}
+          MOSOO_SMOKE_ENVIRONMENT: ${{ vars.MOSOO_SMOKE_ENVIRONMENT }}
+          MOSOO_SMOKE_API_TOKEN: ${{ secrets.MOSOO_SMOKE_API_TOKEN }}
+        run: bash scripts/smoke-public-thread.sh

@@ -196,6 +196,112 @@ func TestInstallerWriteConfigProbeFailurePreservesExistingConfig(t *testing.T) {
 	}
 }
 
+func TestInstallerReplacesSkillAndRetiresLegacyTarget(t *testing.T) {
+	home := t.TempDir()
+	codeHome := filepath.Join(home, "active-codex")
+	target := filepath.Join(codeHome, "skills", "mosoo")
+	legacy := filepath.Join(home, ".codex", "skills", "mosoo")
+	for _, path := range []string{target, legacy} {
+		if err := os.MkdirAll(path, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(path, "stale.txt"), []byte("stale"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	repositoryRoot, err := filepath.Abs(filepath.Join("..", ".."))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := exec.Command("bash", "install.sh",
+		"--source-root", repositoryRoot,
+		"--no-cli",
+		"--no-login",
+		"--no-doctor",
+		"--yes",
+	)
+	cmd.Env = append(os.Environ(),
+		"HOME="+home,
+		"CODEX_HOME="+codeHome,
+	)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("installer failed: %v\n%s", err, string(out))
+	}
+	if _, err := os.Stat(filepath.Join(target, "SKILL.md")); err != nil {
+		t.Fatalf("active Skill was not installed: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(target, "references", "provenance.json")); err != nil {
+		t.Fatalf("Skill provenance was not installed: %v", err)
+	}
+	if _, err := os.Lstat(legacy); !os.IsNotExist(err) {
+		t.Fatalf("legacy Skill target still exists: %v", err)
+	}
+}
+
+func TestInstallerDoesNotRetireActiveLegacyAlias(t *testing.T) {
+	home := t.TempDir()
+	repositoryRoot, err := filepath.Abs(filepath.Join("..", ".."))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := exec.Command("bash", "install.sh",
+		"--source-root", repositoryRoot,
+		"--no-cli",
+		"--no-login",
+		"--no-doctor",
+		"--yes",
+	)
+	cmd.Env = append(os.Environ(),
+		"HOME="+home,
+		"CODEX_HOME="+filepath.Join(home, ".codex")+"/../.codex/",
+	)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("installer failed: %v\n%s", err, string(out))
+	}
+	if _, err := os.Stat(filepath.Join(home, ".codex", "skills", "mosoo", "SKILL.md")); err != nil {
+		t.Fatalf("active legacy-path Skill was removed: %v", err)
+	}
+}
+
+func TestInstallerDoesNotRetireActiveLegacySymlinkAlias(t *testing.T) {
+	home := t.TempDir()
+	legacyHome := filepath.Join(home, ".codex")
+	if err := os.MkdirAll(legacyHome, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	codeHome := filepath.Join(home, "active-codex")
+	if err := os.Symlink(legacyHome, codeHome); err != nil {
+		t.Fatal(err)
+	}
+	repositoryRoot, err := filepath.Abs(filepath.Join("..", ".."))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := exec.Command("bash", "install.sh",
+		"--source-root", repositoryRoot,
+		"--no-cli",
+		"--no-login",
+		"--no-doctor",
+		"--yes",
+	)
+	cmd.Env = append(os.Environ(),
+		"HOME="+home,
+		"CODEX_HOME="+codeHome,
+	)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("installer failed: %v\n%s", err, string(out))
+	}
+	if _, err := os.Stat(filepath.Join(legacyHome, "skills", "mosoo", "SKILL.md")); err != nil {
+		t.Fatalf("active symlink-aliased Skill was removed: %v", err)
+	}
+}
+
 func writeTargetConfig(t *testing.T, path string, cfg targetConfig) {
 	t.Helper()
 	data, err := json.Marshal(cfg)
