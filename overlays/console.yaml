@@ -117,6 +117,14 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked personal access token."
+  app-deployment-secret-list:
+    short: "List app deployment secrets"
+    long: "List app deployment secrets via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host."
+    notes:
+      - "Uses POST /graphql on the console default hostname (/api)."
+    known_errors:
+      - status: 401
+        cause: "Missing, invalid, or revoked personal access token."
   app-deployment-status:
     short: "App deployment status"
     long: "App deployment status via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host."
@@ -436,6 +444,14 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked personal access token."
+  delete-app-deployment-secret:
+    short: "Delete an app deployment secret"
+    long: "Delete an app deployment secret via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host."
+    notes:
+      - "Uses POST /graphql on the console default hostname (/api)."
+    known_errors:
+      - status: 401
+        cause: "Missing, invalid, or revoked personal access token."
   delete-environment:
     short: "Delete an environment"
     long: "Delete an environment via the mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host."
@@ -676,6 +692,14 @@ commands:
   set-app-default-environment:
     short: "Set app default environment"
     long: "Set app default environment via the mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host."
+    notes:
+      - "Uses POST /graphql on the console default hostname (/api)."
+    known_errors:
+      - status: 401
+        cause: "Missing, invalid, or revoked personal access token."
+  set-app-deployment-secret:
+    short: "Set app deployment secret"
+    long: "Set app deployment secret via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:

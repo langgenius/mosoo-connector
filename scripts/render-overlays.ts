@@ -464,13 +464,15 @@ const thread401 = [{ status: 401, cause: "Invalid personal access token." }];
 
 function buildThreadsOverlay(): Record<string, OverlayCommand> {
 	return {
-		"list-events": {
+		"thread-events-list-events": {
+			use: "list-events",
 			short: "List thread events",
 			long: "Return recent events for a thread on the Public Thread API.",
 			example: "mosoo public-thread-api events list-events --thread-id <thread-id>",
 			known_errors: [...thread401, { status: 404, cause: "Thread not found for this caller." }],
 		},
-		send: {
+		"thread-events-send": {
+			use: "send",
 			short: "Send events to a thread",
 			long: "Send user messages, permission decisions, or interrupts to a thread session.",
 			example: "mosoo public-thread-api events send --thread-id <thread-id> --file events.json",
@@ -500,12 +502,14 @@ function buildThreadsOverlay(): Record<string, OverlayCommand> {
 				{ status: 409, cause: "Idempotency key reused while the original request is still processing." },
 			],
 		},
-		stream: {
+		"thread-events-stream": {
+			use: "stream",
 			short: "Stream thread events (SSE)",
 			long: "Open a Server-Sent Events stream of thread events. Use -o raw for the event stream.",
 			example: "mosoo public-thread-api events stream --thread-id <thread-id> -o raw",
 		},
-		upload: {
+		"agent-files-upload": {
+			use: "upload",
 			short: "Upload a file for an agent",
 			long: "Upload one file before creating or continuing a thread, then reference the returned file ID in resources[].file_id.",
 			example: "mosoo public-thread-api files upload --agent-id <agent-id> --file <path>",
@@ -527,27 +531,32 @@ function buildThreadsOverlay(): Record<string, OverlayCommand> {
 				{ status: 413, cause: "The upload exceeds the Public API file size limit." },
 			],
 		},
-		"download": {
+		"public-files-download": {
+			use: "download",
 			short: "Download file content",
 			long: "Download the bytes of a ready thread attachment or agent artifact.",
 			example: "mosoo public-thread-api files download --file-id <file-id> -o raw",
 		},
-		"retrieve-file": {
+		"public-files-retrieve-file": {
+			use: "retrieve-file",
 			short: "Retrieve file metadata",
 			long: "Retrieve public metadata for a draft or thread file.",
 			example: "mosoo public-thread-api files retrieve-file --file-id <file-id> -o json",
 		},
-		"delete-file": {
+		"public-files-delete-file": {
+			use: "delete-file",
 			short: "Delete a file",
 			long: "Delete a pre-thread draft file or a file attached to a writable thread.",
 			example: "mosoo public-thread-api files delete-file --file-id <file-id> -o json",
 		},
-		"list-files": {
+		"thread-files-list-files": {
+			use: "list-files",
 			short: "List thread files",
 			long: "List files attached to a thread.",
 			example: "mosoo public-thread-api files list-files --thread-id <thread-id>",
 		},
-		remove: {
+		"thread-files-remove": {
+			use: "remove",
 			short: "Remove a thread file",
 			long: "Detach a file from a thread.",
 			example: "mosoo public-thread-api files remove --thread-id <thread-id> --file-id <file-id>",
@@ -632,14 +641,14 @@ function buildThreadsOverlay(): Record<string, OverlayCommand> {
 function buildConsolerestOverlay(): Record<string, OverlayCommand> {
 	return {
 		create: {
-			example: 'mosoo console-rest "access tokens" create --set label="ci"',
+			example: 'mosoo console-rest access create --set label="ci"',
 			notes: ["Creates a personal access token. The secret value is returned once."],
 		},
 		list: {
-			example: 'mosoo console-rest "access tokens" list',
+			example: "mosoo console-rest access list",
 		},
 		revoke: {
-			example: 'mosoo console-rest "access tokens" revoke --token-id <token-id>',
+			example: "mosoo console-rest access revoke --token-id <token-id>",
 		},
 	};
 }
