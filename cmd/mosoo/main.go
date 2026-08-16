@@ -47,7 +47,7 @@ func main() {
 		AppID:  "mosoo",
 		Bundle: kitup.FSBundle(publishskills.Mosoo, "mosoo"),
 	}))
-	if err := generated.MountModules(root); err != nil {
+	if err := generated.Mount(root); err != nil {
 		os.Exit(runtime.FormatError(err, "table", os.Stderr))
 	}
 	if err := consolecommands.Install(root); err != nil {

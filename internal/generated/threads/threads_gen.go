@@ -8,14 +8,13 @@ import (
 	"github.com/lathe-cli/lathe/pkg/runtime"
 )
 
-const generatedSchemaVersion = 8
+const generatedSchemaVersion = 11
 
 func Mount(root *cobra.Command) error {
 	if err := runtime.AssertSchema(generatedSchemaVersion); err != nil {
 		return err
 	}
-	runtime.Build(root, "public-thread-api", Specs)
-	return nil
+	return runtime.Build(root, "public-thread-api", Specs)
 }
 
 func MountFlat(root *cobra.Command) error {
@@ -44,10 +43,7 @@ var Specs = []runtime.CommandSpec{
 			{Name: "threadId", Flag: "thread-id", In: "path", GoType: "string", Help: "Thread ID returned by create thread. v1 IDs are bare ULIDs. (path, required, ulid)", Required: true, Format: "ulid"},
 			{Name: "limit", Flag: "limit", In: "query", GoType: "int64", Help: "Maximum number of latest Thread events to return. (query)", Required: false, Default: "100"},
 		},
-		Output: runtime.OutputHints{ListPath: "events", DefaultColumns: []string{"type", "id", "content", "durationMs", "occurredAt", "runId"}, ResponseMediaType: "application/json", Pagination: &runtime.PaginationHint{
-			Strategy: "cursor", LimitParam: "limit",
-		},
-		},
+		Output: runtime.OutputHints{ListPath: "events", DefaultColumns: []string{"type", "id", "content", "durationMs", "occurredAt", "runId"}, ResponseMediaType: "application/json", Pagination: &runtime.PaginationHint{Strategy: "cursor", LimitParam: "limit"}},
 	},
 	{
 		Group:   "Events",
@@ -74,10 +70,9 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
-			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"events": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{}}}, Required: []string{"events"}},
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"events": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{OneOf: []*runtime.SchemaSpec{&runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"requestId": &runtime.SchemaSpec{Type: "string", Nullable: true}, "resources": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"file_id": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "file_id"}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}}}, "text": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "text"}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}}, &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"decision": &runtime.SchemaSpec{}, "requestId": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "requestId", "decision"}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}}, &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"runId": &runtime.SchemaSpec{OneOf: []*runtime.SchemaSpec{&runtime.SchemaSpec{Type: "string"}, &runtime.SchemaSpec{Type: "null"}}}, "type": &runtime.SchemaSpec{}}, Required: []string{"type"}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}}}}}}, Required: []string{"events"}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}},
 		},
-		Output: runtime.OutputHints{ListPath: "events", DefaultColumns: []string{"type", "requestId", "run"}, ResponseMediaType: "application/json",
-		},
+		Output:   runtime.OutputHints{ListPath: "events", DefaultColumns: []string{"type", "requestId", "run"}, ResponseMediaType: "application/json"},
 		Security: &runtime.SecurityHint{},
 	},
 	{
@@ -94,12 +89,38 @@ var Specs = []runtime.CommandSpec{
 			{Name: "threadId", Flag: "thread-id", In: "path", GoType: "string", Help: "Thread ID returned by create thread. v1 IDs are bare ULIDs. (path, required, ulid)", Required: true, Format: "ulid"},
 			{Name: "limit", Flag: "limit", In: "query", GoType: "int64", Help: "Maximum number of latest Thread events to return. (query)", Required: false, Default: "100"},
 		},
-		Output: runtime.OutputHints{ResponseMediaType: "text/event-stream", Pagination: &runtime.PaginationHint{
-			Strategy: "cursor", LimitParam: "limit",
-		}, Streaming: &runtime.StreamingHint{
-			Strategy: "sse",
+		Output: runtime.OutputHints{ResponseMediaType: "text/event-stream", Streaming: &runtime.StreamingHint{Strategy: "sse"}},
+	},
+	{
+		Group:   "Files",
+		Use:     "upload",
+		Short:   "Upload a file for an agent",
+		Long:    "Upload one file before creating or continuing a thread, then reference the returned file ID in resources[].file_id.",
+		Example: "mosoo public-thread-api files upload --agent-id <agent-id> --file <path>\n",
+		Examples: []runtime.CommandExample{
+			{Summary: "Upload a file and capture the draft file ID for a thread request.", Command: "mosoo public-thread-api files upload --agent-id <agent-id> --file <path> -o json", OutputHints: &runtime.ExampleOutputHints{IDPath: "file.id"}, FollowUpCommands: []string{"mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create.json -o json"},
+			},
 		},
+		KnownErrors: []runtime.KnownError{
+			{Status: 401, Cause: "Invalid personal access token."},
+			{Status: 400, Cause: "The multipart request must contain exactly one file field."},
+			{Status: 413, Cause: "The upload exceeds the Public API file size limit."},
 		},
+		OperationID:     "AgentFiles_Upload",
+		Method:          "POST",
+		PathTpl:         "/agents/{agentId}/files",
+		DefaultHostname: "http://127.0.0.1:8787/api/v1",
+		Params: []runtime.ParamSpec{
+			{Name: "agentId", Flag: "agent-id", In: "path", GoType: "string", Help: "Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs. (path, required, ulid)", Required: true, Format: "ulid"},
+			{Name: "file", Flag: "file", In: "formData", GoType: "string", Help: "file (formData, required, binary, local file path)", Required: true, Format: "binary"},
+		},
+		RequestBody: &runtime.RequestBody{
+			Required:  true,
+			MediaType: "multipart/form-data",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"file": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"file"}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}},
+		},
+		Output:   runtime.OutputHints{ResponseMediaType: "application/json"},
+		Security: &runtime.SecurityHint{},
 	},
 	{
 		Group:           "Files",
@@ -136,6 +157,22 @@ var Specs = []runtime.CommandSpec{
 	},
 	{
 		Group:           "Files",
+		Use:             "retrieve-file",
+		Short:           "Retrieve file metadata",
+		Long:            "Retrieve public metadata for a draft or thread file.",
+		Example:         "mosoo public-thread-api files retrieve-file --file-id <file-id> -o json\n",
+		OperationID:     "PublicFiles_RetrieveFile",
+		Method:          "GET",
+		PathTpl:         "/files/{fileId}",
+		DefaultHostname: "http://127.0.0.1:8787/api/v1",
+		Params: []runtime.ParamSpec{
+			{Name: "fileId", Flag: "file-id", In: "path", GoType: "string", Help: "File ID returned by add or list Thread files. v1 IDs are bare ULIDs. (path, required, ulid)", Required: true, Format: "ulid"},
+		},
+		Output:   runtime.OutputHints{ResponseMediaType: "application/json"},
+		Security: &runtime.SecurityHint{},
+	},
+	{
+		Group:           "Files",
 		Use:             "list-files",
 		Short:           "List thread files",
 		Long:            "List files attached to a thread.",
@@ -147,8 +184,7 @@ var Specs = []runtime.CommandSpec{
 		Params: []runtime.ParamSpec{
 			{Name: "threadId", Flag: "thread-id", In: "path", GoType: "string", Help: "Thread ID returned by create thread. v1 IDs are bare ULIDs. (path, required, ulid)", Required: true, Format: "ulid"},
 		},
-		Output: runtime.OutputHints{ListPath: "files", DefaultColumns: []string{"name", "kind", "id", "committed", "createdAt", "mimeType"}, ResponseMediaType: "application/json",
-		},
+		Output:   runtime.OutputHints{ListPath: "files", DefaultColumns: []string{"name", "kind", "id", "committed", "createdAt", "mimeType"}, ResponseMediaType: "application/json"},
 		Security: &runtime.SecurityHint{},
 	},
 	{
@@ -166,51 +202,6 @@ var Specs = []runtime.CommandSpec{
 			{Name: "fileId", Flag: "file-id", In: "path", GoType: "string", Help: "File ID returned by add or list Thread files. v1 IDs are bare ULIDs. (path, required, ulid)", Required: true, Format: "ulid"},
 		},
 		Output:   runtime.OutputHints{ResponseMediaType: "application/json"},
-		Security: &runtime.SecurityHint{},
-	},
-	{
-		Group:           "Files",
-		Use:             "retrieve-file",
-		Short:           "Retrieve file metadata",
-		Long:            "Retrieve public metadata for a draft or thread file.",
-		Example:         "mosoo public-thread-api files retrieve-file --file-id <file-id> -o json\n",
-		OperationID:     "PublicFiles_RetrieveFile",
-		Method:          "GET",
-		PathTpl:         "/files/{fileId}",
-		DefaultHostname: "http://127.0.0.1:8787/api/v1",
-		Params: []runtime.ParamSpec{
-			{Name: "fileId", Flag: "file-id", In: "path", GoType: "string", Help: "File ID returned by add or list Thread files. v1 IDs are bare ULIDs. (path, required, ulid)", Required: true, Format: "ulid"},
-		},
-		Output:   runtime.OutputHints{ResponseMediaType: "application/json"},
-		Security: &runtime.SecurityHint{},
-	},
-	{
-		Group:   "Files",
-		Use:     "upload",
-		Short:   "Upload a file for an agent",
-		Long:    "Upload one file before creating or continuing a thread, then reference the returned file ID in resources[].file_id.",
-		Example: "mosoo public-thread-api files upload --agent-id <agent-id> --file <path>\n",
-		Examples: []runtime.CommandExample{
-			{Summary: "Upload a file and capture the draft file ID for a thread request.", Command: "mosoo public-thread-api files upload --agent-id <agent-id> --file <path> -o json", OutputHints: &runtime.ExampleOutputHints{IDPath: "file.id"}, FollowUpCommands: []string{"mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create.json -o json"},
-			},
-		},
-		KnownErrors: []runtime.KnownError{
-			{Status: 401, Cause: "Invalid personal access token."},
-			{Status: 400, Cause: "The multipart request must contain exactly one file field."},
-			{Status: 413, Cause: "The upload exceeds the Public API file size limit."},
-		},
-		OperationID:     "AgentFiles_Upload",
-		Method:          "POST",
-		PathTpl:         "/agents/{agentId}/files",
-		DefaultHostname: "http://127.0.0.1:8787/api/v1",
-		Params: []runtime.ParamSpec{
-			{Name: "agentId", Flag: "agent-id", In: "path", GoType: "string", Help: "Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs. (path, required, ulid)", Required: true, Format: "ulid"},
-		},
-		RequestBody: &runtime.RequestBody{
-			Required:  true,
-			MediaType: "multipart/form-data",
-			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"file": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"file"}},
-		},
 		Security: &runtime.SecurityHint{},
 	},
 	{
@@ -255,8 +246,9 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
-			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"content": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"text": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "text"}}}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "content"}}, "resources": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"file_id": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "file_id"}}}, "userId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"userId"}},
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"content": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"text": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "text"}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}}}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "content"}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}}, "resources": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"file_id": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "file_id"}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}}}, "userId": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"userId"}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}},
 		},
+		Output: runtime.OutputHints{ResponseMediaType: "application/json"},
 	},
 	{
 		Group:           "Threads",
@@ -288,8 +280,7 @@ var Specs = []runtime.CommandSpec{
 			{Name: "agentId", Flag: "agent-id", In: "path", GoType: "string", Help: "Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs. (path, required, ulid)", Required: true, Format: "ulid"},
 			{Name: "archived", Flag: "archived", In: "query", GoType: "bool", Help: "Filter by archived state: true returns only archived Threads, false only active ones. Omit to return all Threads. (query)", Required: false},
 		},
-		Output: runtime.OutputHints{ListPath: "threads", DefaultColumns: []string{"kind", "id", "agent_id", "created_at", "last_run_id", "source"}, ResponseMediaType: "application/json",
-		},
+		Output:   runtime.OutputHints{ListPath: "threads", DefaultColumns: []string{"kind", "id", "agent_id", "created_at", "last_run_id", "source"}, ResponseMediaType: "application/json"},
 		Security: &runtime.SecurityHint{},
 	},
 	{
