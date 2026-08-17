@@ -568,7 +568,7 @@ function buildThreadsOverlay(): Record<string, OverlayCommand> {
 		},
 		create: {
 			short: "Create a thread for an agent",
-			long: "Create a new thread against an agent API endpoint.",
+			long: "Create a new thread against an agent API endpoint. The JSON body is required and userId must be a non-blank string.",
 			example: "mosoo public-thread-api threads create --agent-id <agent-id> --file body.json",
 			examples: [
 				{
@@ -613,7 +613,10 @@ function buildThreadsOverlay(): Record<string, OverlayCommand> {
 					],
 				},
 			],
-			known_errors: [{ status: 404, cause: "Agent not found or not accessible to this token." }],
+			known_errors: [
+				{ status: 400, cause: "The body is missing or userId is missing, non-string, or blank." },
+				{ status: 404, cause: "Agent not found or not accessible to this token." },
+			],
 		},
 		delete: {
 			short: "Delete a thread",

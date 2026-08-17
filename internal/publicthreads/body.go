@@ -12,9 +12,9 @@ import (
 // buildCreateBody assembles the create-thread request body the same way the
 // generated runtime does for a body with no envelope template: --set/--set-str
 // take precedence and merge into one document, otherwise a --file body is used
-// verbatim, otherwise nil (an empty thread, which the API allows). The merge
-// mirrors Lathe's dotted-path semantics (object fields, array indices, and type
-// inference for --set; forced strings for --set-str).
+// verbatim. Every create request must be a JSON object with a non-blank string
+// userId. The merge mirrors Lathe's dotted-path semantics (object fields, array
+// indices, and type inference for --set; forced strings for --set-str).
 func buildCreateBody(file string, sets, stringSets []string) ([]byte, error) {
 	if len(sets) > 0 || len(stringSets) > 0 {
 		out := map[string]any{}
@@ -36,12 +36,43 @@ func buildCreateBody(file string, sets, stringSets []string) ([]byte, error) {
 				return nil, err
 			}
 		}
-		return json.Marshal(out)
+		body, err := json.Marshal(out)
+		if err != nil {
+			return nil, err
+		}
+		return body, validateCreateBody(body)
 	}
 	if file != "" {
-		return latheruntime.ReadBody(file)
+		body, err := latheruntime.ReadBody(file)
+		if err != nil {
+			return nil, err
+		}
+		return body, validateCreateBody(body)
 	}
-	return nil, nil
+	return nil, fmt.Errorf("create thread body is required and must include userId")
+}
+
+func validateCreateBody(body []byte) error {
+	if len(strings.TrimSpace(string(body))) == 0 {
+		return fmt.Errorf("create thread body is required and must include userId")
+	}
+
+	var document map[string]any
+	if err := json.Unmarshal(body, &document); err != nil {
+		return fmt.Errorf("create thread body must be a JSON object: %w", err)
+	}
+	userID, ok := document["userId"]
+	if !ok {
+		return fmt.Errorf("create thread body must include userId")
+	}
+	value, ok := userID.(string)
+	if !ok {
+		return fmt.Errorf("create thread body userId must be a string")
+	}
+	if strings.TrimSpace(value) == "" {
+		return fmt.Errorf("create thread body userId must not be blank")
+	}
+	return nil
 }
 
 func parseSet(kv, flag string) (string, string, error) {

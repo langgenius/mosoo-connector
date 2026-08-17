@@ -119,9 +119,12 @@ func (c *Client) getJSON(ctx context.Context, method, path string, body any, hea
 }
 
 // CreateThread creates a thread for an agent. body is the raw JSON request body
-// (may be nil for an empty thread). idempotencyKey, when non-empty, is sent as
-// the Idempotency-Key header for retry-safe creation.
+// and must carry the caller's non-blank string userId. idempotencyKey, when
+// non-empty, is sent as the Idempotency-Key header for retry-safe creation.
 func (c *Client) CreateThread(ctx context.Context, agentID string, body []byte, idempotencyKey string) (*ThreadState, error) {
+	if err := validateCreateBody(body); err != nil {
+		return nil, err
+	}
 	var headers map[string]string
 	if idempotencyKey != "" {
 		headers = map[string]string{"Idempotency-Key": idempotencyKey}

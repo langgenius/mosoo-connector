@@ -224,7 +224,7 @@ var Specs = []runtime.CommandSpec{
 		Group:   "Threads",
 		Use:     "create",
 		Short:   "Create a thread for an agent",
-		Long:    "Create a new thread against an agent API endpoint.",
+		Long:    "Create a new thread against an agent API endpoint. The JSON body is required and userId must be a non-blank string.",
 		Example: "mosoo public-thread-api threads create --agent-id <agent-id> --file body.json\n",
 		Examples: []runtime.CommandExample{
 			{Summary: "Create a Thread with an initial user message and capture the Thread ID.", Command: "mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create.json -o json", BodyShape: []byte("{\"input\":{\"content\":[{\"text\":\"Say hello from the API.\",\"type\":\"text\"}],\"type\":\"user.message\"},\"userId\":\"demo-user-001\"}"), OutputHints: &runtime.ExampleOutputHints{IDPath: "thread.id"}, FollowUpCommands: []string{"mosoo public-thread-api threads retrieve --thread-id <thread-id> -o json", "mosoo public-thread-api events list-events --thread-id <thread-id> -o json"},
@@ -233,6 +233,7 @@ var Specs = []runtime.CommandSpec{
 			},
 		},
 		KnownErrors: []runtime.KnownError{
+			{Status: 400, Cause: "The body is missing or userId is missing, non-string, or blank."},
 			{Status: 404, Cause: "Agent not found or not accessible to this token."},
 		},
 		OperationID:     "Threads_Create",

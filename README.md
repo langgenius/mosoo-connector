@@ -22,7 +22,8 @@ mosoo ls -o json
 make build
 ```
 
-This clones or updates the mosoo repository under `.cache/mosoo`, exports OpenAPI / GraphQL
+This checks out the full Mosoo commit recorded in `specs/mosoo-contract.json`
+under `.cache/mosoo`, exports OpenAPI / GraphQL
 specs, renders `specs/sources.yaml` and `overlays/*.yaml`, runs Lathe code generation, and
 builds `bin/mosoo`. Generated CLI command indexes are rendered into
 `publish/skills/mosoo/references/cli/`; the CLI guide at
@@ -32,6 +33,25 @@ Skill entrypoint lives at `publish/skills/mosoo/SKILL.md`.
 
 Lathe is managed by this repository. `make build` first compiles the pinned Lathe CLI from
 `go.mod` into `.cache/bin/lathe`, then uses that local binary for code generation.
+
+The same contract record is embedded into the CLI and bundled Skill. Query the
+CLI copy with `mosoo doctor --json`; read the Skill copy at
+`references/provenance.json`. Both include the full upstream Mosoo SHA and a
+SHA-256 over canonical JSON (sorted object keys) for the Public Thread OpenAPI.
+
+To refresh the contract, resolve and review a full Mosoo commit SHA, then run:
+
+```sh
+make build MOSOO_REF=<40-character-mosoo-commit>
+make catalog-test
+```
+
+Commit the lock, source overlays, and all generated changes together. Pull
+request CI and tag release run `make contract-gate`, which repeats that build
+from the recorded commit and fails on a generated diff. Runtime/OpenAPI changes
+land in `langgenius/mosoo` first; connector maintainers then refresh this lock,
+generated CLI, and Skill before a connector release. Downstream docs should
+consume the same upstream commit and normalized digest before publication.
 
 Builds inject deterministic CLI version metadata from Git into Lathe's standard
 `Version`, `Commit`, and `Date` fields:
@@ -105,6 +125,21 @@ curl -fsSL https://install.mosoo.ai/install.sh | bash
 
 The installer is interactive by default and asks for `y` or `n` before high-impact
 steps. Use `--yes` for automation and `--dry-run` to preview the plan.
+After a successful Skill copy, it retires the former
+`$HOME/.codex/skills/mosoo` target when that path differs from the active
+`$CODEX_HOME/skills/mosoo` target, preventing two stale Mosoo Skills from being
+discovered at once.
+
+## Non-production contract smoke
+
+The manually dispatched `Non-production Public Thread smoke` workflow reads its
+deployment URL, Agent ID, user ID, and environment label from the protected
+`public-thread-smoke-non-production` GitHub environment and its token from an
+environment secret. The script refuses `prod`/`production`, known production
+Mosoo hosts, non-HTTPS targets, and environment labels that do not explicitly
+identify a development, staging, preview, test, QA, sandbox, or non-production
+deployment. It submits the minimal `{ "userId": "..." }` create shape, verifies
+`thread.id`, and deletes the smoke Thread afterward.
 
 ## Published Skill layout
 
@@ -117,6 +152,7 @@ publish/skills/mosoo/
     |-- setup.md
     |-- cli.md
     |-- api.md
+    |-- provenance.json
     `-- cli/
         |-- catalog.md
         `-- modules/
@@ -266,6 +302,7 @@ follow-up `user_message` event:
 
 ```json
 {
+  "userId": "demo-user-001",
   "input": {
     "content": [{ "type": "text", "text": "Summarize the attachment." }],
     "type": "user.message"

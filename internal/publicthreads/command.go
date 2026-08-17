@@ -83,6 +83,7 @@ func newCreateCommand() *cobra.Command {
 		Use:   "create",
 		Short: "Create a thread for an agent",
 		Long: "Create a new thread against an agent API endpoint.\n\n" +
+			"The JSON body is required and userId must be a non-blank string. " +
 			"With --wait, block until the initial run reaches a terminal state and report the outcome. " +
 			"With --final-output, print only the completed run's final output text (implies --wait). " +
 			"On failure, the run status, run error, tool failures, and last relevant events are shown.",
@@ -115,11 +116,11 @@ func newCreateCommand() *cobra.Command {
 			}
 
 			if st.Run == nil {
-				// An empty thread (no input) has no run to wait for.
+				// An idle thread (no input) has no run to wait for.
 				if isStructured(format) {
 					return renderResultStructured(cmd.OutOrStdout(), format, st, nil)
 				}
-				fmt.Fprintf(cmd.OutOrStdout(), "Created empty thread %s; no run was queued to wait for.\n", st.Thread.ID)
+				fmt.Fprintf(cmd.OutOrStdout(), "Created idle thread %s; no run was queued to wait for.\n", st.Thread.ID)
 				return nil
 			}
 
@@ -162,7 +163,7 @@ func newWaitCommand() *cobra.Command {
 				ctx = context.Background()
 			}
 
-			// Pre-check so an empty thread fails fast instead of polling to the
+			// Pre-check so an idle thread fails fast instead of polling to the
 			// timeout.
 			st, err := client.RetrieveThread(ctx, threadID)
 			if err != nil {

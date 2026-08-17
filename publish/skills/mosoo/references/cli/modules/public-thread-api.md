@@ -5,9 +5,9 @@
 - Backend: `openapi3`
 - Default hostname: `http://127.0.0.1:8787/api/v1`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `local-snapshot`
+- Pinned tag: `1b802e4d222b9a04782896ee6a770baf91120c20`
 - Files: `docs/openapi/public-thread-api.openapi.json`
-- Resolved SHA: `local-snapshot`
+- Resolved SHA: `1b802e4d222b9a04782896ee6a770baf91120c20`
 
 ## Events
 
@@ -163,6 +163,7 @@
   - `--idempotency-key` (header): Optional key for retry-safe create-thread and send-events calls. Reusing the same key with the same request returns the original response. Reusing the key while the original request is still processing returns 409.
 - Output: response media `application/json`
 - Known errors:
+  - HTTP 400: The body is missing or userId is missing, non-string, or blank.
   - HTTP 404: Agent not found or not accessible to this token.
 - Examples:
   - Create a Thread with an initial user message and capture the Thread ID.

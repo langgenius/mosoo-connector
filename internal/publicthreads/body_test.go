@@ -1,10 +1,14 @@
 package publicthreads
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+
+	latheruntime "github.com/lathe-cli/lathe/pkg/runtime"
 )
 
 func TestBuildCreateBodySetsAndStrings(t *testing.T) {
@@ -40,7 +44,7 @@ func TestBuildCreateBodySetsAndStrings(t *testing.T) {
 }
 
 func TestBuildCreateBodyInfersTypesButSetStrForcesString(t *testing.T) {
-	raw, err := buildCreateBody("", []string{"a=3", "b=true"}, []string{"c=3"})
+	raw, err := buildCreateBody("", []string{"a=3", "b=true"}, []string{"c=3", "userId=test-user"})
 	if err != nil {
 		t.Fatalf("buildCreateBody: %v", err)
 	}
@@ -74,18 +78,58 @@ func TestBuildCreateBodyFileFallback(t *testing.T) {
 	}
 }
 
-func TestBuildCreateBodyEmpty(t *testing.T) {
-	raw, err := buildCreateBody("", nil, nil)
-	if err != nil {
-		t.Fatalf("buildCreateBody: %v", err)
-	}
-	if raw != nil {
-		t.Fatalf("expected nil body, got %q", raw)
+func TestBuildCreateBodyRejectsMissingBody(t *testing.T) {
+	if _, err := buildCreateBody("", nil, nil); err == nil || !strings.Contains(err.Error(), "body is required") {
+		t.Fatalf("error = %v, want required body error", err)
 	}
 }
 
 func TestBuildCreateBodyInvalidSet(t *testing.T) {
 	if _, err := buildCreateBody("", []string{"noequals"}, nil); err == nil {
 		t.Fatal("expected error for malformed --set")
+	}
+}
+
+func TestBuildCreateBodyRejectsInvalidUserID(t *testing.T) {
+	tests := []struct {
+		name string
+		body string
+		want string
+	}{
+		{name: "missing", body: `{}`, want: "must include userId"},
+		{name: "null", body: `{"userId":null}`, want: "must be a string"},
+		{name: "number", body: `{"userId":42}`, want: "must be a string"},
+		{name: "boolean", body: `{"userId":true}`, want: "must be a string"},
+		{name: "blank", body: `{"userId":"  \t"}`, want: "must not be blank"},
+		{name: "array body", body: `[]`, want: "must be a JSON object"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			path := filepath.Join(dir, "body.json")
+			if err := os.WriteFile(path, []byte(tt.body), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			_, err := buildCreateBody(path, nil, nil)
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("error = %v, want %q", err, tt.want)
+			}
+		})
+	}
+}
+
+func TestCreateThreadRejectsInvalidUserIDBeforeTransport(t *testing.T) {
+	transportCalls := 0
+	client := &Client{transport: func(context.Context, string, string, any, map[string]string) (*latheruntime.RawResult, error) {
+		transportCalls++
+		return nil, nil
+	}}
+
+	if _, err := client.CreateThread(context.Background(), "agent-test", []byte(`{"userId":" "}`), ""); err == nil {
+		t.Fatal("expected invalid userId error")
+	}
+	if transportCalls != 0 {
+		t.Fatalf("transport calls = %d, want 0", transportCalls)
 	}
 }

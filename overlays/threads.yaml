@@ -26,7 +26,7 @@ commands:
       mosoo public-thread-api threads archive --thread-id <thread-id>
   create:
     short: "Create a thread for an agent"
-    long: "Create a new thread against an agent API endpoint."
+    long: "Create a new thread against an agent API endpoint. The JSON body is required and userId must be a non-blank string."
     example: |
       mosoo public-thread-api threads create --agent-id <agent-id> --file body.json
     examples:
@@ -64,6 +64,8 @@ commands:
         follow_up_commands:
           - "mosoo public-thread-api events list-events --thread-id <thread-id> -o json"
     known_errors:
+      - status: 400
+        cause: "The body is missing or userId is missing, non-string, or blank."
       - status: 404
         cause: "Agent not found or not accessible to this token."
   delete:

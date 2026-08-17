@@ -142,8 +142,8 @@ func TestReportJSONHasStructuredReadinessSections(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if got["schemaVersion"] != float64(1) {
-		t.Fatalf("schemaVersion = %v, want 1", got["schemaVersion"])
+	if got["schemaVersion"] != float64(2) {
+		t.Fatalf("schemaVersion = %v, want 2", got["schemaVersion"])
 	}
 	if got["ready"] != false {
 		t.Fatalf("ready = %v, want false", got["ready"])
@@ -174,6 +174,15 @@ func TestReportJSONHasStructuredReadinessSections(t *testing.T) {
 	}
 	if installState["complete"] != true {
 		t.Fatalf("install.complete = %v", installState["complete"])
+	}
+
+	contractState := got["contract"].(map[string]any)
+	if len(contractState["upstreamCommit"].(string)) != 40 {
+		t.Fatalf("contract.upstreamCommit = %v", contractState["upstreamCommit"])
+	}
+	openAPIState := contractState["publicThreadOpenAPI"].(map[string]any)
+	if len(openAPIState["sha256"].(string)) != 64 {
+		t.Fatalf("contract.publicThreadOpenAPI.sha256 = %v", openAPIState["sha256"])
 	}
 
 	failures := got["failures"].([]any)

@@ -6,6 +6,7 @@ RELEASE_BASE_URL="${MOSOO_RELEASE_BASE_URL:-https://github.com/langgenius/mosoo-
 BIN_DIR="${MOSOO_BIN_DIR:-$HOME/.local/bin}"
 CODEX_HOME_VALUE="${CODEX_HOME:-$HOME/.codex}"
 SKILL_DIR="${MOSOO_SKILL_DIR:-$CODEX_HOME_VALUE/skills/mosoo}"
+LEGACY_SKILL_DIR="$HOME/.codex/skills/mosoo"
 SOURCE_ROOT="${MOSOO_INSTALL_SOURCE_ROOT:-}"
 CLI_ARCHIVE_URL="${MOSOO_CLI_ARCHIVE_URL:-}"
 SKILL_ARCHIVE_URL="${MOSOO_SKILL_ARCHIVE_URL:-}"
@@ -136,6 +137,28 @@ print(value)'
 
 need_cmd() {
 	command -v "$1" >/dev/null 2>&1 || die "$1 is required but was not found on PATH"
+}
+
+normalize_path() {
+	python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1"
+}
+
+paths_overlap() {
+	local left="$1" right="$2"
+	case "$left/" in "$right/"*) return 0 ;; esac
+	case "$right/" in "$left/"*) return 0 ;; esac
+	return 1
+}
+
+validate_skill_paths() {
+	local active_path legacy_path
+	"$INSTALL_SKILL" || return 0
+	active_path="$(normalize_path "$SKILL_DIR")"
+	legacy_path="$(normalize_path "$LEGACY_SKILL_DIR")"
+	[ "$active_path" = "$legacy_path" ] && return
+	if paths_overlap "$active_path" "$legacy_path"; then
+		die "--skill-dir must not contain or be contained by the legacy Skill target: $LEGACY_SKILL_DIR"
+	fi
 }
 
 confirm() {
@@ -372,6 +395,20 @@ install_skill() {
 	run rm -rf "$SKILL_DIR"
 	run mkdir -p "$(dirname "$SKILL_DIR")"
 	run cp -R "$skill_source" "$SKILL_DIR"
+	retire_legacy_skill
+}
+
+retire_legacy_skill() {
+	local active_path legacy_path
+	active_path="$(normalize_path "$SKILL_DIR")"
+	legacy_path="$(normalize_path "$LEGACY_SKILL_DIR")"
+	if [ "$legacy_path" = "$active_path" ]; then
+		return
+	fi
+	if "$DRY_RUN" || [ -e "$LEGACY_SKILL_DIR" ] || [ -L "$LEGACY_SKILL_DIR" ]; then
+		run rm -rf "$LEGACY_SKILL_DIR"
+		log "retired legacy Skill target: $LEGACY_SKILL_DIR"
+	fi
 }
 
 write_target_config() {
@@ -562,7 +599,7 @@ setup_cloudflare() {
 }
 
 print_plan() {
-	local platform config_path cli_source skill_source login_plan
+	local platform config_path cli_source skill_source legacy_skill_plan login_plan
 	platform="$(detect_platform)"
 	config_path="$(global_config_dir)/config.json"
 	cli_source="${CLI_ARCHIVE_URL:-$RELEASE_BASE_URL/mosoo-$platform.tar.gz}"
@@ -575,6 +612,10 @@ print_plan() {
 		cli_source="$SOURCE_ROOT/bin/mosoo (local)"
 		skill_source="$SOURCE_ROOT/publish/skills/mosoo (local)"
 	fi
+	legacy_skill_plan="none (same as active target)"
+	if [ "$(normalize_path "$LEGACY_SKILL_DIR")" != "$(normalize_path "$SKILL_DIR")" ]; then
+		legacy_skill_plan="$LEGACY_SKILL_DIR"
+	fi
 	cat <<EOF
 $PROGRAM_NAME plan
 
@@ -586,6 +627,7 @@ Install/update CLI: $INSTALL_CLI
 Install/update Skill: $INSTALL_SKILL
   Target: $SKILL_DIR
   Source: $skill_source
+  Retire legacy target after success: $legacy_skill_plan
 Write config: $WRITE_CONFIG
   Target config: ${TARGET:-local}
   Config file: $config_path
@@ -627,6 +669,8 @@ main() {
 	need_cmd sed
 	need_cmd find
 	need_cmd dirname
+	need_cmd python3
+	validate_skill_paths
 	print_plan
 
 	if "$INSTALL_CLI" && confirm "Install or update mosoo CLI at $BIN_DIR/mosoo?" "y"; then

@@ -209,7 +209,8 @@ All paths are relative to `MOSOO_API_BASE` (`/api/v1`).
 
 ## Lifecycle and limits
 
-- Creating a Thread may omit `input`; that creates an idle Thread without a Run.
+- A create body may omit `input`; `{ "userId": "..." }` creates an idle Thread
+  without a Run. The body itself and its non-blank string `userId` are required.
 - A submitted event batch contains at least one event.
 - Create-Thread input text is limited to 32000 characters.
 - `userId` is required, immutable for the Thread, and limited to 255 characters.

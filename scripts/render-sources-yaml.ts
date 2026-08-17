@@ -7,7 +7,10 @@ import { excludedMutations, listFields, moduleGroups } from "./console-graphql-s
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, "..");
 const repoURL = process.env.MOSOO_REPO_URL ?? "https://github.com/langgenius/mosoo.git";
-const pinnedTag = "local-snapshot";
+const pinnedTag = process.env.MOSOO_REF;
+if (pinnedTag === undefined || !/^[0-9a-f]{40}$/.test(pinnedTag)) {
+	throw new Error("MOSOO_REF must be an explicit 40-character Mosoo commit SHA");
+}
 const hostBase = (process.env.MOSOO_HOST_BASE ?? "http://127.0.0.1:8787").replace(/\/$/, "");
 const consoleDefaultHostname = `${hostBase}/api`;
 const threadsDefaultHostname = `${hostBase}/api/v1`;

@@ -300,6 +300,7 @@ a ready draft file. A create body references it like this:
 
 ```json
 {
+  "userId": "demo-user-001",
   "input": {
     "content": [{ "type": "text", "text": "Summarize the attachment." }],
     "type": "user.message"
@@ -316,6 +317,10 @@ confirm the generated flags and host selection.
 
 ## Public Thread Wait, Final Output, And Transcript Workflow
 
+Every create body is required and must contain a non-blank string `userId`.
+Omitting `input` creates an idle Thread, but omitting the body or `userId` is
+rejected locally before the CLI makes a network request.
+
 ```sh
 mosoo public-thread-api threads create --agent-id <agent-id> --file body.json --wait -o json
 mosoo public-thread-api threads create --agent-id <agent-id> --file body.json --final-output
@@ -329,6 +334,13 @@ mosoo public-thread-api threads transcript --thread-id <thread-id>
 2. Inspect the exact command with `mosoo commands show <path...> --json` before executing an unfamiliar command.
 3. If the command detail has `auth.required=true`, run `mosoo doctor --json` and check the resolved target/auth state before execution. If credentials are missing, run `mosoo auth login` for the resolved target.
 4. Execute only after flags, body, auth, HTTP path, and output hints are clear from `commands show`.
+
+## Contract Provenance
+
+`mosoo doctor --json` reports the pinned Mosoo `upstreamCommit` and normalized
+Public Thread OpenAPI `sha256` under `contract`. The bundled Skill carries the
+same record in `references/provenance.json`. If those values differ, update the
+older CLI or Skill before copying a Public Thread request shape from it.
 
 ## Setup And Login
 
