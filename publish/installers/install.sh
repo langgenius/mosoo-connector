@@ -143,6 +143,24 @@ normalize_path() {
 	python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1"
 }
 
+paths_overlap() {
+	local left="$1" right="$2"
+	case "$left/" in "$right/"*) return 0 ;; esac
+	case "$right/" in "$left/"*) return 0 ;; esac
+	return 1
+}
+
+validate_skill_paths() {
+	local active_path legacy_path
+	"$INSTALL_SKILL" || return 0
+	active_path="$(normalize_path "$SKILL_DIR")"
+	legacy_path="$(normalize_path "$LEGACY_SKILL_DIR")"
+	[ "$active_path" = "$legacy_path" ] && return
+	if paths_overlap "$active_path" "$legacy_path"; then
+		die "--skill-dir must not contain or be contained by the legacy Skill target: $LEGACY_SKILL_DIR"
+	fi
+}
+
 confirm() {
 	local prompt="$1"
 	local default="${2:-n}"
@@ -652,6 +670,7 @@ main() {
 	need_cmd find
 	need_cmd dirname
 	need_cmd python3
+	validate_skill_paths
 	print_plan
 
 	if "$INSTALL_CLI" && confirm "Install or update mosoo CLI at $BIN_DIR/mosoo?" "y"; then

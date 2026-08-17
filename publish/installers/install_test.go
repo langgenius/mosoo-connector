@@ -302,6 +302,66 @@ func TestInstallerDoesNotRetireActiveLegacySymlinkAlias(t *testing.T) {
 	}
 }
 
+func TestInstallerRejectsOverlappingLegacyAndActiveSkillTargets(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		target func(string) string
+	}{
+		{
+			name: "active target inside legacy target",
+			target: func(home string) string {
+				return filepath.Join(home, ".codex", "skills", "mosoo", "current")
+			},
+		},
+		{
+			name: "legacy target inside active target",
+			target: func(home string) string {
+				return filepath.Join(home, ".codex", "skills")
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			home := t.TempDir()
+			legacy := filepath.Join(home, ".codex", "skills", "mosoo")
+			target := test.target(home)
+			for _, path := range []string{legacy, target} {
+				if err := os.MkdirAll(path, 0o755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(filepath.Join(path, "sentinel"), []byte("keep"), 0o600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			repositoryRoot, err := filepath.Abs(filepath.Join("..", ".."))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			cmd := exec.Command("bash", "install.sh",
+				"--source-root", repositoryRoot,
+				"--skill-dir", target,
+				"--no-cli",
+				"--no-login",
+				"--no-doctor",
+				"--yes",
+			)
+			cmd.Env = append(os.Environ(), "HOME="+home)
+			out, err := cmd.CombinedOutput()
+			if err == nil {
+				t.Fatalf("expected overlapping Skill targets to be rejected\n%s", out)
+			}
+			if !strings.Contains(string(out), "--skill-dir must not contain or be contained") {
+				t.Fatalf("unexpected installer error:\n%s", out)
+			}
+			for _, path := range []string{legacy, target} {
+				if _, err := os.Stat(filepath.Join(path, "sentinel")); err != nil {
+					t.Fatalf("overlap rejection mutated %s: %v", path, err)
+				}
+			}
+		})
+	}
+}
+
 func writeTargetConfig(t *testing.T, path string, cfg targetConfig) {
 	t.Helper()
 	data, err := json.Marshal(cfg)
