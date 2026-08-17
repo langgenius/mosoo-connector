@@ -18,9 +18,10 @@
 - Auth: required
 - Body: required; media type `application/json`
 - Flags: none
+- Output: response media `application/json`
 - Notes:
   - Creates a personal access token. The secret value is returned once.
-- Example: `mosoo console-rest "access tokens" create --set label="ci"`
+- Example: `mosoo console-rest access create --set label="ci"`
 
 ### `mosoo console-rest access list`
 
@@ -30,7 +31,7 @@
 - Body: none
 - Flags: none
 - Output: list path `tokens`; response media `application/json`
-- Example: `mosoo console-rest "access tokens" list`
+- Example: `mosoo console-rest access list`
 
 ### `mosoo console-rest access revoke`
 
@@ -41,7 +42,7 @@
 - Flags:
   - `--token-id` (path, required, ulid): Personal access token ID.
 - Output: response media `application/json`
-- Example: `mosoo console-rest "access tokens" revoke --token-id <token-id>`
+- Example: `mosoo console-rest access revoke --token-id <token-id>`
 
 ## Files
 
@@ -117,7 +118,7 @@
   - `--session-id` (query, ulid): Optional session ID filter.
   - `--session-kind` (query, one of: artifact|attachment|all): Optional session file kind filter.
 - Output: list path `files`; response media `application/json`
-- Example: `mosoo console-rest "access tokens" list`
+- Example: `mosoo console-rest access list`
 
 ### `mosoo console-rest files update`
 
@@ -180,7 +181,9 @@
 - HTTP: `POST /skill/inspect`
 - Auth: required
 - Body: required; media type `multipart/form-data`
-- Flags: none
+- Flags:
+  - `--file` (formData, binary): file
+  - `--github-url` (formData): githubUrl
 - Output: response media `application/json`
 
 ### `mosoo console-rest skills package`
@@ -189,5 +192,9 @@
 - HTTP: `POST /skill/package`
 - Auth: required
 - Body: required; media type `multipart/form-data`
-- Flags: none
+- Flags:
+  - `--app-id` (formData, required, ulid): appId
+  - `--file` (formData, binary): file
+  - `--github-url` (formData): githubUrl
+  - `--skill-id` (formData, ulid): skillId
 - Output: response media `application/json`

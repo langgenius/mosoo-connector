@@ -8,14 +8,13 @@ import (
 	"github.com/lathe-cli/lathe/pkg/runtime"
 )
 
-const generatedSchemaVersion = 8
+const generatedSchemaVersion = 11
 
 func Mount(root *cobra.Command) error {
 	if err := runtime.AssertSchema(generatedSchemaVersion); err != nil {
 		return err
 	}
-	runtime.Build(root, "console-rest", Specs)
-	return nil
+	return runtime.Build(root, "console-rest", Specs)
 }
 
 func MountFlat(root *cobra.Command) error {
@@ -30,7 +29,7 @@ var Specs = []runtime.CommandSpec{
 		Group:           "Access Tokens",
 		Use:             "create",
 		Short:           "Create a personal access token",
-		Example:         "mosoo console-rest \"access tokens\" create --set label=\"ci\"\n",
+		Example:         "mosoo console-rest access create --set label=\"ci\"\n",
 		Notes:           []string{"Creates a personal access token. The secret value is returned once."},
 		OperationID:     "AccessTokens_Create",
 		Method:          "POST",
@@ -41,13 +40,14 @@ var Specs = []runtime.CommandSpec{
 			MediaType: "application/json",
 			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"label": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"label"}},
 		},
+		Output:   runtime.OutputHints{ResponseMediaType: "application/json"},
 		Security: &runtime.SecurityHint{},
 	},
 	{
 		Group:           "Access Tokens",
 		Use:             "list",
 		Short:           "List personal access tokens",
-		Example:         "mosoo console-rest \"access tokens\" list\n",
+		Example:         "mosoo console-rest access list\n",
 		OperationID:     "AccessTokens_List",
 		Method:          "GET",
 		PathTpl:         "/access-tokens",
@@ -59,7 +59,7 @@ var Specs = []runtime.CommandSpec{
 		Group:           "Access Tokens",
 		Use:             "revoke",
 		Short:           "Revoke a personal access token",
-		Example:         "mosoo console-rest \"access tokens\" revoke --token-id <token-id>\n",
+		Example:         "mosoo console-rest access revoke --token-id <token-id>\n",
 		OperationID:     "AccessTokens_Revoke",
 		Method:          "DELETE",
 		PathTpl:         "/access-tokens/{tokenId}",
@@ -167,7 +167,7 @@ var Specs = []runtime.CommandSpec{
 		Group:           "Files",
 		Use:             "list",
 		Short:           "List files for an app or session",
-		Example:         "mosoo console-rest \"access tokens\" list\n",
+		Example:         "mosoo console-rest access list\n",
 		OperationID:     "Files_List",
 		Method:          "GET",
 		PathTpl:         "/files",
@@ -276,6 +276,10 @@ var Specs = []runtime.CommandSpec{
 		Method:          "POST",
 		PathTpl:         "/skill/inspect",
 		DefaultHostname: "http://127.0.0.1:8787/api",
+		Params: []runtime.ParamSpec{
+			{Name: "file", Flag: "file", In: "formData", GoType: "string", Help: "file (formData, binary, local file path)", Required: false, Format: "binary"},
+			{Name: "githubUrl", Flag: "github-url", In: "formData", GoType: "string", Help: "githubUrl (formData)", Required: false},
+		},
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "multipart/form-data",
@@ -292,6 +296,12 @@ var Specs = []runtime.CommandSpec{
 		Method:          "POST",
 		PathTpl:         "/skill/package",
 		DefaultHostname: "http://127.0.0.1:8787/api",
+		Params: []runtime.ParamSpec{
+			{Name: "appId", Flag: "app-id", In: "formData", GoType: "string", Help: "appId (formData, required, ulid)", Required: true, Format: "ulid"},
+			{Name: "file", Flag: "file", In: "formData", GoType: "string", Help: "file (formData, binary, local file path)", Required: false, Format: "binary"},
+			{Name: "githubUrl", Flag: "github-url", In: "formData", GoType: "string", Help: "githubUrl (formData)", Required: false},
+			{Name: "skillId", Flag: "skill-id", In: "formData", GoType: "string", Help: "skillId (formData, ulid)", Required: false, Format: "ulid"},
+		},
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "multipart/form-data",

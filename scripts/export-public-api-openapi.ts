@@ -57,6 +57,8 @@ const outputPath = resolve(repositoryRoot, ".cache/mosoo/docs/openapi/public-thr
 const committedOrigin = "https://cloud.mosoo.ai";
 
 const document = createPublicApiOpenApiDocument(committedOrigin);
+// Target resolution owns /api/v1; keep Lathe operation paths relative to it.
+document.servers = [];
 for (const [path, methods] of Object.entries(operationMetadata)) {
 	const pathItem = document.paths[path];
 	if (pathItem === undefined) {

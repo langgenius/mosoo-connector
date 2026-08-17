@@ -8,14 +8,13 @@ import (
 	"github.com/lathe-cli/lathe/pkg/runtime"
 )
 
-const generatedSchemaVersion = 8
+const generatedSchemaVersion = 11
 
 func Mount(root *cobra.Command) error {
 	if err := runtime.AssertSchema(generatedSchemaVersion); err != nil {
 		return err
 	}
-	runtime.Build(root, "console", Specs)
-	return nil
+	return runtime.Build(root, "console", Specs)
 }
 
 func MountFlat(root *cobra.Command) error {

@@ -17,10 +17,12 @@ Key fields:
 - `http`: HTTP method and path template.
 - `http.default_hostname`: optional source-level host selected after explicit `--hostname` and `$MOSOO_HOST`; when present it is used before the single-host fallback from `hosts.yml`.
 - `flags`: CLI flags, parameter location, type, required state, defaults, enum values, format, input modes, and help.
-- `body`: request body requirement and media type.
+- `body`: request body requirement, media type, and optional `runtime_schema` preflight source, including its active-context prerequisites.
 - `auth`: whether auth is required and which scopes are declared.
 - `examples`: runnable examples with optional body shape, output hints, and follow-up commands.
-- `output`: list path, default columns, response media type, pagination, and streaming hints.
+- `output`: list path, default columns, response media type, pagination, and streaming hints; a streaming policy describes collection, terminal outcomes, and optional live projection.
+- `flags[].context`: an optional account-scoped default with explicit flag, declared environment, then stored-value precedence.
+- `sets_context`: a successful operation persists its declared parameter as the selected host's active context.
 - `notes`, `prerequisites`, and `known_errors`: overlay-provided operation context that is not inferred from the API spec.
 
 ## Command Detail
@@ -48,11 +50,15 @@ When a flag entry has `input_modes`, prefer safe modes over putting secrets dire
 - `--set key.path=value`: build JSON with type inference for booleans, null, integers, and floats.
 - `--set-str key.path=value`: build JSON while forcing the value to remain a string.
 
+If `body.runtime_schema` is present, normal execution fetches that JSON Schema and validates the body before the target request. `--dry-run` does not fetch it.
+
 ## Output
 
-Use `-o json` for machine-readable command output. Other supported formats are `table`, `yaml`, and `raw`.
+Use `-o json` for machine-readable command output. Other supported formats are `table`, `yaml`, and `raw`. For collected streams, choose one mode: JSON or YAML for one document, `--stream` in the default output mode when `output.streaming.policy.live` is present, or raw for wire events.
+
+On a non-zero exit with JSON or YAML output, read `error.code`, `error.message`, and `error.hint`; optional `error.http` contains only `status`. A configured pause exits zero and is represented by the field mapping in its stream collection policy.
 
 ## Auth
 
 If command detail returns `auth.required=true`, run `mosoo auth status --hostname <host>` before execution. Use `http.default_hostname` when present unless the user provides `--hostname` or `$MOSOO_HOST`; if no matching host is logged in, stop and ask the user to authenticate.
-For browser-based OAuth login, run `mosoo auth login --auth-type oauth --hostname <host> --provider <provider>`. `auth_type: bearer` in `hosts.yml` is expected after login because API requests use the issued bearer token.
+For browser-based OAuth login, run `mosoo auth login --device-auth --hostname <host> --provider <provider>`. The browser opens by default in an interactive terminal; use `--no-browser` for manual login. `auth_type: bearer` in `hosts.yml` is expected after login because API requests use the issued bearer token.
