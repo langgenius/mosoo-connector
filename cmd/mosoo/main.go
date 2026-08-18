@@ -8,8 +8,8 @@ import (
 	"github.com/lathe-cli/lathe/pkg/config"
 	"github.com/lathe-cli/lathe/pkg/lathe"
 	"github.com/lathe-cli/lathe/pkg/runtime"
-	kitup "github.com/samzong/kitup/go"
-	kitupcobra "github.com/samzong/kitup/go-cobra"
+	kitup "github.com/lathe-cli/kitup/go"
+	kitupcobra "github.com/lathe-cli/kitup/go-cobra"
 
 	"github.com/langgenius/mosoo-connector/internal/agentmanifest"
 	"github.com/langgenius/mosoo-connector/internal/buildinfo"
