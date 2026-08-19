@@ -14,8 +14,16 @@ import {
 	vendorCredentialGraphQLSpec,
 } from "../.cache/mosoo/apps/api/src/adapters/graphql/graphql-module-specs.ts";
 
-export const excludedMutations = new Set([
+// Console operations that exist in the pinned Mosoo schema but must not be
+// generated as CLI commands. The App Deployment Secret surface was rolled back
+// by langgenius/mosoo#560 (Multica YEF-1056); its operations are excluded here
+// so the published CLI stops offering commands the API no longer serves. Drop
+// those three entries once the pinned upstream commit no longer exposes them.
+export const excludedOperations = new Set([
 	"sendAgentSessionEvents",
+	"appDeploymentSecretList",
+	"deleteAppDeploymentSecret",
+	"setAppDeploymentSecret",
 ]);
 
 export const moduleGroups: { group: string; spec: { queryFields?: string[]; mutationFields?: string[] } }[] = [
@@ -52,7 +60,7 @@ export function collectConsoleGraphQLOperations(): { group: string; field: strin
 	const operations: { group: string; field: string }[] = [];
 	for (const { group, spec } of moduleGroups) {
 		for (const field of [...listFields(spec.queryFields), ...listFields(spec.mutationFields)]) {
-			if (excludedMutations.has(field)) {
+			if (excludedOperations.has(field)) {
 				continue;
 			}
 			operations.push({ group, field });
