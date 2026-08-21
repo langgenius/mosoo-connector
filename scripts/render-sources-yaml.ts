@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { excludedMutations, listFields, moduleGroups } from "./console-graphql-sources.ts";
+import { excludedOperations, listFields, moduleGroups } from "./console-graphql-sources.ts";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, "..");
@@ -20,8 +20,8 @@ const mutations: string[] = [];
 const groups: { match: string[]; group: string }[] = [];
 
 for (const { group, spec } of moduleGroups) {
-	const moduleQueries = listFields(spec.queryFields);
-	const moduleMutations = listFields(spec.mutationFields).filter((name) => !excludedMutations.has(name));
+	const moduleQueries = listFields(spec.queryFields).filter((name) => !excludedOperations.has(name));
+	const moduleMutations = listFields(spec.mutationFields).filter((name) => !excludedOperations.has(name));
 	if (moduleQueries.length === 0 && moduleMutations.length === 0) {
 		continue;
 	}

@@ -29,7 +29,6 @@ sources:
           - agentSessionRetrieve
           - appCostCard
           - appDeploymentRunList
-          - appDeploymentSecretList
           - appDeploymentStatus
           - appEnvironmentList
           - appInfo
@@ -79,7 +78,6 @@ sources:
           - deleteAgentChannelBinding
           - deleteAgentSession
           - deleteAppDeployment
-          - deleteAppDeploymentSecret
           - deleteEnvironment
           - deleteMcpServer
           - deleteOwnedSkill
@@ -99,7 +97,6 @@ sources:
           - restartDriver
           - revokeMcpCredential
           - setAppDefaultEnvironment
-          - setAppDeploymentSecret
           - setDefaultVendorCredential
           - setEnvironmentVariableValue
           - setMcpServerEnabled
@@ -183,17 +180,14 @@ sources:
           group: Onboarding
         - match:
             - appDeploymentRunList
-            - appDeploymentSecretList
             - appDeploymentStatus
             - appList
             - appOverview
             - controlPlaneOverview
             - createApp
             - deleteAppDeployment
-            - deleteAppDeploymentSecret
             - deployApp
             - renameApp
-            - setAppDeploymentSecret
           group: Apps
         - match:
             - agentSessionDiagnostics
