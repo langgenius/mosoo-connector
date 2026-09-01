@@ -69,7 +69,6 @@ separate agent runtime.
   credentials in Vendor Credentials, MCP credentials in MCP configuration, and
   `MOSOO_API_TOKEN` in the calling backend or Worker rather than the Agent
   Environment.
-- Do not require Cloudflare or Wrangler for basic mosoo setup.
 - Prefer machine-readable CLI output such as `--json` before making environment
   or auth decisions.
 - Do not construct Agent config update payloads from memory or guessed fields.

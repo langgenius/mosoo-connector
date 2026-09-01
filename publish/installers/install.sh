@@ -25,7 +25,6 @@ INSTALL_SKILL=true
 RUN_LOGIN=true
 RUN_DOCTOR=true
 WRITE_CONFIG=false
-SETUP_CLOUDFLARE=false
 
 tmp_dirs=()
 
@@ -41,7 +40,6 @@ Examples:
   curl -fsSL https://install.mosoo.ai/install.sh | bash -s -- --yes
   curl -fsSL https://install.mosoo.ai/install.sh | bash -s -- --dry-run
   curl -fsSL https://install.mosoo.ai/install.sh | bash -s -- --target local
-  curl -fsSL https://install.mosoo.ai/install.sh | bash -s -- --cloudflare
 
 Options:
   -y, --yes                 Run with default approvals; never prompt.
@@ -58,7 +56,6 @@ Options:
       --no-skill            Skip Skill install/update.
       --no-login            Skip auth login.
       --no-doctor           Skip final mosoo doctor --json.
-      --cloudflare          Also run optional Cloudflare/Wrangler onboarding checks.
   -h, --help                Show this help.
 
 Environment:
@@ -578,26 +575,6 @@ run_doctor() {
 	run "$mosoo" "${args[@]}"
 }
 
-setup_cloudflare() {
-	if "$DRY_RUN"; then
-		run command -v wrangler
-		run wrangler login
-		run wrangler whoami
-		return
-	fi
-	if ! command -v wrangler >/dev/null 2>&1; then
-		warn "wrangler is not installed"
-		log "Install Wrangler only for Cloudflare deployment tasks:"
-		log "  npm install -g wrangler"
-		return
-	fi
-	wrangler --version
-	if confirm "Run wrangler login now?" "n"; then
-		run wrangler login
-	fi
-	run wrangler whoami || warn "wrangler is installed but not authenticated"
-}
-
 print_plan() {
 	local platform config_path cli_source skill_source legacy_skill_plan login_plan
 	platform="$(detect_platform)"
@@ -633,7 +610,6 @@ Write config: $WRITE_CONFIG
   Config file: $config_path
 Run login: $login_plan
 Run doctor: $RUN_DOCTOR
-Cloudflare setup: $SETUP_CLOUDFLARE
 EOF
 }
 
@@ -654,7 +630,6 @@ parse_args() {
 			--no-skill) INSTALL_SKILL=false ;;
 			--no-login) RUN_LOGIN=false ;;
 			--no-doctor) RUN_DOCTOR=false ;;
-			--cloudflare) SETUP_CLOUDFLARE=true ;;
 			-h|--help) usage; exit 0 ;;
 			--) shift; break ;;
 			*) die "unknown option: $1" ;;
@@ -684,9 +659,6 @@ main() {
 	fi
 	if "$RUN_LOGIN" && confirm "Run mosoo auth login now?" "y"; then
 		run_login
-	fi
-	if "$SETUP_CLOUDFLARE" && confirm "Run optional Cloudflare/Wrangler onboarding checks?" "n"; then
-		setup_cloudflare
 	fi
 	if "$RUN_DOCTOR" && confirm "Run mosoo doctor --json?" "y"; then
 		run_doctor

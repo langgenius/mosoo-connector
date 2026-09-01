@@ -5,13 +5,13 @@
 - Backend: `graphql`
 - Default hostname: `http://127.0.0.1:8787/api`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `1b802e4d222b9a04782896ee6a770baf91120c20`
+- Pinned tag: `dd0bf6e08c80450587a328a74d820171fb71b4cb`
 - Schema: `docs/graphql/console.graphql`
-- Expose queries: `accessibleAgentList`, `agent`, `agentChannelBindingList`, `agentCostCard`, `agentEditorState`, `agentManifest`, `agentSessionDiagnostics`, `agentSessionList`, `agentSessionRetrieve`, `appCostCard`, `appDeploymentRunList`, `appDeploymentStatus`, `appEnvironmentList`, `appInfo`, `appList`, `appOverview`, `appSkillList`, `availableAgentModels`, `boundCapabilityRunProvenance`, `controlPlaneOverview`, `environment`, `exportAgentPackage`, `fileList`, `listSessionResources`, `mcpOAuthFlowStatus`, `mcpRegistry`, `organizationBillingCostCard`, `session`, `sessionList`, `sessionMessages`, `sessionProcessEvents`, `skillDetail`, `threadAgentSessionList`, `threadAgentSessionRetrieve`, `threadSessionMessages`, `threadSessionProcessEvents`, `vendorCredentialList`, `viewer`
-- Expose mutations: `addSessionResource`, `archiveAgentSession`, `autoTitleSession`, `connectMcpBearer`, `createAgent`, `createAgentFork`, `createAgentSession`, `createApp`, `createAppMcpServer`, `createDiscordAgentChannelBinding`, `createEnvironment`, `createEnvironmentFork`, `createLarkAgentChannelBinding`, `createSkillFork`, `createSlackAgentChannelBinding`, `createTelegramAgentChannelBinding`, `createVendorCredential`, `deleteAgent`, `deleteAgentChannelBinding`, `deleteAgentSession`, `deleteAppDeployment`, `deleteEnvironment`, `deleteMcpServer`, `deleteOwnedSkill`, `deleteVendorCredential`, `deployApp`, `importAgentPackage`, `onboardingBootstrap`, `pollLarkAgentChannelRegistration`, `pollWeChatAgentChannelPairing`, `prewarmAgentSession`, `publishAgent`, `recreateSandbox`, `removeSessionResource`, `renameApp`, `renameSession`, `resetAgentState`, `restartDriver`, `revokeMcpCredential`, `setAppDefaultEnvironment`, `setDefaultVendorCredential`, `setEnvironmentVariableValue`, `setMcpServerEnabled`, `setSystemAgentModel`, `startAgentRun`, `startLarkAgentChannelRegistration`, `startMcpOAuth`, `startWeChatAgentChannelPairing`, `testVendorCredential`, `unarchiveAgentSession`, `unpublishAgent`, `updateAgentConfig`, `updateAppMcpServer`, `updateEnvironment`, `updateProfile`, `updateVendorCredential`
-- Group policies: `13`
+- Expose queries: `accessibleAgentList`, `agent`, `agentCostCard`, `agentEditorState`, `agentManifest`, `agentSessionDiagnostics`, `agentSessionList`, `agentSessionRetrieve`, `appCostCard`, `appEnvironmentList`, `appInfo`, `appList`, `appOverview`, `appSkillList`, `availableAgentModels`, `controlPlaneOverview`, `environment`, `exportAgentPackage`, `fileList`, `listSessionResources`, `mcpOAuthFlowStatus`, `mcpRegistry`, `organizationBillingCostCard`, `session`, `sessionList`, `sessionMessages`, `sessionProcessEvents`, `skillDetail`, `threadAgentSessionList`, `threadAgentSessionRetrieve`, `threadSessionMessages`, `threadSessionProcessEvents`, `vendorCredentialList`, `viewer`
+- Expose mutations: `addSessionResource`, `archiveAgentSession`, `autoTitleSession`, `connectMcpBearer`, `createAgent`, `createAgentFork`, `createAgentSession`, `createApp`, `createAppMcpServer`, `createEnvironment`, `createEnvironmentFork`, `createSkillFork`, `createVendorCredential`, `deleteAgent`, `deleteAgentSession`, `deleteEnvironment`, `deleteMcpServer`, `deleteOwnedSkill`, `deleteVendorCredential`, `importAgentPackage`, `onboardingBootstrap`, `prewarmAgentSession`, `publishAgent`, `recreateSandbox`, `removeSessionResource`, `renameApp`, `renameSession`, `resetAgentState`, `restartDriver`, `revokeMcpCredential`, `setAppDefaultEnvironment`, `setDefaultVendorCredential`, `setEnvironmentVariableValue`, `setMcpServerEnabled`, `setSystemAgentModel`, `startAgentRun`, `startMcpOAuth`, `testVendorCredential`, `unarchiveAgentSession`, `unpublishAgent`, `updateAgentConfig`, `updateAppMcpServer`, `updateEnvironment`, `updateProfile`, `updateVendorCredential`
+- Group policies: `12`
 - Selection policy: max depth `5`
-- Resolved SHA: `1b802e4d222b9a04782896ee6a770baf91120c20`
+- Resolved SHA: `dd0bf6e08c80450587a328a74d820171fb71b4cb`
 
 ## Agents
 
@@ -237,33 +237,6 @@
 
 ## Apps
 
-### `mosoo console apps app-deployment-run-list`
-
-- Summary: List app deployment runs
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--app-id` (variable, required): appId
-  - `--limit` (variable): limit
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
-### `mosoo console apps app-deployment-status`
-
-- Summary: App deployment status
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--app-id` (variable, required): appId
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
 ### `mosoo console apps app-list`
 
 - Summary: List Apps
@@ -334,34 +307,6 @@
     Follow-up commands:
       - `mosoo console apps app-overview --app-id <app-id> -o json`
 
-### `mosoo console apps delete-app-deployment`
-
-- Summary: Delete an app deployment
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-app-id` (variable, required): input.appId
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
-### `mosoo console apps deploy-app`
-
-- Summary: Deploy app
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-app-id` (variable, required): input.appId
-  - `--input-config-path` (variable): input.configPath
-  - `--input-repo-url` (variable, required): input.repoUrl
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
 ### `mosoo console apps rename-app`
 
 - Summary: Rename an app
@@ -371,167 +316,6 @@
 - Flags:
   - `--input-app-id` (variable, required): input.appId
   - `--input-name` (variable, required): input.name
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
-## Channels
-
-### `mosoo console channels agent-channel-binding-list`
-
-- Summary: List agent channel bindings
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--app-id` (variable, required): appId
-  - `--agent-id` (variable, required): agentId
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
-### `mosoo console channels create-discord-agent-channel-binding`
-
-- Summary: Create a discord agent channel binding
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-agent-id` (variable, required): input.agentId
-  - `--input-application-id` (variable, required): input.applicationId
-  - `--input-bot-token` (variable, required): input.botToken
-  - `--input-app-id` (variable, required): input.appId
-  - `--input-relay-secret` (variable, required): input.relaySecret
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
-### `mosoo console channels create-lark-agent-channel-binding`
-
-- Summary: Create a lark agent channel binding
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-agent-id` (variable, required): input.agentId
-  - `--input-lark-app-id` (variable, required): input.larkAppId
-  - `--input-app-secret` (variable, required): input.appSecret
-  - `--input-connection-mode` (variable, required, one of: webhook|websocket): input.connectionMode
-  - `--input-domain` (variable, required, one of: feishu|lark): input.domain
-  - `--input-encrypt-key` (variable): input.encryptKey
-  - `--input-app-id` (variable, required): input.appId
-  - `--input-verification-token` (variable): input.verificationToken
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
-### `mosoo console channels create-slack-agent-channel-binding`
-
-- Summary: Create a slack agent channel binding
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-agent-id` (variable, required): input.agentId
-  - `--input-app-level-token` (variable): input.appLevelToken
-  - `--input-bot-token` (variable, required): input.botToken
-  - `--input-app-id` (variable, required): input.appId
-  - `--input-signing-secret` (variable, required): input.signingSecret
-  - `--input-thread-replies-require-mention` (variable): input.threadRepliesRequireMention
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
-### `mosoo console channels create-telegram-agent-channel-binding`
-
-- Summary: Create a telegram agent channel binding
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-agent-id` (variable, required): input.agentId
-  - `--input-bot-token` (variable, required): input.botToken
-  - `--input-app-id` (variable, required): input.appId
-  - `--input-webhook-secret` (variable, required): input.webhookSecret
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
-### `mosoo console channels delete-agent-channel-binding`
-
-- Summary: Delete an agent channel binding
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-binding-id` (variable, required): input.bindingId
-  - `--input-app-id` (variable, required): input.appId
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
-### `mosoo console channels poll-lark-agent-channel-registration`
-
-- Summary: Poll lark agent channel registration
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-agent-id` (variable, required): input.agentId
-  - `--input-device-code` (variable, required): input.deviceCode
-  - `--input-domain` (variable, required, one of: feishu|lark): input.domain
-  - `--input-app-id` (variable, required): input.appId
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
-### `mosoo console channels poll-we-chat-agent-channel-pairing`
-
-- Summary: Poll we chat agent channel pairing
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-agent-id` (variable, required): input.agentId
-  - `--input-app-id` (variable, required): input.appId
-  - `--input-qr-token` (variable, required): input.qrToken
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
-### `mosoo console channels start-lark-agent-channel-registration`
-
-- Summary: Start lark agent channel registration
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-agent-id` (variable, required): input.agentId
-  - `--input-domain` (variable, required, one of: feishu|lark): input.domain
-  - `--input-app-id` (variable, required): input.appId
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
-### `mosoo console channels start-we-chat-agent-channel-pairing`
-
-- Summary: Start we chat agent channel pairing
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-agent-id` (variable, required): input.agentId
-  - `--input-app-id` (variable, required): input.appId
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
 - Known errors:
@@ -1072,7 +856,7 @@
   - `--before-cursor` (variable): beforeCursor
   - `--limit` (variable): limit
   - `--participant-only` (variable): participantOnly
-  - `--type` (variable, one of: api_channel|preview|ui): type
+  - `--type` (variable, one of: preview|ui): type
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
 - Known errors:
@@ -1122,20 +906,6 @@
 - Known errors:
   - HTTP 401: Missing, invalid, or revoked personal access token.
 
-### `mosoo console sessions bound-capability-run-provenance`
-
-- Summary: Bound capability run provenance
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--app-id` (variable, required): appId
-  - `--run-id` (variable, required): runId
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked personal access token.
-
 ### `mosoo console sessions create-agent-session`
 
 - Summary: Create an agent session
@@ -1145,7 +915,7 @@
 - Flags:
   - `--input-agent-id` (variable, required): input.agentId
   - `--input-app-id` (variable, required): input.appId
-  - `--input-type` (variable, one of: api_channel|preview|ui): input.type
+  - `--input-type` (variable, one of: preview|ui): input.type
   - `--input-wait-for-runtime-ready` (variable): input.waitForRuntimeReady
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
@@ -1249,7 +1019,7 @@
   - `--before-cursor` (variable): beforeCursor
   - `--limit` (variable): limit
   - `--app-id` (variable, required): appId
-  - `--type` (variable, one of: api_channel|preview|ui): type
+  - `--type` (variable, one of: preview|ui): type
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
 - Known errors:
@@ -1299,7 +1069,7 @@
   - `--input-client-request-id` (variable): input.clientRequestId
   - `--input-prompt` (variable, required): input.prompt
   - `--input-session-id` (variable): input.sessionId
-  - `--input-type` (variable, one of: api_channel|preview|ui): input.type
+  - `--input-type` (variable, one of: preview|ui): input.type
   - `--input-wait-for-runtime-ready` (variable): input.waitForRuntimeReady
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
@@ -1327,7 +1097,7 @@ mosoo console sessions run \
   - `--before-cursor` (variable): beforeCursor
   - `--limit` (variable): limit
   - `--app-id` (variable, required): appId
-  - `--type` (variable, one of: api_channel|preview|ui): type
+  - `--type` (variable, one of: preview|ui): type
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
 - Known errors:
