@@ -36,14 +36,6 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked personal access token."
-  agent-channel-binding-list:
-    short: "List agent channel bindings"
-    long: "List agent channel bindings via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
   agent-cost-card:
     short: "Agent cost card"
     long: "Agent cost card via the mosoo Console GraphQL API (Cost surface). Requires a personal access token logged in to the /api host."
@@ -104,22 +96,6 @@ commands:
   app-cost-card:
     short: "App cost card"
     long: "App cost card via the mosoo Console GraphQL API (Cost surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
-  app-deployment-run-list:
-    short: "List app deployment runs"
-    long: "List app deployment runs via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
-  app-deployment-status:
-    short: "App deployment status"
-    long: "App deployment status via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -189,14 +165,6 @@ commands:
   available-agent-models:
     short: "Available agent models"
     long: "Available agent models via the mosoo Console GraphQL API (Credentials surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
-  bound-capability-run-provenance:
-    short: "Bound capability run provenance"
-    long: "Bound capability run provenance via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -314,14 +282,6 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked personal access token."
-  create-discord-agent-channel-binding:
-    short: "Create a discord agent channel binding"
-    long: "Create a discord agent channel binding via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
   create-environment:
     short: "Create an environment"
     long: "Create an environment via the mosoo Console GraphQL API (Environments surface). Requires a personal access token logged in to the /api host."
@@ -338,33 +298,9 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked personal access token."
-  create-lark-agent-channel-binding:
-    short: "Create a lark agent channel binding"
-    long: "Create a lark agent channel binding via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
   create-skill-fork:
     short: "Create a skill fork"
     long: "Create a skill fork via the mosoo Console GraphQL API (Skills surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
-  create-slack-agent-channel-binding:
-    short: "Create a slack agent channel binding"
-    long: "Create a slack agent channel binding via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
-  create-telegram-agent-channel-binding:
-    short: "Create a telegram agent channel binding"
-    long: "Create a telegram agent channel binding via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -412,25 +348,9 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked personal access token."
-  delete-agent-channel-binding:
-    short: "Delete an agent channel binding"
-    long: "Delete an agent channel binding via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
   delete-agent-session:
     short: "Delete an agent session"
     long: "Delete an agent session via the mosoo Console GraphQL API (Sessions surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
-  delete-app-deployment:
-    short: "Delete an app deployment"
-    long: "Delete an app deployment via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -463,14 +383,6 @@ commands:
   delete-vendor-credential:
     short: "Delete a vendor credential"
     long: "Delete a vendor credential via the mosoo Console GraphQL API (Credentials surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
-  deploy-app:
-    short: "Deploy app"
-    long: "Deploy app via the mosoo Console GraphQL API (Apps surface). Requires a personal access token logged in to the /api host."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -543,22 +455,6 @@ commands:
   organization-billing-cost-card:
     short: "Organization billing cost card"
     long: "Organization billing cost card via the mosoo Console GraphQL API (Cost surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
-  poll-lark-agent-channel-registration:
-    short: "Poll lark agent channel registration"
-    long: "Poll lark agent channel registration via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
-  poll-we-chat-agent-channel-pairing:
-    short: "Poll we chat agent channel pairing"
-    long: "Poll we chat agent channel pairing via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -739,25 +635,9 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked personal access token."
-  start-lark-agent-channel-registration:
-    short: "Start lark agent channel registration"
-    long: "Start lark agent channel registration via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
   start-mcp-oauth:
     short: "Start mcp oauth"
     long: "Start mcp oauth via the mosoo Console GraphQL API (MCP surface). Requires a personal access token logged in to the /api host."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked personal access token."
-  start-we-chat-agent-channel-pairing:
-    short: "Start we chat agent channel pairing"
-    long: "Start we chat agent channel pairing via the mosoo Console GraphQL API (Channels surface). Requires a personal access token logged in to the /api host."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:

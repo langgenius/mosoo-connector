@@ -18,7 +18,7 @@ bash install-mosoo.sh
 
 By default, the installer is interactive and asks for `y` or `n` before each
 high-impact step, such as installing the CLI, installing the Skill, writing
-config, running login, or running optional Cloudflare checks.
+config, or running login.
 
 For automation:
 
@@ -62,8 +62,7 @@ mosoo setup local
 The installer may install or update the mosoo CLI, install or update this mosoo
 Skill, guide login, write initial config, and run readiness checks. Public
 installs default to the mosoo cloud target at `https://cloud.mosoo.ai`; pass
-`--target local` for a local development API. It should not make Cloudflare or
-Wrangler a default prerequisite.
+`--target local` for a local development API.
 
 Release installers can set `MOSOO_CLI_VERSION` to make the installer fail when the
 installed binary does not report the expected `mosoo --version` build metadata.

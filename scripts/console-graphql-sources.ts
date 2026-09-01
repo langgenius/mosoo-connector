@@ -1,7 +1,6 @@
 import {
 	agentGraphQLSpec,
 	appGraphQLSpec,
-	channelGraphQLSpec,
 	commonGraphQLSpec,
 	costGraphQLSpec,
 	environmentGraphQLSpec,
@@ -15,21 +14,12 @@ import {
 } from "../.cache/mosoo/apps/api/src/adapters/graphql/graphql-module-specs.ts";
 
 // Console operations that exist in the pinned Mosoo schema but must not be
-// generated as CLI commands. The App Deployment Secret surface was rolled back
-// by langgenius/mosoo#560 (Multica YEF-1056); its operations are excluded here
-// so the published CLI stops offering commands the API no longer serves. Drop
-// those three entries once the pinned upstream commit no longer exposes them.
-export const excludedOperations = new Set([
-	"sendAgentSessionEvents",
-	"appDeploymentSecretList",
-	"deleteAppDeploymentSecret",
-	"setAppDeploymentSecret",
-]);
+// generated as CLI commands.
+export const excludedOperations = new Set(["sendAgentSessionEvents"]);
 
 export const moduleGroups: { group: string; spec: { queryFields?: string[]; mutationFields?: string[] } }[] = [
 	{ group: "Common", spec: commonGraphQLSpec },
 	{ group: "Agents", spec: agentGraphQLSpec },
-	{ group: "Channels", spec: channelGraphQLSpec },
 	{ group: "Cost", spec: costGraphQLSpec },
 	{ group: "Environments", spec: environmentGraphQLSpec },
 	{ group: "Files", spec: fileGraphQLSpec },

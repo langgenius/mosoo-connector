@@ -3,7 +3,7 @@ sources:
     display_name: public-thread-api
     default_hostname: http://127.0.0.1:8787/api/v1
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: 1b802e4d222b9a04782896ee6a770baf91120c20
+    pinned_tag: dd0bf6e08c80450587a328a74d820171fb71b4cb
     backend: openapi3
     openapi3:
       files:
@@ -12,7 +12,7 @@ sources:
     display_name: console
     default_hostname: http://127.0.0.1:8787/api
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: 1b802e4d222b9a04782896ee6a770baf91120c20
+    pinned_tag: dd0bf6e08c80450587a328a74d820171fb71b4cb
     backend: graphql
     graphql:
       schema: docs/graphql/console.graphql
@@ -20,7 +20,6 @@ sources:
         queries:
           - accessibleAgentList
           - agent
-          - agentChannelBindingList
           - agentCostCard
           - agentEditorState
           - agentManifest
@@ -28,15 +27,12 @@ sources:
           - agentSessionList
           - agentSessionRetrieve
           - appCostCard
-          - appDeploymentRunList
-          - appDeploymentStatus
           - appEnvironmentList
           - appInfo
           - appList
           - appOverview
           - appSkillList
           - availableAgentModels
-          - boundCapabilityRunProvenance
           - controlPlaneOverview
           - environment
           - exportAgentPackage
@@ -66,27 +62,18 @@ sources:
           - createAgentSession
           - createApp
           - createAppMcpServer
-          - createDiscordAgentChannelBinding
           - createEnvironment
           - createEnvironmentFork
-          - createLarkAgentChannelBinding
           - createSkillFork
-          - createSlackAgentChannelBinding
-          - createTelegramAgentChannelBinding
           - createVendorCredential
           - deleteAgent
-          - deleteAgentChannelBinding
           - deleteAgentSession
-          - deleteAppDeployment
           - deleteEnvironment
           - deleteMcpServer
           - deleteOwnedSkill
           - deleteVendorCredential
-          - deployApp
           - importAgentPackage
           - onboardingBootstrap
-          - pollLarkAgentChannelRegistration
-          - pollWeChatAgentChannelPairing
           - prewarmAgentSession
           - publishAgent
           - recreateSandbox
@@ -102,9 +89,7 @@ sources:
           - setMcpServerEnabled
           - setSystemAgentModel
           - startAgentRun
-          - startLarkAgentChannelRegistration
           - startMcpOAuth
-          - startWeChatAgentChannelPairing
           - testVendorCredential
           - unarchiveAgentSession
           - unpublishAgent
@@ -134,18 +119,6 @@ sources:
             - unpublishAgent
             - updateAgentConfig
           group: Agents
-        - match:
-            - agentChannelBindingList
-            - createDiscordAgentChannelBinding
-            - createLarkAgentChannelBinding
-            - createSlackAgentChannelBinding
-            - createTelegramAgentChannelBinding
-            - pollLarkAgentChannelRegistration
-            - pollWeChatAgentChannelPairing
-            - startLarkAgentChannelRegistration
-            - startWeChatAgentChannelPairing
-            - deleteAgentChannelBinding
-          group: Channels
         - match:
             - agentCostCard
             - organizationBillingCostCard
@@ -179,19 +152,14 @@ sources:
             - onboardingBootstrap
           group: Onboarding
         - match:
-            - appDeploymentRunList
-            - appDeploymentStatus
             - appList
             - appOverview
             - controlPlaneOverview
             - createApp
-            - deleteAppDeployment
-            - deployApp
             - renameApp
           group: Apps
         - match:
             - agentSessionDiagnostics
-            - boundCapabilityRunProvenance
             - agentSessionRetrieve
             - session
             - sessionMessages
@@ -240,7 +208,7 @@ sources:
     display_name: console-rest
     default_hostname: http://127.0.0.1:8787/api
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: 1b802e4d222b9a04782896ee6a770baf91120c20
+    pinned_tag: dd0bf6e08c80450587a328a74d820171fb71b4cb
     backend: openapi3
     openapi3:
       files:
