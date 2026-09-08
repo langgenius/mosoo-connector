@@ -89,8 +89,8 @@ func TestPackageSendsMultipartFieldsAndFile(t *testing.T) {
 		if err := r.ParseMultipartForm(32 << 20); err != nil {
 			t.Fatalf("ParseMultipartForm: %v", err)
 		}
-		if got := r.FormValue("appId"); got != "app_1" {
-			t.Fatalf("appId = %q", got)
+		if got := r.FormValue("projectId"); got != "app_1" {
+			t.Fatalf("projectId = %q", got)
 		}
 		if got := r.FormValue("skillId"); got != "skill_1" {
 			t.Fatalf("skillId = %q", got)
@@ -104,7 +104,7 @@ func TestPackageSendsMultipartFieldsAndFile(t *testing.T) {
 	defer srv.Close()
 
 	root, out := newTestRoot(t, srv.URL)
-	root.SetArgs([]string{"--hostname", srv.URL, "-o", "json", "console-rest", "skills", "package", "--app-id", "app_1", "--skill-id", "skill_1", "--file", filePath})
+	root.SetArgs([]string{"--hostname", srv.URL, "-o", "json", "console-rest", "skills", "package", "--project-id", "app_1", "--skill-id", "skill_1", "--file", filePath})
 	if err := root.Execute(); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
@@ -185,7 +185,7 @@ func TestInstallAttachesCatalogFlags(t *testing.T) {
 	if !ok {
 		t.Fatal("catalog does not include console-rest skills package")
 	}
-	for _, want := range []string{"app-id", "skill-id", "file", "github-url"} {
+	for _, want := range []string{"project-id", "skill-id", "file", "github-url"} {
 		if !catalogHasFlag(pkg, want) {
 			t.Fatalf("package catalog missing --%s flag: %+v", want, pkg.Flags)
 		}

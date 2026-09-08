@@ -20,14 +20,14 @@ import (
 )
 
 const (
-	agentManifestQuery = `query agentManifest($appId: ULID!, $agentId: ULID!) { agentManifest(appId: $appId, agentId: $agentId) { agentId json yaml } }`
+	agentManifestQuery = `query agentManifest($projectId: ULID!, $agentId: ULID!) { agentManifest(projectId: $projectId, agentId: $agentId) { agentId json yaml } }`
 
-	updateAgentConfigMutation = `mutation updateAgentConfig($input: UpdateAgentConfigInput!) { updateAgentConfig(input: $input) { createdAt description id kind liveVersion { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility appId } }`
+	updateAgentConfigMutation = `mutation updateAgentConfig($input: UpdateAgentConfigInput!) { updateAgentConfig(input: $input) { createdAt description id kind liveVersion { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility projectId } }`
 )
 
 var requiredUpdateFields = []string{
 	"agentId",
-	"appId",
+	"projectId",
 	"kind",
 	"mcpServerIds",
 	"model",
@@ -42,7 +42,7 @@ var requiredUpdateFields = []string{
 var allowedManifestFields = map[string]struct{}{
 	"advanced":        {},
 	"agentId":         {},
-	"appId":           {},
+	"projectId":       {},
 	"builtInTools":    {},
 	"description":     {},
 	"environment":     {},
@@ -67,19 +67,19 @@ var allowedManifestFields = map[string]struct{}{
 }
 
 type commandOptions struct {
-	appID   string
-	agentID string
-	file    string
-	out     string
-	dryRun  bool
-	json    bool
+	projectID string
+	agentID   string
+	file      string
+	out       string
+	dryRun    bool
+	json      bool
 }
 
 type remoteManifest struct {
-	AppID    string         `json:"appId"`
-	AgentID  string         `json:"agentId"`
-	Manifest map[string]any `json:"manifest"`
-	YAML     string         `json:"yaml,omitempty"`
+	ProjectID string         `json:"projectId"`
+	AgentID   string         `json:"agentId"`
+	Manifest  map[string]any `json:"manifest"`
+	YAML      string         `json:"yaml,omitempty"`
 }
 
 type change struct {
@@ -89,13 +89,13 @@ type change struct {
 }
 
 type diffResult struct {
-	AppID   string   `json:"appId"`
-	AgentID string   `json:"agentId"`
-	Changes []change `json:"changes"`
+	ProjectID string   `json:"projectId"`
+	AgentID   string   `json:"agentId"`
+	Changes   []change `json:"changes"`
 }
 
 type applyResult struct {
-	AppID          string         `json:"appId"`
+	ProjectID      string         `json:"projectId"`
 	AgentID        string         `json:"agentId"`
 	DryRun         bool           `json:"dryRun"`
 	Changes        []change       `json:"changes"`
@@ -115,7 +115,7 @@ func NewCommand() *cobra.Command {
 		Short: "Inspect and apply Agent manifests",
 		Long:  "Inspect and apply Agent manifest YAML while preserving remote Agent config fields that the local file does not explicitly change.",
 	}
-	manifestCmd.PersistentFlags().StringVar(&opts.appID, "app-id", "", "mosoo App ID")
+	manifestCmd.PersistentFlags().StringVar(&opts.projectID, "project-id", "", "mosoo Project ID")
 	manifestCmd.PersistentFlags().StringVar(&opts.agentID, "agent-id", "", "mosoo Agent ID")
 	manifestCmd.PersistentFlags().BoolVar(&opts.json, "json", false, "Print machine-readable JSON")
 
@@ -154,11 +154,11 @@ func NewCommand() *cobra.Command {
 }
 
 func runProbe(cmd *cobra.Command, opts *commandOptions) error {
-	appID, agentID, err := requireIDs(opts.appID, opts.agentID)
+	projectID, agentID, err := requireIDs(opts.projectID, opts.agentID)
 	if err != nil {
 		return err
 	}
-	remote, err := fetchRemoteManifest(cmd.Context(), cmd, appID, agentID)
+	remote, err := fetchRemoteManifest(cmd.Context(), cmd, projectID, agentID)
 	if err != nil {
 		return err
 	}
@@ -171,9 +171,9 @@ func runProbe(cmd *cobra.Command, opts *commandOptions) error {
 		}
 		if wantsJSON(cmd, opts) {
 			return writeJSON(cmd, map[string]any{
-				"appId":   remote.AppID,
-				"agentId": remote.AgentID,
-				"out":     opts.out,
+				"projectId": remote.ProjectID,
+				"agentId":   remote.AgentID,
+				"out":       opts.out,
 			})
 		}
 		fmt.Fprintf(cmd.OutOrStdout(), "wrote %s\n", opts.out)
@@ -197,19 +197,19 @@ func runDiff(cmd *cobra.Command, opts *commandOptions) error {
 	if err != nil {
 		return err
 	}
-	appID, agentID, err := resolveIDs(opts.appID, opts.agentID, localManifest)
+	projectID, agentID, err := resolveIDs(opts.projectID, opts.agentID, localManifest)
 	if err != nil {
 		return err
 	}
-	remote, err := fetchRemoteManifest(cmd.Context(), cmd, appID, agentID)
+	remote, err := fetchRemoteManifest(cmd.Context(), cmd, projectID, agentID)
 	if err != nil {
 		return err
 	}
-	changes, _, err := planManifestUpdate(remote.Manifest, localManifest, appID, agentID)
+	changes, _, err := planManifestUpdate(remote.Manifest, localManifest, projectID, agentID)
 	if err != nil {
 		return err
 	}
-	result := diffResult{AppID: appID, AgentID: agentID, Changes: changes}
+	result := diffResult{ProjectID: projectID, AgentID: agentID, Changes: changes}
 	if wantsJSON(cmd, opts) {
 		return writeJSON(cmd, result)
 	}
@@ -225,22 +225,22 @@ func runApply(cmd *cobra.Command, opts *commandOptions) error {
 	if err != nil {
 		return err
 	}
-	appID, agentID, err := resolveIDs(opts.appID, opts.agentID, localManifest)
+	projectID, agentID, err := resolveIDs(opts.projectID, opts.agentID, localManifest)
 	if err != nil {
 		return err
 	}
-	remote, err := fetchRemoteManifest(cmd.Context(), cmd, appID, agentID)
+	remote, err := fetchRemoteManifest(cmd.Context(), cmd, projectID, agentID)
 	if err != nil {
 		return err
 	}
-	changes, finalInput, err := planManifestUpdate(remote.Manifest, localManifest, appID, agentID)
+	changes, finalInput, err := planManifestUpdate(remote.Manifest, localManifest, projectID, agentID)
 	if err != nil {
 		return err
 	}
 	if err := validateUpdateInput(finalInput); err != nil {
 		return err
 	}
-	result := applyResult{AppID: appID, AgentID: agentID, DryRun: opts.dryRun, Changes: changes}
+	result := applyResult{ProjectID: projectID, AgentID: agentID, DryRun: opts.dryRun, Changes: changes}
 	if opts.dryRun || len(changes) == 0 {
 		if wantsJSON(cmd, opts) {
 			return writeJSON(cmd, result)
@@ -265,7 +265,7 @@ func runApply(cmd *cobra.Command, opts *commandOptions) error {
 	return nil
 }
 
-func fetchRemoteManifest(ctx context.Context, cmd *cobra.Command, appID, agentID string) (remoteManifest, error) {
+func fetchRemoteManifest(ctx context.Context, cmd *cobra.Command, projectID, agentID string) (remoteManifest, error) {
 	host, clientOpts, err := consoleClientOptions(cmd)
 	if err != nil {
 		return remoteManifest{}, err
@@ -273,8 +273,8 @@ func fetchRemoteManifest(ctx context.Context, cmd *cobra.Command, appID, agentID
 	body := map[string]any{
 		"query": agentManifestQuery,
 		"variables": map[string]any{
-			"appId":   appID,
-			"agentId": agentID,
+			"projectId": projectID,
+			"agentId":   agentID,
 		},
 	}
 	raw, err := doGraphQL(ctx, host, body, clientOpts)
@@ -286,9 +286,9 @@ func fetchRemoteManifest(ctx context.Context, cmd *cobra.Command, appID, agentID
 		return remoteManifest{}, fmt.Errorf("response missing data.agentManifest")
 	}
 	remote := remoteManifest{
-		AppID:   appID,
-		AgentID: stringValue(manifestNode["agentId"], agentID),
-		YAML:    stringValue(manifestNode["yaml"], ""),
+		ProjectID: projectID,
+		AgentID:   stringValue(manifestNode["agentId"], agentID),
+		YAML:      stringValue(manifestNode["yaml"], ""),
 	}
 	if remote.AgentID == "" {
 		remote.AgentID = agentID
@@ -364,9 +364,9 @@ func consoleClientOptions(cmd *cobra.Command) (string, latheruntime.ClientOption
 	return host, opts, nil
 }
 
-func planManifestUpdate(remoteManifestMap, localManifest map[string]any, appID, agentID string) ([]change, map[string]any, error) {
+func planManifestUpdate(remoteManifestMap, localManifest map[string]any, projectID, agentID string) ([]change, map[string]any, error) {
 	remoteInput := updateInputFromManifest(remoteManifestMap)
-	ensureUpdateIDs(remoteInput, appID, agentID)
+	ensureUpdateIDs(remoteInput, projectID, agentID)
 	localPatchSource, err := patchSource(localManifest)
 	if err != nil {
 		return nil, nil, err
@@ -377,14 +377,14 @@ func planManifestUpdate(remoteManifestMap, localManifest map[string]any, appID, 
 		return nil, nil, err
 	}
 	finalInput := mergeMaps(remoteInput, localPatch)
-	ensureUpdateIDs(finalInput, appID, agentID)
+	ensureUpdateIDs(finalInput, projectID, agentID)
 	changes := diffValues(remoteInput, finalInput)
 	return changes, finalInput, nil
 }
 
-func ensureUpdateIDs(input map[string]any, appID, agentID string) {
-	if appID != "" {
-		input["appId"] = appID
+func ensureUpdateIDs(input map[string]any, projectID, agentID string) {
+	if projectID != "" {
+		input["projectId"] = projectID
 	}
 	if agentID != "" {
 		input["agentId"] = agentID
@@ -526,7 +526,7 @@ func updateInputFromManifest(manifest map[string]any) map[string]any {
 	if _, ok := out["agentId"]; !ok {
 		copyRenameIfPresent(out, source, "sourceAgentId", "agentId")
 	}
-	copyIfPresent(out, source, "appId")
+	copyIfPresent(out, source, "projectId")
 	if metadata, ok := objectAt(source, "metadata"); ok {
 		copyIfPresent(out, metadata, "description")
 		copyIfPresent(out, metadata, "name")
@@ -675,13 +675,13 @@ func isRedactedPlaceholder(value string) bool {
 	return true
 }
 
-func resolveIDs(flagAppID, flagAgentID string, manifest map[string]any) (string, string, error) {
-	appID, agentID := strings.TrimSpace(flagAppID), strings.TrimSpace(flagAgentID)
-	if appID == "" {
-		appID = firstStringAt(manifest,
-			[]string{"metadata", "appId"},
-			[]string{"spec", "appId"},
-			[]string{"appId"},
+func resolveIDs(flagProjectID, flagAgentID string, manifest map[string]any) (string, string, error) {
+	projectID, agentID := strings.TrimSpace(flagProjectID), strings.TrimSpace(flagAgentID)
+	if projectID == "" {
+		projectID = firstStringAt(manifest,
+			[]string{"metadata", "projectId"},
+			[]string{"spec", "projectId"},
+			[]string{"projectId"},
 		)
 	}
 	if agentID == "" {
@@ -693,21 +693,21 @@ func resolveIDs(flagAppID, flagAgentID string, manifest map[string]any) (string,
 			[]string{"id"},
 		)
 	}
-	return requireIDs(appID, agentID)
+	return requireIDs(projectID, agentID)
 }
 
-func requireIDs(appID, agentID string) (string, string, error) {
-	appID = strings.TrimSpace(appID)
+func requireIDs(projectID, agentID string) (string, string, error) {
+	projectID = strings.TrimSpace(projectID)
 	agentID = strings.TrimSpace(agentID)
 	switch {
-	case appID == "" && agentID == "":
-		return "", "", fmt.Errorf("--app-id and --agent-id are required")
-	case appID == "":
-		return "", "", fmt.Errorf("--app-id is required")
+	case projectID == "" && agentID == "":
+		return "", "", fmt.Errorf("--project-id and --agent-id are required")
+	case projectID == "":
+		return "", "", fmt.Errorf("--project-id is required")
 	case agentID == "":
 		return "", "", fmt.Errorf("--agent-id is required")
 	default:
-		return appID, agentID, nil
+		return projectID, agentID, nil
 	}
 }
 

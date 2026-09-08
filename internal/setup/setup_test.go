@@ -48,7 +48,7 @@ func TestAuthLoginUsesExistingLocalConfigAndMirrorsCredentials(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotPath = r.URL.Path
 		gotAuth = r.Header.Get("Authorization")
-		if r.URL.Path != "/api/access-tokens" {
+		if r.URL.Path != "/api/auth/cli/session" {
 			http.NotFound(w, r)
 			return
 		}
@@ -63,8 +63,8 @@ func TestAuthLoginUsesExistingLocalConfigAndMirrorsCredentials(t *testing.T) {
 	if err := withStdin(t, "test-token\n", root.Execute); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
-	if gotPath != "/api/access-tokens" {
-		t.Fatalf("path = %q, want /api/access-tokens", gotPath)
+	if gotPath != "/api/auth/cli/session" {
+		t.Fatalf("path = %q, want /api/auth/cli/session", gotPath)
 	}
 	if gotAuth != "Bearer test-token" {
 		t.Fatalf("Authorization = %q, want bearer token", gotAuth)
@@ -78,11 +78,89 @@ func TestAuthLoginUsesExistingLocalConfigAndMirrorsCredentials(t *testing.T) {
 	}
 }
 
+func TestAuthLoginDefaultsToDeviceFlowAndValidatesAccountCredential(t *testing.T) {
+	var paths []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		paths = append(paths, r.URL.Path)
+		w.Header().Set("Content-Type", "application/json")
+		switch r.URL.Path {
+		case "/api/auth/cli/start":
+			if r.Method != http.MethodPost {
+				t.Errorf("start method = %s", r.Method)
+			}
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"device_code": "device-test", "user_code": "ABCD-EFGH",
+				"verification_uri": "https://mosoo.example/cli-auth", "expires_in": 60, "interval": 1,
+			})
+		case "/api/auth/cli/token":
+			var body map[string]string
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				t.Error(err)
+			}
+			if body["device_code"] != "device-test" {
+				t.Errorf("token request = %#v", body)
+			}
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"status": "authorized", "access_token": "mcli_device-test", "token_type": "Bearer",
+				"user": map[string]string{"email": "cli@example.com", "name": "CLI User"},
+			})
+		case "/api/auth/cli/session":
+			if r.Header.Get("Authorization") != "Bearer mcli_device-test" {
+				t.Error("validation did not use the exchanged account credential")
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			_ = json.NewEncoder(w).Encode(map[string]any{"user": map[string]string{"email": "cli@example.com"}})
+		default:
+			t.Errorf("unexpected request %s", r.URL.Path)
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+
+	root, configDir := newTestRoot(t)
+	writeTargetConfig(t, configDir, savedConfig{Target: target.LocalTarget, BaseURL: srv.URL})
+	root.SetArgs([]string{"auth", "login", "--no-browser"})
+	if err := root.Execute(); err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	if len(paths) != 3 {
+		t.Fatalf("requests = %v, want start, token, session", paths)
+	}
+	assertHostToken(t, srv.URL+"/api", "mcli_device-test")
+	assertHostToken(t, srv.URL+"/api/v1", "mcli_device-test")
+}
+
+func TestAuthLoginRejectsProjectKeyAndPreservesExistingAccountCredential(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/auth/cli/session" {
+			t.Errorf("unexpected request %s", r.URL.Path)
+		}
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer srv.Close()
+	root, configDir := newTestRoot(t)
+	writeTargetConfig(t, configDir, savedConfig{Target: target.LocalTarget, BaseURL: srv.URL})
+	hosts, err := config.LoadHosts()
+	if err != nil {
+		t.Fatal(err)
+	}
+	hosts.Set(srv.URL+"/api", config.HostEntry{AuthType: "bearer", OAuthToken: "mcli_existing"})
+	if err := hosts.Save(); err != nil {
+		t.Fatal(err)
+	}
+	root.SetArgs([]string{"auth", "login", "--with-token"})
+	if err := withStdin(t, "msp_project-test\n", root.Execute); err == nil {
+		t.Fatal("expected Project key login to fail account validation")
+	}
+	assertHostToken(t, srv.URL+"/api", "mcli_existing")
+}
+
 func TestAuthLoginPreservesExplicitHostnameOverride(t *testing.T) {
 	var gotPath string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotPath = r.URL.Path
-		if r.URL.Path != "/access-tokens" {
+		if r.URL.Path != "/auth/cli/session" {
 			http.NotFound(w, r)
 			return
 		}
@@ -95,7 +173,7 @@ func TestAuthLoginPreservesExplicitHostnameOverride(t *testing.T) {
 	if err := withStdin(t, "override-token\n", root.Execute); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
-	if gotPath != "/access-tokens" {
+	if gotPath != "/auth/cli/session" {
 		t.Fatalf("path = %q, want explicit hostname path", gotPath)
 	}
 	assertHostToken(t, srv.URL, "override-token")
@@ -138,7 +216,7 @@ func TestSetupCloudRejectsTargetURLFlags(t *testing.T) {
 
 func TestSetupSelfHostWritesCustomBaseURL(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/api/access-tokens" {
+		if r.URL.Path != "/api/auth/cli/session" {
 			http.NotFound(w, r)
 			return
 		}
@@ -160,7 +238,7 @@ func TestSetupSelfHostWritesCustomBaseURL(t *testing.T) {
 
 func TestSetupCustomAcceptsAPIAndAppURL(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/api/access-tokens" {
+		if r.URL.Path != "/api/auth/cli/session" {
 			http.NotFound(w, r)
 			return
 		}
@@ -232,7 +310,7 @@ func newTestRoot(t *testing.T) (*cobra.Command, string) {
 		Auth: config.AuthInfo{
 			Validate: &config.AuthValidate{
 				Method: "GET",
-				Path:   "/access-tokens",
+				Path:   "/auth/cli/session",
 				Display: config.AuthValidateDisplay{
 					UsernameField: "email",
 				},

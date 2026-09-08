@@ -5,42 +5,43 @@
 - Backend: `openapi3`
 - Default hostname: `http://127.0.0.1:8787/api`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `dd0bf6e08c80450587a328a74d820171fb71b4cb`
+- Pinned tag: `51056b328b24c707fc5b8edfdc868b8f01d72527`
 - Files: `docs/openapi/console-rest.openapi.json`
-- Resolved SHA: `dd0bf6e08c80450587a328a74d820171fb71b4cb`
+- Resolved SHA: `51056b328b24c707fc5b8edfdc868b8f01d72527`
 
 ## Access Tokens
 
 ### `mosoo console-rest access create`
 
-- Summary: Create a personal access token
+- Summary: Create a Project API key
 - HTTP: `POST /access-tokens`
 - Auth: required
 - Body: required; media type `application/json`
 - Flags: none
 - Output: response media `application/json`
 - Notes:
-  - Creates a personal access token. The secret value is returned once.
-- Example: `mosoo console-rest access create --set label="ci"`
+  - Creates a Project API key. Authenticate through mosoo auth login first; the secret value is returned once.
+- Example: `mosoo console-rest access create --set projectId=<project-id> --set label="ci"`
 
 ### `mosoo console-rest access list`
 
-- Summary: List personal access tokens
+- Summary: List Project API keys
 - HTTP: `GET /access-tokens`
 - Auth: required
 - Body: none
-- Flags: none
+- Flags:
+  - `--project-id` (query, required, ulid): Project whose API keys are being managed.
 - Output: list path `tokens`; response media `application/json`
-- Example: `mosoo console-rest access list`
+- Example: `mosoo console-rest access list --project-id <project-id>`
 
 ### `mosoo console-rest access revoke`
 
-- Summary: Revoke a personal access token
+- Summary: Revoke a Project API key
 - HTTP: `DELETE /access-tokens/{tokenId}`
 - Auth: required
 - Body: none
 - Flags:
-  - `--token-id` (path, required, ulid): Personal access token ID.
+  - `--token-id` (path, required, ulid): Project API key ID.
 - Output: response media `application/json`
 - Example: `mosoo console-rest access revoke --token-id <token-id>`
 
@@ -109,16 +110,16 @@
 
 ### `mosoo console-rest files list`
 
-- Summary: List files for an app or session
+- Summary: List files for a Project or session
 - HTTP: `GET /files`
 - Auth: required
 - Body: none
 - Flags:
-  - `--app-id` (query, required, ulid): App ID that owns the files.
+  - `--project-id` (query, required, ulid): Project ID that owns the files.
   - `--session-id` (query, ulid): Optional session ID filter.
   - `--session-kind` (query, one of: artifact|attachment|all): Optional session file kind filter.
 - Output: list path `files`; response media `application/json`
-- Example: `mosoo console-rest access list`
+- Example: `mosoo console-rest access list --project-id <project-id>`
 
 ### `mosoo console-rest files update`
 
@@ -161,7 +162,7 @@
 - Body: none
 - Flags:
   - `--skill-id` (path, required, ulid): Skill ID.
-  - `--app-id` (query, required, ulid): App ID that owns the skill.
+  - `--project-id` (query, required, ulid): Project ID that owns the skill.
 - Output: response media `application/zip`
 
 ### `mosoo console-rest skills download-source`
@@ -172,7 +173,7 @@
 - Body: none
 - Flags:
   - `--skill-id` (path, required, ulid): Skill ID.
-  - `--app-id` (query, required, ulid): App ID that owns the skill.
+  - `--project-id` (query, required, ulid): Project ID that owns the skill.
 - Output: response media `text/markdown`
 
 ### `mosoo console-rest skills inspect`
@@ -193,8 +194,8 @@
 - Auth: required
 - Body: required; media type `multipart/form-data`
 - Flags:
-  - `--app-id` (formData, required, ulid): appId
   - `--file` (formData, binary): file
   - `--github-url` (formData): githubUrl
+  - `--project-id` (formData, required, ulid): projectId
   - `--skill-id` (formData, ulid): skillId
 - Output: response media `application/json`

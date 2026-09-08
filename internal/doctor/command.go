@@ -14,6 +14,7 @@ import (
 	"github.com/langgenius/mosoo-connector/internal/contractprovenance"
 	"github.com/langgenius/mosoo-connector/internal/target"
 	latheconfig "github.com/lathe-cli/lathe/pkg/config"
+	latheruntime "github.com/lathe-cli/lathe/pkg/runtime"
 	"github.com/spf13/cobra"
 )
 
@@ -80,7 +81,7 @@ func BuildReport(cmd *cobra.Command) (Report, error) {
 	}
 
 	apiCheck, apiRequiresAuth := checkAPI(cmd.Context(), resolved.Hosts[target.SurfaceConsole])
-	auth, authCheck := evaluateAuth(resolved, apiRequiresAuth)
+	auth, authCheck := evaluateAuth(cmd.Context(), resolved, apiRequiresAuth)
 
 	return newReport(resolved, apiCheck, auth, authCheck), nil
 }
@@ -121,7 +122,7 @@ func checkAPI(ctx context.Context, consoleHost string) (Check, bool) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
-	endpoint := strings.TrimRight(consoleHost, "/") + "/access-tokens"
+	endpoint := strings.TrimRight(consoleHost, "/") + "/auth/cli/session"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return Check{Name: "api", OK: false, Code: "api_request_invalid", Message: err.Error()}, false
@@ -132,13 +133,13 @@ func checkAPI(ctx context.Context, consoleHost string) (Check, bool) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusNotFound || resp.StatusCode >= http.StatusInternalServerError {
+	if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusNotFound || resp.StatusCode >= http.StatusInternalServerError {
 		return Check{Name: "api", OK: false, Code: "api_unready_status", Message: fmt.Sprintf("GET %s returned %s", endpoint, resp.Status)}, false
 	}
 	return Check{Name: "api", OK: true, Code: "api_reachable", Message: fmt.Sprintf("GET %s returned %s", endpoint, resp.Status)}, resp.StatusCode == http.StatusUnauthorized
 }
 
-func evaluateAuth(resolved target.Resolution, apiRequiresAuth bool) (AuthState, Check) {
+func evaluateAuth(ctx context.Context, resolved target.Resolution, apiRequiresAuth bool) (AuthState, Check) {
 	authRequired := apiRequiresAuth || requiresAuth(resolved)
 	auth := AuthState{
 		Required:        authRequired,
@@ -167,8 +168,55 @@ func evaluateAuth(resolved target.Resolution, apiRequiresAuth bool) (AuthState, 
 	if len(auth.MissingHosts) > 0 {
 		return auth, Check{Name: "auth", OK: false, Code: "auth_missing_credentials", Message: "not authenticated to " + strings.Join(auth.MissingHosts, ", ")}
 	}
+	consoleHost := resolved.Hosts[target.SurfaceConsole]
+	entry, _ := hosts.Get(consoleHost)
+	authCheck := validateCredential(ctx, consoleHost, entry)
+	if !authCheck.OK {
+		return auth, authCheck
+	}
 	auth.Authenticated = true
-	return auth, Check{Name: "auth", OK: true, Code: "auth_credentials_present"}
+	return auth, authCheck
+}
+
+func validateCredential(ctx context.Context, consoleHost string, entry latheconfig.HostEntry) Check {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	endpoint := strings.TrimRight(consoleHost, "/") + "/auth/cli/session"
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return Check{Name: "auth", OK: false, Code: "auth_validation_failed", Message: "Could not create the console credential validation request."}
+	}
+	authenticator, err := latheruntime.NewAuthFromHost(entry)
+	if err != nil {
+		return Check{Name: "auth", OK: false, Code: "auth_invalid_credentials", Message: "The stored console authentication type is invalid."}
+	}
+	if err := authenticator.Apply(req); err != nil {
+		return Check{Name: "auth", OK: false, Code: "auth_invalid_credentials", Message: "Could not apply the stored console credentials."}
+	}
+	req.Header.Set("Accept", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return Check{Name: "auth", OK: false, Code: "auth_validation_unreachable", Message: "Could not reach the console API to validate credentials."}
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		code := "auth_validation_failed"
+		if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+			code = "auth_invalid_credentials"
+		}
+		return Check{Name: "auth", OK: false, Code: code, Message: fmt.Sprintf("Console credential validation returned HTTP %d.", resp.StatusCode)}
+	}
+	var session struct {
+		User struct {
+			ID string `json:"id"`
+		} `json:"user"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&session); err != nil || strings.TrimSpace(session.User.ID) == "" {
+		return Check{Name: "auth", OK: false, Code: "auth_validation_failed", Message: "Console credential validation did not return an account session."}
+	}
+	return Check{Name: "auth", OK: true, Code: "auth_credentials_present"}
 }
 
 func requiresAuth(resolved target.Resolution) bool {
@@ -261,8 +309,12 @@ func actionForCode(code string) string {
 		return "Verify the selected mosoo API is healthy before using generated API commands."
 	case "auth_store_unavailable":
 		return "Check the local mosoo credential store and retry auth login."
-	case "auth_missing_credentials":
+	case "auth_missing_credentials", "auth_invalid_credentials":
 		return "Run mosoo auth login for the resolved target."
+	case "auth_validation_unreachable":
+		return "Check that the console API is reachable and retry mosoo doctor."
+	case "auth_validation_failed":
+		return "Verify the selected mosoo API supports CLI account sessions and retry mosoo doctor."
 	case "build_metadata_missing":
 		return "Build the CLI through the Makefile, install a tagged Go module, or inject Lathe Version, Commit, and Date with Go ldflags."
 	case "contract_provenance_missing":

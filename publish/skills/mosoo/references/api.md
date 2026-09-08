@@ -34,7 +34,7 @@ Application backends need these values:
 ```sh
 MOSOO_API_BASE=https://cloud.mosoo.ai/api/v1
 MOSOO_AGENT_ID=<published-agent-id>
-MOSOO_API_TOKEN=<access-token>
+MOSOO_API_TOKEN=<project-api-key>
 ```
 
 Authenticate every request with:
@@ -42,6 +42,12 @@ Authenticate every request with:
 ```http
 Authorization: Bearer <MOSOO_API_TOKEN>
 ```
+
+Create a Project API key (`msp_...`) under the Agent's Project. It can access
+Agent configuration, execution, and files in that Project; it cannot manage
+keys or access another Project. Keep account credentials from `mosoo auth
+login` (`mcli_...`) in the CLI credential store. Legacy `mst_...` and
+`grt_pat_...` tokens must be replaced after the Project key upgrade.
 
 Use `Idempotency-Key` on Thread creation and event submission. Keep keys stable
 for retries of the same method, route, and body; use a new key when the body
@@ -153,7 +159,7 @@ For a follow-up, put the same resource shape on the `user_message` event:
 ```
 
 mosoo validates and claims referenced drafts into the Thread before queueing the
-Run. Drafts cannot be claimed across App or caller boundaries. The public
+Run. Drafts cannot be claimed across Project or caller boundaries. The public
 multipart endpoint accepts one file up to 67108864 bytes and returns a ready
 draft.
 

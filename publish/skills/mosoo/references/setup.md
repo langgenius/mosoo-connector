@@ -50,7 +50,13 @@ mosoo doctor --json
 
 `mosoo setup` stores the cloud service root (`https://cloud.mosoo.ai`). The CLI
 derives the console API (`/api`) and Public API (`/api/v1`) hosts internally.
-`mosoo auth login` saves one credential for both hosts.
+`mosoo auth login` opens browser authorization and saves an account credential
+(`mcli_...`) for both hosts. Project API keys (`msp_...`) are for application
+integrations and do not replace account login.
+
+After the Project key upgrade, update the CLI and run `mosoo auth login` again.
+Create a new API key in each integration's Project and replace its old
+`mst_...` or `grt_pat_...` secret.
 
 For self-hosted or local targets, use the explicit setup subcommands:
 

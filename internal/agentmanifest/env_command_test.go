@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const testAPIToken = "mst_secret_token_1234567890"
+const testAPIToken = "msp_secret_token_1234567890"
 
 func TestAgentEnvWriteCreatesDotenvAndRedactsOutput(t *testing.T) {
 	cmd, stdout, stderr := newAgentCommandForEnvTest(t)
@@ -52,7 +52,7 @@ func TestAgentEnvWriteCreatesDotenvAndRedactsOutput(t *testing.T) {
 	}
 	assertDoesNotContainToken(t, stdout.String(), "stdout")
 	assertDoesNotContainToken(t, stderr.String(), "stderr")
-	if !strings.Contains(stdout.String(), "mst_...7890") {
+	if !strings.Contains(stdout.String(), "msp_...7890") {
 		t.Fatalf("stdout = %q, want redacted token summary", stdout.String())
 	}
 }
@@ -74,7 +74,7 @@ func TestAgentEnvExportRedactsTokenInTerminalOutput(t *testing.T) {
 	for _, want := range []string{
 		`export MOSOO_API_BASE="https://cloud.mosoo.ai/api/v1"`,
 		`export MOSOO_AGENT_ID="agent_123"`,
-		`export MOSOO_API_TOKEN="mst_...7890"`,
+		`export MOSOO_API_TOKEN="msp_...7890"`,
 	} {
 		if !strings.Contains(got, want) {
 			t.Fatalf("stdout missing %q:\n%s", want, got)
@@ -106,7 +106,7 @@ func TestAgentEnvJSONRedactsToken(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &got); err != nil {
 		t.Fatalf("stdout is not JSON %q: %v", stdout.String(), err)
 	}
-	if got["apiToken"] != "mst_...7890" {
+	if got["apiToken"] != "msp_...7890" {
 		t.Fatalf("apiToken = %#v, want redacted token", got["apiToken"])
 	}
 	if got["agentId"] != "agent_123" || got["apiBase"] != "https://cloud.mosoo.ai/api/v1" {
@@ -162,11 +162,42 @@ func TestAgentEnvExportJSONRedactsToken(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &got); err != nil {
 		t.Fatalf("stdout is not JSON %q: %v", stdout.String(), err)
 	}
-	if got["apiToken"] != "mst_...7890" {
+	if got["apiToken"] != "msp_...7890" {
 		t.Fatalf("apiToken = %#v, want redacted token", got["apiToken"])
 	}
 	if got["file"] != nil {
 		t.Fatalf("file = %#v, want omitted/empty", got["file"])
+	}
+}
+
+func TestAgentEnvRefusesAccountAndLegacyCredentialsFromEverySource(t *testing.T) {
+	for _, token := range []string{"mcli_account-secret", "mst_legacy-secret", "grt_pat_legacy-secret"} {
+		for _, source := range []string{"flag", "env", "auth-store"} {
+			t.Run(token[:4]+"/"+source, func(t *testing.T) {
+				cmd, stdout, stderr := newAgentCommandForEnvTest(t)
+				file := filepath.Join(t.TempDir(), ".env")
+				args := []string{"env", "write", "--file", file, "--api-base", "https://cloud.mosoo.ai/api/v1", "--agent-id", "agent_123"}
+				switch source {
+				case "flag":
+					args = append(args, "--api-token", token)
+				case "env":
+					t.Setenv("MOSOO_API_TOKEN", token)
+				case "auth-store":
+					writeTestHostsFile(t, "https://cloud.mosoo.ai/api/v1", token)
+				}
+				cmd.SetArgs(args)
+				err := cmd.Execute()
+				if err == nil || !strings.Contains(err.Error(), "Project API key") {
+					t.Fatalf("error = %v, want Project key guidance", err)
+				}
+				if _, err := os.Stat(file); !os.IsNotExist(err) {
+					t.Fatal("rejected credential created an integration env file")
+				}
+				if strings.Contains(stdout.String()+stderr.String()+err.Error(), token) {
+					t.Fatal("rejected credential was exposed in output")
+				}
+			})
+		}
 	}
 }
 

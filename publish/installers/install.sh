@@ -16,7 +16,6 @@ SKILL_SHA256="${MOSOO_SKILL_SHA256:-}"
 TARGET="${MOSOO_TARGET:-cloud}"
 BASE_URL="${MOSOO_BASE_URL:-}"
 DEV_EMAIL="${MOSOO_DEV_EMAIL:-}"
-LOGIN_URL="${MOSOO_LOGIN_URL:-https://cloud.mosoo.ai}"
 
 ASSUME_YES=false
 DRY_RUN=false
@@ -62,9 +61,8 @@ Environment:
   MOSOO_CLI_ARCHIVE_URL     Override CLI release archive URL.
   MOSOO_SKILL_ARCHIVE_URL   Override Skill release archive URL.
   MOSOO_CLI_VERSION         Expected mosoo --version value, for example v1.2.3.
-  MOSOO_API_TOKEN           Token used for non-interactive mosoo auth login.
+  MOSOO_CLI_TOKEN           Account login credential (mcli_...) for non-interactive login.
   MOSOO_DEV_EMAIL           @mosoo.ai email used for local development login.
-  MOSOO_LOGIN_URL           Web login URL shown when cloud login needs user action.
   MOSOO_TARGET              Runtime target used by login and doctor. Default: cloud.
   MOSOO_INSTALL_SOURCE_ROOT
                             Local checkout root used by development installs.
@@ -95,10 +93,10 @@ cleanup() {
 trap cleanup EXIT
 
 mktemp_dir() {
-	local dir
-	dir="$(mktemp -d)"
-	tmp_dirs+=("$dir")
-	printf '%s\n' "$dir"
+	local created_dir
+	created_dir="$(mktemp -d)"
+	tmp_dirs+=("$created_dir")
+	printf -v "$1" '%s' "$created_dir"
 }
 
 print_cmd() {
@@ -233,7 +231,7 @@ base_origin() {
 probe_target_api() {
 	local base endpoint status
 	base="$1"
-	endpoint="$(printf '%s/api/access-tokens\n' "$(printf '%s\n' "$base" | sed 's#/*$##')")"
+	endpoint="$(printf '%s/api/auth/cli/session\n' "$(printf '%s\n' "$base" | sed 's#/*$##')")"
 
 	if "$DRY_RUN"; then
 		print_cmd curl -sS --max-time 5 -o /dev/null -w "%{http_code}" "$endpoint"
@@ -320,7 +318,7 @@ install_cli() {
 		[ -x "$source_binary" ] || die "local CLI binary not found or not executable: $source_binary"
 		run install -m 0755 "$source_binary" "$BIN_DIR/mosoo"
 	else
-		tmp="$(mktemp_dir)"
+		mktemp_dir tmp
 		archive="$tmp/mosoo-$platform.tar.gz"
 		extract_dir="$tmp/extract"
 		run mkdir -p "$extract_dir"
@@ -378,7 +376,7 @@ install_skill() {
 		skill_source="$SOURCE_ROOT/publish/skills/mosoo"
 		[ -f "$skill_source/SKILL.md" ] || die "local mosoo Skill not found: $skill_source"
 	else
-		tmp="$(mktemp_dir)"
+		mktemp_dir tmp
 		archive="$tmp/mosoo-skill.tar.gz"
 		extract_dir="$tmp/extract"
 		run mkdir -p "$extract_dir"
@@ -439,13 +437,16 @@ resolve_mosoo_binary() {
 	die "mosoo CLI is not installed; cannot continue"
 }
 
-store_api_token() {
+store_cli_token() {
 	local mosoo token console
 	mosoo="$1"
 	token="$2"
 	console="$(console_host)"
 
-	[ -n "$token" ] || die "mosoo API token must not be empty"
+	case "$token" in
+		mcli_*) ;;
+		*) die "account login requires an mcli_ credential; run mosoo auth login for browser authorization" ;;
+	esac
 	printf '%s\n' "$token" | "$mosoo" auth login --hostname "$console" --with-token
 }
 
@@ -469,15 +470,16 @@ read_local_development_email() {
 }
 
 run_local_development_login() {
-	local mosoo email origin console login_url token_url tmp cookie_jar login_body token_body token_response token
+	local mosoo email origin console login_url tmp cookie_jar login_body flow_response confirm_body token_body token_response token user_code device_code
 	console="$(console_host)"
 	origin="$(base_origin)"
 	login_url="$console/auth/development-backdoor/mosoo-ai-login"
-	token_url="$console/access-tokens"
 
 	if "$DRY_RUN"; then
 		print_cmd curl -fsSL -c cookies.txt -H "content-type: application/json" -H "origin: $origin" --data '{"email":"dev@mosoo.ai"}' "$login_url"
-			print_cmd curl -fsSL -b cookies.txt -H "content-type: application/json" -H "origin: $origin" --data '{"label":"mosoo CLI local install"}' "$token_url"
+		print_cmd curl -fsSL -H "content-type: application/json" --data '{}' "$console/auth/cli/start"
+		print_cmd curl -fsSL -b cookies.txt -H "content-type: application/json" -H "origin: $origin" --data '{"user_code":"<user-code>"}' "$console/auth/cli/confirm"
+		print_cmd curl -fsSL -H "content-type: application/json" --data '{"device_code":"<device-code>"}' "$console/auth/cli/token"
 		print_cmd "$BIN_DIR/mosoo" auth login --hostname "$console" --with-token
 		return
 	fi
@@ -491,14 +493,15 @@ run_local_development_login() {
 		*) die "local development login email must use @mosoo.ai" ;;
 	esac
 
-	tmp="$(mktemp_dir)"
+	mktemp_dir tmp
 	cookie_jar="$tmp/cookies.txt"
 	login_body="$tmp/login.json"
+	flow_response="$tmp/flow-response.json"
+	confirm_body="$tmp/confirm.json"
 	token_body="$tmp/token.json"
 	token_response="$tmp/token-response.json"
 
 	printf '{"email":%s}\n' "$(json_string "$email")" >"$login_body"
-	printf '{"label":"mosoo CLI local install"}\n' >"$token_body"
 
 	curl -fsSL -c "$cookie_jar" \
 		-H "content-type: application/json" \
@@ -507,15 +510,28 @@ run_local_development_login() {
 		"$login_url" >/dev/null ||
 		die "local development login failed; ensure the local mosoo API is running and the development backdoor is enabled"
 
+	curl -fsSL -H "content-type: application/json" --data '{}' \
+		"$console/auth/cli/start" >"$flow_response" ||
+		die "local CLI authorization could not start"
+	user_code="$(json_field user_code <"$flow_response")"
+	device_code="$(json_field device_code <"$flow_response")"
+	printf '{"user_code":%s}\n' "$(json_string "$user_code")" >"$confirm_body"
+	printf '{"device_code":%s}\n' "$(json_string "$device_code")" >"$token_body"
+
 	curl -fsSL -b "$cookie_jar" \
 		-H "content-type: application/json" \
 		-H "origin: $origin" \
-		--data @"$token_body" \
-		"$token_url" >"$token_response" ||
-		die "local API token creation failed after development login"
+		--data @"$confirm_body" \
+		"$console/auth/cli/confirm" >/dev/null ||
+		die "local CLI authorization failed after development login"
 
-	token="$(json_field value <"$token_response")"
-	store_api_token "$mosoo" "$token"
+	curl -fsSL -H "content-type: application/json" \
+		--data @"$token_body" \
+		"$console/auth/cli/token" >"$token_response" ||
+		die "local CLI credential exchange failed"
+
+	token="$(json_field access_token <"$token_response")"
+	store_cli_token "$mosoo" "$token"
 }
 
 run_login() {
@@ -528,38 +544,24 @@ run_login() {
 
 	if "$DRY_RUN"; then
 		mosoo="$BIN_DIR/mosoo"
-		log "dry-run: would show cloud login instructions: $LOGIN_URL"
-		print_cmd "$mosoo" auth login --hostname "$(console_host)" --with-token
+		print_cmd "$mosoo" auth login --hostname "$(console_host)"
 		return
 	fi
 
 	mosoo="$(resolve_mosoo_binary)"
 
-	if [ -n "${MOSOO_API_TOKEN:-}" ]; then
-		token="$MOSOO_API_TOKEN"
+	if [ -n "${MOSOO_CLI_TOKEN:-}" ]; then
+		token="$MOSOO_CLI_TOKEN"
 	elif "$ASSUME_YES"; then
-		warn "MOSOO_API_TOKEN is not set; skipping non-interactive cloud login"
-		log "Sign in to mosoo Cloud first, then rerun this installer:"
-		log "  $LOGIN_URL"
+		warn "MOSOO_CLI_TOKEN is not set; skipping non-interactive account login"
+		log "Next: mosoo auth login --hostname $(console_host)"
 		return
 	else
-		[ -r /dev/tty ] || die "cannot prompt for token without a TTY"
-		cat >/dev/tty <<EOF
-Cloud login needs a mosoo API token from a logged-in mosoo web session.
-
-1. Open mosoo Cloud:
-   $LOGIN_URL
-2. Sign in or create an account with email verification.
-3. Copy the install command from the web app, or create and copy an API token.
-4. Paste the API token here, or rerun this installer with MOSOO_API_TOKEN set.
-
-EOF
-		printf 'Enter mosoo API token: ' >/dev/tty
-		read -rs token </dev/tty || die "failed to read token"
-		printf '\n' >/dev/tty
+		"$mosoo" auth login --hostname "$(console_host)"
+		return
 	fi
 
-	store_api_token "$mosoo" "$token"
+	store_cli_token "$mosoo" "$token"
 }
 
 run_doctor() {

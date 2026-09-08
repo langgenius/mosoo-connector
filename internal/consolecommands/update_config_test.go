@@ -170,7 +170,7 @@ func newTestRoot(t *testing.T, host string) *cobra.Command {
 func validUpdateConfigArgs(providerOptions string) []string {
 	return []string{
 		"--input-agent-id", "agent_1",
-		"--input-app-id", "app_1",
+		"--input-project-id", "app_1",
 		"--input-kind", "pet",
 		"--input-mcp-server-ids", "mcp_1",
 		"--input-model", "gpt-4.1",

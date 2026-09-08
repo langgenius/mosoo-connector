@@ -17,7 +17,7 @@ separate agent runtime.
 2. For application code that calls an already published mosoo Agent, read
    `references/api.md`.
 3. When a Skill declares runtime packages, setup commands, or environment
-   variables, preserve those requirements and prepare the App's mosoo
+   variables, preserve those requirements and prepare the Project's mosoo
    Environment before changing the Skill implementation.
 4. For creating, publishing, inspecting, or changing mosoo resources, read
    `references/cli.md`, then follow its command-index links when command
@@ -42,7 +42,7 @@ separate agent runtime.
 - Skill runtime requirements: inspect dependency manifests, imports, setup
   instructions, and missing-command or missing-module failures. Follow the
   `Skill Runtime Environment Workflow` in `references/cli.md` to select,
-  create, copy, or update an App-local Environment, then bind its
+  create, copy, or update an Project-local Environment, then bind its
   `environmentId` to the Agent before publishing or starting a new Session.
 - App env file only: derive `MOSOO_API_BASE`, `MOSOO_AGENT_ID`, and
   `MOSOO_API_TOKEN` from the published Agent/API contract; do not create
@@ -60,7 +60,7 @@ separate agent runtime.
   merely because the current sandbox lacks a runtime package, command, or
   environment variable. Configure the mosoo Environment first. Rewrite only
   when the user explicitly requests a port or dependency removal.
-- Treat Environment as an App-local runtime template for packages, setup
+- Treat Environment as an Project-local runtime template for packages, setup
   script, and runtime env vars. It does not contain the Agent's Skills, Files,
   or MCP servers, and its stored network policy is not currently an enforced
   sandbox-security guarantee.

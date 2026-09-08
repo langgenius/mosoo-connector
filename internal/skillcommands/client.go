@@ -36,7 +36,7 @@ func (o uploadOptions) formFields(includePackageFields bool) map[string]string {
 		fields["githubUrl"] = strings.TrimSpace(o.githubURL)
 	}
 	if includePackageFields {
-		fields["appId"] = strings.TrimSpace(o.appID)
+		fields["projectId"] = strings.TrimSpace(o.projectID)
 		if strings.TrimSpace(o.skillID) != "" {
 			fields["skillId"] = strings.TrimSpace(o.skillID)
 		}

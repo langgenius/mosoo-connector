@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const updateAgentConfigMutation = `mutation updateAgentConfig($input: UpdateAgentConfigInput!) { updateAgentConfig(input: $input) { createdAt description id kind liveVersion { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility appId } }`
+const updateAgentConfigMutation = `mutation updateAgentConfig($input: UpdateAgentConfigInput!) { updateAgentConfig(input: $input) { createdAt description id kind liveVersion { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility projectId } }`
 
 // Install mounts hand-maintained replacements for commands that Lathe cannot
 // currently express correctly through generated specs.
@@ -35,7 +35,7 @@ func Install(root *cobra.Command) error {
 
 type updateConfigOptions struct {
 	agentID            string
-	appID              string
+	projectID          string
 	description        string
 	environmentID      string
 	kind               string
@@ -98,7 +98,7 @@ func newUpdateConfigCommand() *cobra.Command {
 	flags.StringVar(&opts.providerOptionsRaw, "input-provider-options", "", "input.providerOptions JSON object (variable, required)")
 	flags.StringVar(&opts.runtimeID, "input-runtime-id", "", "input.runtimeId (variable, required)")
 	flags.StringSliceVar(&opts.skillIDs, "input-skill-ids", nil, "input.skillIds (variable, required)")
-	flags.StringVar(&opts.appID, "input-app-id", "", "input.appId (variable, required)")
+	flags.StringVar(&opts.projectID, "input-project-id", "", "input.projectId (variable, required)")
 	for _, name := range []string{
 		"input-agent-id",
 		"input-kind",
@@ -110,7 +110,7 @@ func newUpdateConfigCommand() *cobra.Command {
 		"input-provider-options",
 		"input-runtime-id",
 		"input-skill-ids",
-		"input-app-id",
+		"input-project-id",
 	} {
 		_ = cmd.MarkFlagRequired(name)
 	}
@@ -144,7 +144,7 @@ func updateConfigCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
 			{Name: "input.providerOptions", Flag: "input-provider-options", In: latheruntime.InVariable, GoType: "string", Help: "input.providerOptions JSON object (variable, required)", Required: true},
 			{Name: "input.runtimeId", Flag: "input-runtime-id", In: latheruntime.InVariable, GoType: "string", Help: "input.runtimeId (variable, required)", Required: true},
 			{Name: "input.skillIds", Flag: "input-skill-ids", In: latheruntime.InVariable, GoType: "[]string", Help: "input.skillIds (variable, required)", Required: true},
-			{Name: "input.appId", Flag: "input-app-id", In: latheruntime.InVariable, GoType: "string", Help: "input.appId (variable, required)", Required: true},
+			{Name: "input.projectId", Flag: "input-project-id", In: latheruntime.InVariable, GoType: "string", Help: "input.projectId (variable, required)", Required: true},
 		},
 		RequestBody: &latheruntime.RequestBody{
 			Required:  true,
@@ -157,7 +157,7 @@ func updateConfigCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
 			"Agent config updates are full-manifest updates: pull agent-manifest first, preserve unchanged environment/runtime/provider/tool fields, and submit the complete updated config.",
 		},
 		KnownErrors: []latheruntime.KnownError{
-			{Status: 401, Cause: "Missing, invalid, or revoked personal access token."},
+			{Status: 401, Cause: "Missing, invalid, or revoked credential. Run mosoo auth login again."},
 		},
 	}
 }
@@ -176,7 +176,7 @@ func (o updateConfigOptions) input(cmd *cobra.Command) (map[string]any, error) {
 	}
 	input := map[string]any{
 		"agentId":         o.agentID,
-		"appId":           o.appID,
+		"projectId":       o.projectID,
 		"environment":     environment,
 		"kind":            o.kind,
 		"mcpServerIds":    o.mcpServerIDs,

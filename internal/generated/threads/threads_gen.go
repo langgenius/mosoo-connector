@@ -32,7 +32,7 @@ var Specs = []runtime.CommandSpec{
 		Long:    "Return recent events for a thread on the Public Thread API.",
 		Example: "mosoo public-thread-api events list-events --thread-id <thread-id>\n",
 		KnownErrors: []runtime.KnownError{
-			{Status: 401, Cause: "Invalid personal access token."},
+			{Status: 401, Cause: "Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again."},
 			{Status: 404, Cause: "Thread not found for this caller."},
 		},
 		OperationID:     "ThreadEvents_ListEvents",
@@ -56,7 +56,7 @@ var Specs = []runtime.CommandSpec{
 			},
 		},
 		KnownErrors: []runtime.KnownError{
-			{Status: 401, Cause: "Invalid personal access token."},
+			{Status: 401, Cause: "Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again."},
 			{Status: 409, Cause: "Idempotency key reused while the original request is still processing."},
 		},
 		OperationID:     "ThreadEvents_Send",
@@ -102,7 +102,7 @@ var Specs = []runtime.CommandSpec{
 			},
 		},
 		KnownErrors: []runtime.KnownError{
-			{Status: 401, Cause: "Invalid personal access token."},
+			{Status: 401, Cause: "Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again."},
 			{Status: 400, Cause: "The multipart request must contain exactly one file field."},
 			{Status: 413, Cause: "The upload exceeds the Public API file size limit."},
 		},

@@ -3,7 +3,7 @@ sources:
     display_name: public-thread-api
     default_hostname: http://127.0.0.1:8787/api/v1
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: dd0bf6e08c80450587a328a74d820171fb71b4cb
+    pinned_tag: 51056b328b24c707fc5b8edfdc868b8f01d72527
     backend: openapi3
     openapi3:
       files:
@@ -12,7 +12,7 @@ sources:
     display_name: console
     default_hostname: http://127.0.0.1:8787/api
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: dd0bf6e08c80450587a328a74d820171fb71b4cb
+    pinned_tag: 51056b328b24c707fc5b8edfdc868b8f01d72527
     backend: graphql
     graphql:
       schema: docs/graphql/console.graphql
@@ -26,12 +26,7 @@ sources:
           - agentSessionDiagnostics
           - agentSessionList
           - agentSessionRetrieve
-          - appCostCard
-          - appEnvironmentList
           - appInfo
-          - appList
-          - appOverview
-          - appSkillList
           - availableAgentModels
           - controlPlaneOverview
           - environment
@@ -41,6 +36,11 @@ sources:
           - mcpOAuthFlowStatus
           - mcpRegistry
           - organizationBillingCostCard
+          - projectCostCard
+          - projectEnvironmentList
+          - projectList
+          - projectOverview
+          - projectSkillList
           - session
           - sessionList
           - sessionMessages
@@ -60,10 +60,10 @@ sources:
           - createAgent
           - createAgentFork
           - createAgentSession
-          - createApp
-          - createAppMcpServer
           - createEnvironment
           - createEnvironmentFork
+          - createProject
+          - createProjectMcpServer
           - createSkillFork
           - createVendorCredential
           - deleteAgent
@@ -78,15 +78,15 @@ sources:
           - publishAgent
           - recreateSandbox
           - removeSessionResource
-          - renameApp
+          - renameProject
           - renameSession
           - resetAgentState
           - restartDriver
           - revokeMcpCredential
-          - setAppDefaultEnvironment
           - setDefaultVendorCredential
           - setEnvironmentVariableValue
           - setMcpServerEnabled
+          - setProjectDefaultEnvironment
           - setSystemAgentModel
           - startAgentRun
           - startMcpOAuth
@@ -94,9 +94,9 @@ sources:
           - unarchiveAgentSession
           - unpublishAgent
           - updateAgentConfig
-          - updateAppMcpServer
           - updateEnvironment
           - updateProfile
+          - updateProjectMcpServer
           - updateVendorCredential
       groups:
         - match:
@@ -122,16 +122,16 @@ sources:
         - match:
             - agentCostCard
             - organizationBillingCostCard
-            - appCostCard
+            - projectCostCard
           group: Cost
         - match:
             - environment
-            - appEnvironmentList
+            - projectEnvironmentList
             - createEnvironment
             - createEnvironmentFork
             - deleteEnvironment
             - setEnvironmentVariableValue
-            - setAppDefaultEnvironment
+            - setProjectDefaultEnvironment
             - updateEnvironment
           group: Environments
         - match:
@@ -141,23 +141,23 @@ sources:
             - mcpOAuthFlowStatus
             - mcpRegistry
             - connectMcpBearer
-            - createAppMcpServer
+            - createProjectMcpServer
             - deleteMcpServer
             - revokeMcpCredential
             - setMcpServerEnabled
             - startMcpOAuth
-            - updateAppMcpServer
+            - updateProjectMcpServer
           group: MCP
         - match:
             - onboardingBootstrap
           group: Onboarding
         - match:
-            - appList
-            - appOverview
+            - projectList
+            - projectOverview
             - controlPlaneOverview
-            - createApp
-            - renameApp
-          group: Apps
+            - createProject
+            - renameProject
+          group: Projects
         - match:
             - agentSessionDiagnostics
             - agentSessionRetrieve
@@ -183,7 +183,7 @@ sources:
             - unarchiveAgentSession
           group: Sessions
         - match:
-            - appSkillList
+            - projectSkillList
             - skillDetail
             - createSkillFork
             - deleteOwnedSkill
@@ -208,7 +208,7 @@ sources:
     display_name: console-rest
     default_hostname: http://127.0.0.1:8787/api
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: dd0bf6e08c80450587a328a74d820171fb71b4cb
+    pinned_tag: 51056b328b24c707fc5b8edfdc868b8f01d72527
     backend: openapi3
     openapi3:
       files:

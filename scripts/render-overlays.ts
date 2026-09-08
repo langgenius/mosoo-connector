@@ -40,10 +40,10 @@ type OverlayExample = {
 
 const exampleFields = new Set([
 	"viewer",
-	"appList",
-	"appOverview",
+	"projectList",
+	"projectOverview",
 	"controlPlaneOverview",
-	"createApp",
+	"createProject",
 	"createAgent",
 	"createVendorCredential",
 	"publishAgent",
@@ -63,7 +63,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		short: "Get an agent manifest",
 		long:
 			"Read the current remote Agent manifest through the raw Console GraphQL API. Prefer `mosoo agent manifest probe`, `mosoo agent manifest diff`, and `mosoo agent manifest apply` for editable YAML workflows.",
-		example: "mosoo console agents manifest --app-id <app-id> --agent-id <agent-id> -o json",
+		example: "mosoo console agents manifest --project-id <project-id> --agent-id <agent-id> -o json",
 		hidden: true,
 		notes: [
 			"Raw API command. The product workflow command is `mosoo agent manifest probe`.",
@@ -89,64 +89,64 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 	accessibleAgentList: {
 		aliases: ["list"],
 		short: "List accessible Agents",
-		long: "List Agents available to the signed-in user for one App.",
-		example: "mosoo console agents list --app-id <app-id> -o json",
+		long: "List Agents available to the signed-in user for one Project.",
+		example: "mosoo console agents list --project-id <project-id> -o json",
 		examples: [
 			{
-				summary: "List Agents available to the signed-in user for one App and capture an Agent ID.",
-				command: "mosoo console agents accessible-agent-list --app-id <app-id> -o json",
+				summary: "List Agents available to the signed-in user for one Project and capture an Agent ID.",
+				command: "mosoo console agents accessible-agent-list --project-id <project-id> -o json",
 				body_shape: {
-					appId: "<app-id>",
+					projectId: "<project-id>",
 				},
 				output_hints: {
 					list_path: "data.accessibleAgentList",
 					id_path: "data.accessibleAgentList[0].id",
 				},
 				follow_up_commands: [
-					"mosoo console agents agent --app-id <app-id> --agent-id <agent-id> -o json",
+					"mosoo console agents agent --project-id <project-id> --agent-id <agent-id> -o json",
 				],
 			},
 		],
 	},
-	appList: {
+	projectList: {
 		aliases: ["list"],
-		short: "List Apps",
-		long: "List Apps for an Organization. Prefer control-plane-overview for the current-user CLI overview path.",
-		example: "mosoo console apps list --organization-id <organization-id> -o json",
+		short: "List Projects",
+		long: "List Projects for an Organization. Prefer control-plane-overview for the current-user CLI overview path.",
+		example: "mosoo console projects list --organization-id <organization-id> -o json",
 	},
-	appOverview: {
-		short: "Show one App overview",
-		long: "Show one App's console overview, including limited Agent and provider credential metadata.",
-		example: "mosoo console apps app-overview --app-id <app-id> -o json",
+	projectOverview: {
+		short: "Show one Project overview",
+		long: "Show one Project's console overview, including limited Agent and provider credential metadata.",
+		example: "mosoo console projects project-overview --project-id <project-id> -o json",
 	},
 	controlPlaneOverview: {
 		aliases: ["overview"],
 		shortcuts: [{ use: "ls" }],
 		short: "Show control-plane overview",
 		long: "Show the current user's control-plane overview for generated CLI list flows. This is the main ls/overview path.",
-		example: "mosoo console apps overview --app-limit 20 --agent-limit 20 --credential-limit 20 -o json",
+		example: "mosoo console projects overview --project-limit 20 --agent-limit 20 --credential-limit 20 -o json",
 		notes: [
-			"Use this before lower-level app-list, accessible-agent-list, or vendor-credential-list when you need a CLI overview.",
+			"Use this before lower-level project-list, accessible-agent-list, or vendor-credential-list when you need a CLI overview.",
 		],
 	},
-	createApp: {
+	createProject: {
 		example:
-			'mosoo console apps create-app --input-organization-id <organization-id> --input-name "CLI Example App" -o json',
+			'mosoo console projects create-project --input-organization-id <organization-id> --input-name "CLI Example Project" -o json',
 		examples: [
 			{
-				summary: "Create a minimal App and capture its id for follow-up commands.",
+				summary: "Create a minimal Project and capture its id for follow-up commands.",
 				command:
-					'mosoo console apps create-app --input-organization-id <organization-id> --input-name "CLI Example App" -o json',
+					'mosoo console projects create-project --input-organization-id <organization-id> --input-name "CLI Example Project" -o json',
 				body_shape: {
 					input: {
 						organizationId: "<organization-id>",
-						name: "CLI Example App",
+						name: "CLI Example Project",
 					},
 				},
 				output_hints: {
-					id_path: "data.createApp.id",
+					id_path: "data.createProject.id",
 				},
-				follow_up_commands: ["mosoo console apps app-overview --app-id <app-id> -o json"],
+				follow_up_commands: ["mosoo console projects project-overview --project-id <project-id> -o json"],
 			},
 		],
 	},
@@ -159,7 +159,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 			"cat > agent-create.json <<'JSON'",
 			"{",
 			"  \"input\": {",
-			"    \"appId\": \"<app-id>\",",
+			"    \"projectId\": \"<project-id>\",",
 			"    \"name\": \"Research Agent\",",
 			"    \"kind\": \"<pet-or-cattle>\",",
 			"    \"runtimeId\": \"<runtime-id>\",",
@@ -178,7 +178,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 				command: "mosoo console agents create-agent --file agent-create.json -o json",
 				body_shape: {
 					input: {
-						appId: "<app-id>",
+						projectId: "<project-id>",
 						name: "Research Agent",
 						kind: "pet",
 						runtimeId: "<runtime-id>",
@@ -192,8 +192,8 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 					id_path: "data.createAgent.id",
 				},
 				follow_up_commands: [
-					"mosoo console agents agent --app-id <app-id> --agent-id <id> -o json",
-					"mosoo console agents publish-agent --input-app-id <app-id> --input-agent-id <id> -o json",
+					"mosoo console agents agent --project-id <project-id> --agent-id <id> -o json",
+					"mosoo console agents publish-agent --input-project-id <project-id> --input-agent-id <id> -o json",
 				],
 			},
 		],
@@ -202,10 +202,10 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		aliases: ["create"],
 		shortcuts: [{ use: "add-key" }],
 		short: "Add a provider key",
-		long: "Create a provider credential for an App while keeping API keys out of shell history.",
+		long: "Create a provider credential for a Project while keeping API keys out of shell history.",
 		example: [
 			"mosoo console credentials create-vendor-credential \\",
-			"  --input-app-id <app-id> \\",
+			"  --input-project-id <project-id> \\",
 			"  --input-vendor-id openai \\",
 			"  --input-name \"OpenAI\" \\",
 			"  --input-api-key-env OPENAI_API_KEY \\",
@@ -216,7 +216,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 				summary: "Create an OpenAI provider credential from an environment variable",
 				command: [
 					"mosoo console credentials create-vendor-credential \\",
-					"  --input-app-id <app-id> \\",
+					"  --input-project-id <project-id> \\",
 					"  --input-vendor-id openai \\",
 					"  --input-name \"OpenAI\" \\",
 					"  --input-api-key-env OPENAI_API_KEY \\",
@@ -224,7 +224,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 				].join("\n"),
 				body_shape: {
 					input: {
-						appId: "<app-id>",
+						projectId: "<project-id>",
 						vendorId: "openai",
 						name: "OpenAI",
 						apiKey: "$OPENAI_API_KEY",
@@ -234,7 +234,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 					id_path: "data.createVendorCredential.id",
 				},
 				follow_up_commands: [
-					"mosoo console credentials vendor-credential-list --app-id <app-id> -o json",
+					"mosoo console credentials vendor-credential-list --project-id <project-id> -o json",
 				],
 			},
 		],
@@ -248,7 +248,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		aliases: ["publish"],
 		short: "Publish an Agent",
 		long: "Publish an Agent after its draft configuration and provider credentials are ready.",
-		example: "mosoo console agents publish --input-app-id <app-id> --input-agent-id <agent-id> -o json",
+		example: "mosoo console agents publish --input-project-id <project-id> --input-agent-id <agent-id> -o json",
 	},
 	startAgentRun: {
 		aliases: ["run"],
@@ -257,13 +257,13 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		long: "Create or continue a Thread, queue one prompt Run, and return event-surface metadata for polling.",
 		example: [
 			"mosoo console sessions run \\",
-			"  --input-app-id <app-id> \\",
+			"  --input-project-id <project-id> \\",
 			"  --input-agent-id <agent-id> \\",
 			"  --input-prompt \"Summarize this repository\" \\",
 			"  -o json",
 		].join("\n"),
 		notes: [
-			"This is the generated main path for mosoo run. Use the returned appId/sessionId with thread-session-process-events to poll output.",
+			"This is the generated main path for mosoo run. Use the returned projectId/sessionId with thread-session-process-events to poll output.",
 		],
 	},
 	testVendorCredential: {
@@ -272,7 +272,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		long: "Test provider credential material before or after saving it.",
 		example: [
 			"mosoo console credentials test-vendor-credential \\",
-			"  --input-app-id <app-id> \\",
+			"  --input-project-id <project-id> \\",
 			"  --input-vendor-id openai \\",
 			"  --input-model-id gpt-4o-mini \\",
 			"  --input-api-key-env OPENAI_API_KEY \\",
@@ -283,7 +283,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 				summary: "Smoke test an OpenAI provider key from the environment before saving it.",
 				command: [
 					"mosoo console credentials test-vendor-credential \\",
-					"  --input-app-id <app-id> \\",
+					"  --input-project-id <project-id> \\",
 					"  --input-vendor-id openai \\",
 					"  --input-model-id gpt-4o-mini \\",
 					"  --input-api-key-env OPENAI_API_KEY \\",
@@ -291,14 +291,14 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 				].join("\n"),
 				body_shape: {
 					input: {
-						appId: "<app-id>",
+						projectId: "<project-id>",
 						vendorId: "openai",
 						modelId: "gpt-4o-mini",
 						apiKey: "<read from OPENAI_API_KEY>",
 					},
 				},
 				follow_up_commands: [
-					'mosoo console credentials create-vendor-credential --input-app-id <app-id> --input-vendor-id openai --input-name "OpenAI" --input-api-key-env OPENAI_API_KEY -o json',
+					'mosoo console credentials create-vendor-credential --input-project-id <project-id> --input-vendor-id openai --input-name "OpenAI" --input-api-key-env OPENAI_API_KEY -o json',
 				],
 			},
 		],
@@ -311,13 +311,13 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		aliases: ["events", "process-events"],
 		short: "Poll Thread session events",
 		long: "Read process events for a Thread session. Use this after start-agent-run when streamUrl is null.",
-		example: "mosoo console sessions events --app-id <app-id> --session-id <session-id> -o json",
+		example: "mosoo console sessions events --project-id <project-id> --session-id <session-id> -o json",
 	},
 	vendorCredentialList: {
 		aliases: ["list"],
 		short: "List provider keys",
-		long: "List provider credentials for an App. Prefer control-plane-overview for summary counts and status.",
-		example: "mosoo console credentials list --app-id <app-id> -o json",
+		long: "List provider credentials for a Project. Prefer control-plane-overview for summary counts and status.",
+		example: "mosoo console credentials list --project-id <project-id> -o json",
 	},
 };
 
@@ -415,11 +415,11 @@ function requiredFlags(field: string): string[] {
 	if (field === "viewer") {
 		return [];
 	}
-	if (field === "appList" || field.endsWith("AppList")) {
+	if (field === "projectList" || field.endsWith("ProjectList")) {
 		return ["organization-id"];
 	}
-	if (field.includes("appId") || field.endsWith("App") || field.includes("Agent")) {
-		return ["app-id"];
+	if (field.includes("projectId") || field.endsWith("Project") || field.includes("Agent")) {
+		return ["project-id"];
 	}
 	return [];
 }
@@ -439,10 +439,10 @@ function buildConsoleOverlay(): Record<string, OverlayCommand> {
 		const flags = requiredFlags(field);
 		const base: OverlayCommand = {
 			short: humanizeGraphQLField(field),
-			long: `${humanizeGraphQLField(field)} via the mosoo Console GraphQL API (${group} surface). Requires a personal access token logged in to the /api host.`,
+			long: `${humanizeGraphQLField(field)} via the mosoo Console GraphQL API (${group} surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project.`,
 			...(exampleFields.has(field) ? { example: consoleExample(group, use, flags) } : {}),
 			notes: ["Uses POST /graphql on the console default hostname (/api)."],
-			known_errors: [{ status: 401, cause: "Missing, invalid, or revoked personal access token." }],
+			known_errors: [{ status: 401, cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade." }],
 			...consoleCommandOverrides[use],
 		};
 		const override = consoleCommandOverrides[field];
@@ -460,7 +460,7 @@ function buildConsoleOverlay(): Record<string, OverlayCommand> {
 	return commands;
 }
 
-const thread401 = [{ status: 401, cause: "Invalid personal access token." }];
+const thread401 = [{ status: 401, cause: "Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again." }];
 
 function buildThreadsOverlay(): Record<string, OverlayCommand> {
 	return {
@@ -644,11 +644,11 @@ function buildThreadsOverlay(): Record<string, OverlayCommand> {
 function buildConsolerestOverlay(): Record<string, OverlayCommand> {
 	return {
 		create: {
-			example: 'mosoo console-rest access create --set label="ci"',
-			notes: ["Creates a personal access token. The secret value is returned once."],
+			example: 'mosoo console-rest access create --set projectId=<project-id> --set label="ci"',
+			notes: ["Creates a Project API key. Authenticate through mosoo auth login first; the secret value is returned once."],
 		},
 		list: {
-			example: "mosoo console-rest access list",
+			example: "mosoo console-rest access list --project-id <project-id>",
 		},
 		revoke: {
 			example: "mosoo console-rest access revoke --token-id <token-id>",

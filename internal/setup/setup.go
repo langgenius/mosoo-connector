@@ -61,9 +61,15 @@ func wrapLoginCommand(cmd *cobra.Command) {
 
 	originalRun := cmd.Run
 	originalRunE := cmd.RunE
-	cmd.Short = "Authenticate with the resolved mosoo target"
+	cmd.Short = "Sign in to your mosoo account with browser authorization"
 	cmd.Run = nil
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
+		withToken, _ := cmd.Flags().GetBool("with-token")
+		if !withToken && !cmd.Flags().Changed("auth-type") && !cmd.Flags().Changed("device-auth") {
+			if err := cmd.Flags().Set("device-auth", "true"); err != nil {
+				return err
+			}
+		}
 		resolved, loginHost, explicitHost, err := resolveAuthLoginHost(cmd)
 		if err != nil {
 			return err
@@ -342,7 +348,7 @@ func ProbeTargetAPI(ctx context.Context, resolved target.Resolution, insecure bo
 	if consoleHost == "" {
 		return errors.New("console API host is empty")
 	}
-	endpoint := consoleHost + "/access-tokens"
+	endpoint := consoleHost + "/auth/cli/session"
 
 	probeCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()

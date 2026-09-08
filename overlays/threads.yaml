@@ -14,7 +14,7 @@ commands:
           - "mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create.json -o json"
     known_errors:
       - status: 401
-        cause: "Invalid personal access token."
+        cause: "Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again."
       - status: 400
         cause: "The multipart request must contain exactly one file field."
       - status: 413
@@ -109,7 +109,7 @@ commands:
       mosoo public-thread-api events list-events --thread-id <thread-id>
     known_errors:
       - status: 401
-        cause: "Invalid personal access token."
+        cause: "Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again."
       - status: 404
         cause: "Thread not found for this caller."
   thread-events-send:
@@ -133,7 +133,7 @@ commands:
           - "mosoo public-thread-api events list-events --thread-id <thread-id> -o json"
     known_errors:
       - status: 401
-        cause: "Invalid personal access token."
+        cause: "Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again."
       - status: 409
         cause: "Idempotency key reused while the original request is still processing."
   thread-events-stream:
