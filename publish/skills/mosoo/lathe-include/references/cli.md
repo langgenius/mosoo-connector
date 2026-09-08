@@ -25,7 +25,7 @@ and `mosoo create-agent` are Lathe-generated `shortcuts` for canonical generated
 operations. Treat them as generated command entries, and confirm their exact
 flags and body shape with `mosoo commands show <shortcut> --json`.
 
-For a new App, Agent creation, publishing, credential setup, or Console/API
+For a new Project, Agent creation, publishing, credential setup, or Console/API
 inspection, search the generated catalog first. For app environment files only,
 derive `MOSOO_API_BASE`, `MOSOO_AGENT_ID`, and `MOSOO_API_TOKEN` from the
 published Agent/API contract instead of creating new resources.
@@ -41,8 +41,8 @@ shapes in the owning workflow sections below.
 For a backend or Worker integration with a published Agent:
 
 1. Resolve runtime and hosts with `Runtime State` and `Host Context`.
-2. Provision or select the App and Agent with `Agent App Provisioning Workflow`.
-3. If a bound Skill has runtime dependencies, prepare and bind an App-local
+2. Provision or select the Project and Agent with `Agent Project Provisioning Workflow`.
+3. If a bound Skill has runtime dependencies, prepare and bind an Project-local
    Environment with `Skill Runtime Environment Workflow` before publishing or
    starting a new Session.
 4. Prepare backend environment values with `Public API Tokens`.
@@ -50,7 +50,7 @@ For a backend or Worker integration with a published Agent:
 6. Create or continue the thread, wait for completion, and inspect output with `Public Thread Wait, Final Output, And Transcript Workflow`.
 7. Edit Agent configuration only through `Agent Manifest Workflow`.
 
-Carry these handoff values between workflow sections: `appId`, `agentId`,
+Carry these handoff values between workflow sections: `projectId`, `agentId`,
 `environmentId`, `threadId`, `fileId`, env file path, and manifest file path. If
 any value is missing, return to the section that produces it instead of
 guessing.
@@ -61,23 +61,30 @@ guessing.
 Workers that call a published Agent through the Public API. Do not expose it in
 browser or frontend code.
 
-Users can create multiple mosoo API tokens and assign each token an
-application-level purpose or logical scope in their own app backend. For
-example, an app can keep one token for a production Agent integration, another
-token for smoke tests, and its own metadata that decides which app users or
-workflows may use each token.
+Create Project API keys (`msp_...`) under the Agent's Project. One account can own
+multiple Projects and each Project can have multiple keys. Mosoo enforces the
+Project boundary for Agent configuration, execution, and files. A Project key
+cannot manage API keys, account settings, or other Projects. Your backend still
+owns application-level tenant and user mapping.
 
-mosoo validates the token. The calling app is responsible for selecting the
-right token, storing any app-level scope metadata, and enforcing business rules
-before calling mosoo. For multi-user apps, keep tenant and user mapping in the
-app backend; a single token does not switch mosoo identity based on request
-payload fields.
+Use `mosoo auth login` for account access through browser authorization. The
+resulting `mcli_...` credential can manage your Projects and their keys. It is a
+CLI login credential and must not be exported into application environments.
 
-When writing app env files, store token values only in backend or Worker
-environment files and redact token values in logs, examples, and command
-output.
+```sh
+mosoo auth login
+mosoo console-rest access create --set projectId=<project-id> --set label="backend" -o json
+mosoo console-rest access list --project-id <project-id> -o json
+```
 
-Use `mosoo agent env export` or `mosoo agent env write --file <path>` to prepare `MOSOO_API_BASE`, `MOSOO_AGENT_ID`, and `MOSOO_API_TOKEN` for backend or Worker workflows; when `MOSOO_API_TOKEN` is unset, the helper uses the token from `mosoo auth login` for the selected Public API host.
+Legacy `mst_...` and `grt_pat_...` credentials stop working at the Project key
+upgrade. Sign in again for CLI access; create replacement Project keys for
+application backends. Revocation blocks subsequent requests without cancelling
+existing tasks.
+
+Use `mosoo agent env export` or `mosoo agent env write --file <path>` with
+`--api-token` or `MOSOO_API_TOKEN` set to a Project API key. Keep raw token values
+in backend secret storage or environment files; terminal output is redacted.
 
 ## Skill Runtime Environment Workflow
 
@@ -87,7 +94,7 @@ variables; or fails because a module, package, command, or env var is missing.
 Do not port the Skill to another language or remove the dependency merely to fit
 the current sandbox.
 
-A mosoo Environment is an App-local runtime template. Runtime installs its
+A mosoo Environment is an Project-local runtime template. Runtime installs its
 declared packages, runs its setup script before the Agent process starts, and
 injects its env vars. An Agent selects the Environment by `environmentId`, and
 each new Session freezes the selected Environment revision. Environment does
@@ -101,14 +108,14 @@ Follow these steps:
    instructions, and documented environment-variable names. Treat the Skill's
    declared implementation and dependencies as requirements unless the user
    explicitly asks for a port or dependency removal.
-2. Resolve the App and inspect its available runtime templates:
+2. Resolve the Project and inspect its available runtime templates:
 
 ```sh
-mosoo console environments app-environment-list --app-id <app-id> -o json
-mosoo console environments environment --app-id <app-id> --environment-id <environment-id> -o json
+mosoo console environments project-environment-list --project-id <project-id> -o json
+mosoo console environments environment --project-id <project-id> --environment-id <environment-id> -o json
 ```
 
-3. Reuse a suitable App-local Environment, or create/copy one when an
+3. Reuse a suitable Project-local Environment, or create/copy one when an
    independent template is needed. To update an Environment, fetch it first and
    preserve every unchanged package, env-var name, setup, and policy field; the
    update is a complete configuration update.
@@ -130,7 +137,7 @@ requires them. A failing setup script prevents the Session from starting.
 
 ```sh
 mosoo console environments set-environment-variable-value \
-  --input-app-id <app-id> \
+  --input-project-id <project-id> \
   --input-environment-id <environment-id> \
   --input-key <secret-name> \
   --input-value "$SECRET_VALUE" \
@@ -142,42 +149,42 @@ sandbox. Prefer mosoo's dedicated Vendor Credential or MCP Credential resource
 when one exists. Keep `MOSOO_API_TOKEN` in the calling backend or Worker; do not
 inject it into the Agent Environment.
 
-5. Set the Environment as the App default when it should be preselected for new
+5. Set the Environment as the Project default when it should be preselected for new
    Agents, or bind it explicitly to the target Agent through the manifest
    round-trip workflow:
 
 ```sh
-mosoo console environments set-app-default-environment --input-app-id <app-id> --input-environment-id <environment-id> -o json
-mosoo agent manifest probe --app-id <app-id> --agent-id <agent-id> --out agent.yaml
+mosoo console environments set-project-default-environment --input-project-id <project-id> --input-environment-id <environment-id> -o json
+mosoo agent manifest probe --project-id <project-id> --agent-id <agent-id> --out agent.yaml
 # Set environment.environmentId in agent.yaml and preserve all other fields.
-mosoo agent manifest apply --app-id <app-id> --agent-id <agent-id> --file agent.yaml --dry-run
-mosoo agent manifest apply --app-id <app-id> --agent-id <agent-id> --file agent.yaml
+mosoo agent manifest apply --project-id <project-id> --agent-id <agent-id> --file agent.yaml --dry-run
+mosoo agent manifest apply --project-id <project-id> --agent-id <agent-id> --file agent.yaml
 ```
 
 6. Publish if needed, start a new Session, and run the Skill's smallest useful
    smoke test. Environment edits affect future Sessions only; do not use an
    already-started Session to verify a new revision.
 
-Carry these handoff values: `appId`, `agentId`, `environmentId`, Environment
+Carry these handoff values: `projectId`, `agentId`, `environmentId`, Environment
 JSON path, Agent manifest path, required package list, setup requirements, and
 required env-var names. Never record secret values in these handoff artifacts.
 
-## Agent App Provisioning Workflow
+## Agent Project Provisioning Workflow
 
-Use this workflow when a task starts from App and Agent setup instead of an
+Use this workflow when a task starts from Project and Agent setup instead of an
 already published Agent. It is a product workflow assembled from generated
 commands plus the env and Public Thread workflows below.
 
-First create or reuse the App, create the Agent, and publish it. Run the
-generated commands in order and save each returned `appId` and `agentId` before
+First create or reuse the Project, create the Agent, and publish it. Run the
+generated commands in order and save each returned `projectId` and `agentId` before
 moving to the next step:
 
 ```sh
-mosoo console apps app-list --organization-id <organization-id> -o json
-mosoo console apps create-app --input-organization-id <organization-id> --input-name <app-name> -o json
-mosoo add-key --input-app-id <app-id> --input-vendor-id openai --input-name OpenAI --input-api-key-env OPENAI_API_KEY -o json
+mosoo console projects project-list --organization-id <organization-id> -o json
+mosoo console projects create-project --input-organization-id <organization-id> --input-name <project-name> -o json
+mosoo add-key --input-project-id <project-id> --input-vendor-id openai --input-name OpenAI --input-api-key-env OPENAI_API_KEY -o json
 mosoo create-agent --file create-agent.json -o json
-mosoo console agents publish-agent --input-app-id <app-id> --input-agent-id <agent-id> -o json
+mosoo console agents publish-agent --input-project-id <project-id> --input-agent-id <agent-id> -o json
 ```
 
 After publish, continue through the related workflow sections instead of
@@ -190,7 +197,7 @@ duplicating their commands here:
 
 Use `mosoo commands show <path...> --json` before each generated command to
 confirm body shape and required flags. Prefer `--file` for large Agent create
-bodies. If a step fails or times out, inspect state with `console apps app-list`,
+bodies. If a step fails or times out, inspect state with `console projects project-list`,
 `console agents accessible-agent-list`, or `console agents agent` before
 retrying; do not recreate resources until the current remote state is known.
 
@@ -303,10 +310,10 @@ For runnable examples covering `--target`, `--base-url`, `--hostname`, and
 Prefer the product workflow commands for editable Agent manifest YAML:
 
 ```sh
-mosoo agent manifest probe --app-id <app-id> --agent-id <agent-id> --out agent.yaml
-mosoo agent manifest diff --app-id <app-id> --agent-id <agent-id> --file agent.yaml
-mosoo agent manifest apply --app-id <app-id> --agent-id <agent-id> --file agent.yaml --dry-run
-mosoo agent manifest apply --app-id <app-id> --agent-id <agent-id> --file agent.yaml
+mosoo agent manifest probe --project-id <project-id> --agent-id <agent-id> --out agent.yaml
+mosoo agent manifest diff --project-id <project-id> --agent-id <agent-id> --file agent.yaml
+mosoo agent manifest apply --project-id <project-id> --agent-id <agent-id> --file agent.yaml --dry-run
+mosoo agent manifest apply --project-id <project-id> --agent-id <agent-id> --file agent.yaml
 ```
 
 `probe` reads the current remote manifest and writes YAML for editing or version

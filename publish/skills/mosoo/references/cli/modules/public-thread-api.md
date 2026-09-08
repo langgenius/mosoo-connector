@@ -5,9 +5,9 @@
 - Backend: `openapi3`
 - Default hostname: `http://127.0.0.1:8787/api/v1`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `dd0bf6e08c80450587a328a74d820171fb71b4cb`
+- Pinned tag: `145060acb871d04aac2f5b8e89b88f97db3757be`
 - Files: `docs/openapi/public-thread-api.openapi.json`
-- Resolved SHA: `dd0bf6e08c80450587a328a74d820171fb71b4cb`
+- Resolved SHA: `145060acb871d04aac2f5b8e89b88f97db3757be`
 
 ## Events
 
@@ -22,7 +22,7 @@
   - `--limit` (query, default `100`): Maximum number of latest Thread events to return.
 - Output: list path `events`; columns `type`, `id`, `content`, `durationMs`, `occurredAt`, `runId`; response media `application/json`; pagination `cursor`
 - Known errors:
-  - HTTP 401: Invalid personal access token.
+  - HTTP 401: Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again.
   - HTTP 404: Thread not found for this caller.
 - Example: `mosoo public-thread-api events list-events --thread-id <thread-id>`
 
@@ -37,7 +37,7 @@
   - `--idempotency-key` (header): Optional key for retry-safe create-thread and send-events calls. Reusing the same key with the same request returns the original response. Reusing the key while the original request is still processing returns 409.
 - Output: list path `events`; columns `type`, `requestId`, `run`; response media `application/json`
 - Known errors:
-  - HTTP 401: Invalid personal access token.
+  - HTTP 401: Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again.
   - HTTP 409: Idempotency key reused while the original request is still processing.
 - Examples:
   - Send a user message event to an existing thread.
@@ -129,7 +129,7 @@
   - `--file` (formData, required, binary): file
 - Output: response media `application/json`
 - Known errors:
-  - HTTP 401: Invalid personal access token.
+  - HTTP 401: Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again.
   - HTTP 400: The multipart request must contain exactly one file field.
   - HTTP 413: The upload exceeds the Public API file size limit.
 - Examples:

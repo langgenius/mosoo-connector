@@ -20,28 +20,28 @@ import (
 func TestResolveIDsReadsMetadataAndSpec(t *testing.T) {
 	manifest := map[string]any{
 		"metadata": map[string]any{
-			"appId": "app_123",
+			"projectId": "app_123",
 		},
 		"spec": map[string]any{
 			"agentId": "ag_123",
 		},
 	}
 
-	appID, agentID, err := resolveIDs("", "", manifest)
+	projectID, agentID, err := resolveIDs("", "", manifest)
 	if err != nil {
 		t.Fatalf("resolveIDs: %v", err)
 	}
-	if appID != "app_123" || agentID != "ag_123" {
-		t.Fatalf("ids = %q, %q", appID, agentID)
+	if projectID != "app_123" || agentID != "ag_123" {
+		t.Fatalf("ids = %q, %q", projectID, agentID)
 	}
 }
 
 func TestPlanManifestUpdatePreservesOmittedFields(t *testing.T) {
 	remote := map[string]any{
 		"spec": map[string]any{
-			"agentId": "ag_123",
-			"appId":   "app_123",
-			"kind":    "cattle",
+			"agentId":   "ag_123",
+			"projectId": "app_123",
+			"kind":      "cattle",
 			"mcpServerIds": []any{
 				"mcp_1",
 			},
@@ -66,8 +66,8 @@ func TestPlanManifestUpdatePreservesOmittedFields(t *testing.T) {
 		"apiVersion": "mosoo.ai/v1",
 		"kind":       "AgentManifest",
 		"metadata": map[string]any{
-			"appId":   "app_123",
-			"agentId": "ag_123",
+			"projectId": "app_123",
+			"agentId":   "ag_123",
 		},
 		"spec": map[string]any{
 			"prompt": "new prompt",
@@ -168,9 +168,9 @@ func TestUpdateInputFromExportedAgentManifest(t *testing.T) {
 
 func TestPlanManifestUpdateReplacesArrays(t *testing.T) {
 	remote := map[string]any{
-		"agentId": "ag_123",
-		"appId":   "app_123",
-		"kind":    "cattle",
+		"agentId":   "ag_123",
+		"projectId": "app_123",
+		"kind":      "cattle",
 		"mcpServerIds": []any{
 			"mcp_1",
 		},
@@ -204,7 +204,7 @@ func TestPlanManifestUpdateReplacesArrays(t *testing.T) {
 func TestPlanManifestUpdateResolvedIDsWinOverLocalManifestIDs(t *testing.T) {
 	remote := map[string]any{
 		"agentId":         "ag_target",
-		"appId":           "app_target",
+		"projectId":       "app_target",
 		"kind":            "cattle",
 		"mcpServerIds":    []any{},
 		"model":           "gpt-4.1",
@@ -217,7 +217,7 @@ func TestPlanManifestUpdateResolvedIDsWinOverLocalManifestIDs(t *testing.T) {
 	}
 	local := map[string]any{
 		"sourceAgentId": "ag_source",
-		"appId":         "app_source",
+		"projectId":     "app_source",
 		"name":          "Researcher",
 	}
 
@@ -225,8 +225,8 @@ func TestPlanManifestUpdateResolvedIDsWinOverLocalManifestIDs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("planManifestUpdate: %v", err)
 	}
-	if finalInput["appId"] != "app_target" || finalInput["agentId"] != "ag_target" {
-		t.Fatalf("ids = %v / %v", finalInput["appId"], finalInput["agentId"])
+	if finalInput["projectId"] != "app_target" || finalInput["agentId"] != "ag_target" {
+		t.Fatalf("ids = %v / %v", finalInput["projectId"], finalInput["agentId"])
 	}
 	if got := changePaths(changes); len(got) != 0 {
 		t.Fatalf("change paths = %#v, want none", got)
@@ -235,9 +235,9 @@ func TestPlanManifestUpdateResolvedIDsWinOverLocalManifestIDs(t *testing.T) {
 
 func TestPlanManifestUpdatePreservesRemoteValuesForRedactedLocalFields(t *testing.T) {
 	remote := map[string]any{
-		"agentId": "ag_123",
-		"appId":   "app_123",
-		"kind":    "cattle",
+		"agentId":   "ag_123",
+		"projectId": "app_123",
+		"kind":      "cattle",
 		"mcpServerIds": []any{
 			"mcp_1",
 		},
@@ -280,7 +280,7 @@ func TestPlanManifestUpdatePreservesRemoteValuesForRedactedLocalFields(t *testin
 func TestPlanManifestUpdateRejectsRedactedValuesInsideArrays(t *testing.T) {
 	remote := map[string]any{
 		"agentId":         "ag_123",
-		"appId":           "app_123",
+		"projectId":       "app_123",
 		"kind":            "cattle",
 		"mcpServerIds":    []any{},
 		"model":           "gpt-4.1",
@@ -324,7 +324,7 @@ func TestParseYAMLMapRejectsInvalidYAML(t *testing.T) {
 func TestValidateUpdateInputRejectsNilRequiredField(t *testing.T) {
 	input := map[string]any{
 		"agentId":         "ag_123",
-		"appId":           "app_123",
+		"projectId":       "app_123",
 		"kind":            "cattle",
 		"mcpServerIds":    []any{},
 		"model":           "gpt-4.1",
@@ -358,7 +358,7 @@ func TestRunDiffRejectsInvalidManifestBeforeNetwork(t *testing.T) {
 	root.SetArgs([]string{
 		"--hostname", srv.URL,
 		"agent", "manifest", "diff",
-		"--app-id", "app_1",
+		"--project-id", "app_1",
 		"--agent-id", "ag_1",
 		"--file", file,
 	})
@@ -393,7 +393,7 @@ func TestRunProbeRejectsRemoteMissingManifestData(t *testing.T) {
 	root.SetArgs([]string{
 		"--hostname", srv.URL,
 		"agent", "manifest", "probe",
-		"--app-id", "app_1",
+		"--project-id", "app_1",
 		"--agent-id", "ag_1",
 	})
 	err := root.Execute()
@@ -413,7 +413,7 @@ func TestRunApplyDryRunFetchesRemoteButDoesNotUpdate(t *testing.T) {
 			manifestHits++
 			return agentManifestResponse(map[string]any{
 				"agentId":         "ag_1",
-				"appId":           "app_1",
+				"projectId":       "app_1",
 				"kind":            "cattle",
 				"mcpServerIds":    []any{},
 				"model":           "gpt-4.1",
@@ -439,7 +439,7 @@ func TestRunApplyDryRunFetchesRemoteButDoesNotUpdate(t *testing.T) {
 	root.SetArgs([]string{
 		"--hostname", srv.URL,
 		"agent", "manifest", "apply",
-		"--app-id", "app_1",
+		"--project-id", "app_1",
 		"--agent-id", "ag_1",
 		"--file", file,
 		"--dry-run",
@@ -477,7 +477,7 @@ func TestRunApplySkipsUpdateWhenManifestIsCurrent(t *testing.T) {
 		case strings.Contains(query, "agentManifest"):
 			return agentManifestResponse(map[string]any{
 				"agentId":         "ag_1",
-				"appId":           "app_1",
+				"projectId":       "app_1",
 				"kind":            "cattle",
 				"mcpServerIds":    []any{},
 				"model":           "gpt-4.1",
@@ -503,7 +503,7 @@ func TestRunApplySkipsUpdateWhenManifestIsCurrent(t *testing.T) {
 	root.SetArgs([]string{
 		"--hostname", srv.URL,
 		"agent", "manifest", "apply",
-		"--app-id", "app_1",
+		"--project-id", "app_1",
 		"--agent-id", "ag_1",
 		"--file", file,
 	})
@@ -526,7 +526,7 @@ func TestRunApplySendsMergedUpdateInput(t *testing.T) {
 		case strings.Contains(query, "agentManifest"):
 			return agentManifestResponse(map[string]any{
 				"agentId":      "ag_1",
-				"appId":        "app_1",
+				"projectId":    "app_1",
 				"kind":         "cattle",
 				"mcpServerIds": []any{"mcp_1"},
 				"model":        "gpt-4.1",
@@ -559,7 +559,7 @@ func TestRunApplySendsMergedUpdateInput(t *testing.T) {
 	root.SetArgs([]string{
 		"--hostname", srv.URL,
 		"agent", "manifest", "apply",
-		"--app-id", "app_1",
+		"--project-id", "app_1",
 		"--agent-id", "ag_1",
 		"--file", file,
 		"--json",
@@ -633,8 +633,8 @@ func TestPlanManifestUpdateRoundTripsExportedManifest(t *testing.T) {
 	if got := changePaths(changes); len(got) != 0 {
 		t.Fatalf("change paths = %#v, want none", got)
 	}
-	if finalInput["appId"] != "app_123" || finalInput["agentId"] != "ag_123" {
-		t.Fatalf("ids = %v / %v", finalInput["appId"], finalInput["agentId"])
+	if finalInput["projectId"] != "app_123" || finalInput["agentId"] != "ag_123" {
+		t.Fatalf("ids = %v / %v", finalInput["projectId"], finalInput["agentId"])
 	}
 	if got := finalInput["skillIds"]; !reflect.DeepEqual(got, []any{}) {
 		t.Fatalf("skillIds = %#v", got)

@@ -34,7 +34,7 @@ func Install(root *cobra.Command) error {
 }
 
 type uploadOptions struct {
-	appID     string
+	projectID string
 	file      string
 	githubURL string
 	skillID   string
@@ -74,7 +74,7 @@ func newPackageCommand() *cobra.Command {
 		Use:     "package",
 		Short:   "Create or update a skill package upload",
 		Long:    "Create or update a skill package by uploading a local package file or by passing a GitHub URL.",
-		Example: "mosoo console-rest skills package --app-id <app-id> --file ./mosoo-skill.zip -o json",
+		Example: "mosoo console-rest skills package --project-id <project-id> --file ./mosoo-skill.zip -o json",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if err := opts.validate(true); err != nil {
 				return err
@@ -92,10 +92,10 @@ func newPackageCommand() *cobra.Command {
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVar(&opts.appID, "app-id", "", "App ID that owns the skill. (form, required, ulid)")
+	flags.StringVar(&opts.projectID, "project-id", "", "Project ID that owns the skill. (form, required, ulid)")
 	flags.StringVar(&opts.skillID, "skill-id", "", "Existing skill ID to update. (form, ulid)")
 	addSourceFlags(cmd, &opts)
-	_ = cmd.MarkFlagRequired("app-id")
+	_ = cmd.MarkFlagRequired("project-id")
 	latheruntime.AttachCatalogCommand(cmd, "console-rest", packageCatalogSpec(cmd))
 	return cmd
 }
@@ -106,9 +106,9 @@ func addSourceFlags(cmd *cobra.Command, opts *uploadOptions) {
 	flags.StringVar(&opts.githubURL, "github-url", "", "GitHub URL for the skill package source")
 }
 
-func (o uploadOptions) validate(requireApp bool) error {
-	if requireApp && strings.TrimSpace(o.appID) == "" {
-		return fmt.Errorf("--app-id is required")
+func (o uploadOptions) validate(requireProject bool) error {
+	if requireProject && strings.TrimSpace(o.projectID) == "" {
+		return fmt.Errorf("--project-id is required")
 	}
 	hasFile := strings.TrimSpace(o.file) != ""
 	hasURL := strings.TrimSpace(o.githubURL) != ""
@@ -139,7 +139,7 @@ func packageCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
 	spec.Long = cmd.Long
 	spec.Example = cmd.Example
 	spec.Params = []latheruntime.ParamSpec{
-		{Name: "appId", Flag: "app-id", In: latheruntime.InFormData, GoType: "string", Help: "App ID that owns the skill. (form, required, ulid)", Required: true, Format: "ulid"},
+		{Name: "projectId", Flag: "project-id", In: latheruntime.InFormData, GoType: "string", Help: "Project ID that owns the skill. (form, required, ulid)", Required: true, Format: "ulid"},
 		{Name: "skillId", Flag: "skill-id", In: latheruntime.InFormData, GoType: "string", Help: "Existing skill ID to update. (form, ulid)", Format: "ulid"},
 		{Name: "file", Flag: "file", In: latheruntime.InFormData, GoType: "string", Help: "Skill package file path (.zip, .skill, or SKILL.md)"},
 		{Name: "githubUrl", Flag: "github-url", In: latheruntime.InFormData, GoType: "string", Help: "GitHub URL for the skill package source"},
@@ -151,7 +151,7 @@ func packageCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
 func skillKnownErrors() []latheruntime.KnownError {
 	return []latheruntime.KnownError{
 		{Status: http.StatusBadRequest, Cause: "Invalid package source, malformed multipart form, or unsupported skill package layout."},
-		{Status: http.StatusUnauthorized, Cause: "Missing, invalid, or revoked personal access token."},
+		{Status: http.StatusUnauthorized, Cause: "Missing, invalid, or revoked credential. Run mosoo auth login again."},
 	}
 }
 

@@ -28,7 +28,7 @@ Use `--target local` or `--target cloud` when one of the built-in targets is the
 intended runtime:
 
 ```sh
-mosoo --target local -o json console apps app-list \
+mosoo --target local -o json console projects project-list \
   --organization-id <organization-id>
 ```
 
@@ -37,7 +37,7 @@ Pass the service root. The CLI derives `/api` and `/api/v1` from it:
 
 ```sh
 mosoo --target custom --base-url http://127.0.0.1:8787 -o json \
-  console apps app-list --organization-id <organization-id>
+  console projects project-list --organization-id <organization-id>
 ```
 
 ## Exact Surface Host
@@ -47,7 +47,7 @@ the full surface host, not the service root:
 
 ```sh
 mosoo --hostname http://127.0.0.1:8787/api -o json \
-  console apps app-list --organization-id <organization-id>
+  console projects project-list --organization-id <organization-id>
 
 mosoo --hostname http://127.0.0.1:8787/api/v1 -o json \
   public-thread-api threads create --agent-id <agent-id> --file body.json
@@ -61,7 +61,7 @@ another surface:
 
 ```sh
 MOSOO_HOST=http://127.0.0.1:8787/api \
-  mosoo -o json console apps app-list --organization-id <organization-id>
+  mosoo -o json console projects project-list --organization-id <organization-id>
 ```
 
 ## Preflight Checks
@@ -70,6 +70,6 @@ Before running a copied command, inspect the command metadata and auth state for
 the surface that will be used:
 
 ```sh
-mosoo commands show console apps app-list --json
+mosoo commands show console projects project-list --json
 mosoo doctor --json
 ```

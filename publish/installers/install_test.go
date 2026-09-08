@@ -42,7 +42,7 @@ token="$(cat)"
 	cmd.Env = append(os.Environ(),
 		"HOME="+tempDir,
 		"MOSOO_BIN_DIR="+binDir,
-		"MOSOO_API_TOKEN=installer-token",
+		"MOSOO_CLI_TOKEN=mcli_installer-token",
 		"MOSOO_FAKE_LOG="+logPath,
 	)
 	out, err := cmd.CombinedOutput()
@@ -64,7 +64,7 @@ token="$(cat)"
 	if strings.Contains(got, "/api/v1") {
 		t.Fatalf("installer should not call auth login for /api/v1 directly:\n%s", got)
 	}
-	if !strings.Contains(got, "STDIN:installer-token") {
+	if !strings.Contains(got, "STDIN:mcli_installer-token") {
 		t.Fatalf("token was not passed on stdin:\n%s", got)
 	}
 }
@@ -73,11 +73,11 @@ func TestInstallerLoginStoresTokenForConsoleAndPublicAPI(t *testing.T) {
 	var hits int
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		hits++
-		if r.URL.Path != "/api/access-tokens" {
+		if r.URL.Path != "/api/auth/cli/session" {
 			http.NotFound(w, r)
 			return
 		}
-		if got := r.Header.Get("Authorization"); got != "Bearer installer-token" {
+		if got := r.Header.Get("Authorization"); got != "Bearer mcli_installer-token" {
 			http.Error(w, "bad auth", http.StatusUnauthorized)
 			return
 		}
@@ -108,7 +108,7 @@ func TestInstallerLoginStoresTokenForConsoleAndPublicAPI(t *testing.T) {
 		"HOME="+tempDir,
 		"MOSOO_BIN_DIR="+binDir,
 		"MOSOO_CONFIG_DIR="+configDir,
-		"MOSOO_API_TOKEN=installer-token",
+		"MOSOO_CLI_TOKEN=mcli_installer-token",
 	)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -117,13 +117,89 @@ func TestInstallerLoginStoresTokenForConsoleAndPublicAPI(t *testing.T) {
 	if hits != 1 {
 		t.Fatalf("validation requests = %d, want 1", hits)
 	}
-	assertCredentialToken(t, configDir, srv.URL+"/api", "installer-token")
-	assertCredentialToken(t, configDir, srv.URL+"/api/v1", "installer-token")
+	assertCredentialToken(t, configDir, srv.URL+"/api", "mcli_installer-token")
+	assertCredentialToken(t, configDir, srv.URL+"/api/v1", "mcli_installer-token")
+}
+
+func TestLocalInstallerAuthorizesDeviceFlowInsteadOfCreatingAPIKey(t *testing.T) {
+	var paths []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		paths = append(paths, r.URL.Path)
+		w.Header().Set("Content-Type", "application/json")
+		switch r.URL.Path {
+		case "/api/auth/development-backdoor/mosoo-ai-login":
+			http.SetCookie(w, &http.Cookie{Name: "session", Value: "local-user", Path: "/"})
+			_, _ = w.Write([]byte(`{"ok":true}`))
+		case "/api/auth/cli/start":
+			_, _ = w.Write([]byte(`{"device_code":"device-test","user_code":"ABCD-EFGH"}`))
+		case "/api/auth/cli/confirm":
+			cookie, err := r.Cookie("session")
+			if err != nil || cookie.Value != "local-user" {
+				t.Error("confirmation did not use the local browser session")
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			var body map[string]string
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body["user_code"] != "ABCD-EFGH" {
+				t.Errorf("confirmation body = %#v (%v)", body, err)
+			}
+			_, _ = w.Write([]byte(`{"status":"authorized"}`))
+		case "/api/auth/cli/token":
+			var body map[string]string
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body["device_code"] != "device-test" {
+				t.Errorf("exchange body = %#v (%v)", body, err)
+			}
+			_, _ = w.Write([]byte(`{"status":"authorized","access_token":"mcli_local-install"}`))
+		case "/api/auth/cli/session":
+			if r.Header.Get("Authorization") != "Bearer mcli_local-install" {
+				t.Error("validation did not use the exchanged CLI credential")
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			_, _ = w.Write([]byte(`{"user":{"email":"dev@mosoo.ai"}}`))
+		default:
+			t.Errorf("unexpected endpoint %s", r.URL.Path)
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+	tempDir := t.TempDir()
+	binDir := filepath.Join(tempDir, "bin")
+	if err := os.MkdirAll(binDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	build := exec.Command("go", "build", "-o", filepath.Join(binDir, "mosoo"), "../../cmd/mosoo")
+	if out, err := build.CombinedOutput(); err != nil {
+		t.Fatalf("build mosoo: %v\n%s", err, out)
+	}
+	configDir := filepath.Join(tempDir, "config")
+	cmd := exec.Command("bash", "install.sh", "--no-cli", "--no-skill", "--no-doctor", "--target", "local", "--base-url", srv.URL, "--yes")
+	temporaryDir := filepath.Join(tempDir, "temporary")
+	if err := os.MkdirAll(temporaryDir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	cmd.Env = append(os.Environ(), "HOME="+tempDir, "MOSOO_BIN_DIR="+binDir, "MOSOO_CONFIG_DIR="+configDir, "TMPDIR="+temporaryDir)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("installer failed: %v\n%s", err, out)
+	}
+	if len(paths) != 5 {
+		t.Fatalf("requests = %v, want login/start/confirm/token/session", paths)
+	}
+	if strings.Contains(string(out), "mcli_local-install") || strings.Contains(string(out), "device-test") {
+		t.Fatal("installer printed a secret")
+	}
+	assertCredentialToken(t, configDir, srv.URL+"/api", "mcli_local-install")
+	assertCredentialToken(t, configDir, srv.URL+"/api/v1", "mcli_local-install")
+	entries, err := os.ReadDir(temporaryDir)
+	if err != nil || len(entries) != 0 {
+		t.Fatalf("installer left temporary credential files: %v (%v)", entries, err)
+	}
 }
 
 func TestInstallerWriteConfigProbesBeforeSaving(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/api/access-tokens" {
+		if r.URL.Path != "/api/auth/cli/session" {
 			http.NotFound(w, r)
 			return
 		}

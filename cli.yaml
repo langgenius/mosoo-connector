@@ -10,7 +10,9 @@ auth:
     token_path: /auth/cli/token
   validate:
     method: GET
-    path: /access-tokens
+    path: /auth/cli/session
+    display:
+      username_field: user.email
 
 update:
   github:

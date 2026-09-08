@@ -1,12 +1,12 @@
 commands:
   create:
     example: |
-      mosoo console-rest access create --set label="ci"
+      mosoo console-rest access create --set projectId=<project-id> --set label="ci"
     notes:
-      - "Creates a personal access token. The secret value is returned once."
+      - "Creates a Project API key. Authenticate through mosoo auth login first; the secret value is returned once."
   list:
     example: |
-      mosoo console-rest access list
+      mosoo console-rest access list --project-id <project-id>
   revoke:
     example: |
       mosoo console-rest access revoke --token-id <token-id>

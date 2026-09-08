@@ -31,7 +31,7 @@ type OpenApiPaths = Record<string, Partial<Record<HttpMethod, OpenApiOperation>>
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, "..");
 const outputPath = resolve(repositoryRoot, ".cache/mosoo/docs/openapi/console-rest.openapi.json");
-const EXAMPLE_APP_ID = "01J00000000000000000000001";
+const EXAMPLE_PROJECT_ID = "01J00000000000000000000001";
 const EXAMPLE_FILE_ID = "01J0000000000000000000000J";
 const EXAMPLE_TOKEN_ID = "01J0000000000000000000000T";
 
@@ -79,11 +79,21 @@ const paths: OpenApiPaths = {
 	"/access-tokens": {
 		get: {
 			operationId: "AccessTokens_List",
-			summary: "List personal access tokens",
+			summary: "List Project API keys",
 			description:
-				"Lists active personal access tokens for the authenticated account. Today this route accepts a viewer session cookie; Bearer PAT support is planned.",
+				"Lists active API keys for one owned Project. Requires an account browser session or a CLI login credential (mcli_...). Project API keys cannot manage keys.",
 			tags: ["Access Tokens"],
 			security: bearerSecurity,
+			parameters: [
+				{
+					description: "Project whose API keys are being managed.",
+					example: EXAMPLE_PROJECT_ID,
+					in: "query",
+					name: "projectId",
+					required: true,
+					schema: ulidSchema(EXAMPLE_PROJECT_ID),
+				},
+			],
 			responses: {
 				"200": jsonResponse("Token list.", {
 					type: "object",
@@ -96,9 +106,9 @@ const paths: OpenApiPaths = {
 		},
 		post: {
 			operationId: "AccessTokens_Create",
-			summary: "Create a personal access token",
+			summary: "Create a Project API key",
 			description:
-				"Creates a new mosoo access token (mst_...) for CLI and API use. Today this route accepts a viewer session cookie; Bearer PAT support is planned.",
+				"Creates an API key (msp_...) for one owned Project. Requires an account browser session or a CLI login credential (mcli_...). The secret value is returned once.",
 			tags: ["Access Tokens"],
 			security: bearerSecurity,
 			requestBody: {
@@ -107,8 +117,9 @@ const paths: OpenApiPaths = {
 					"application/json": {
 						schema: {
 							type: "object",
-							required: ["label"],
+							required: ["label", "projectId"],
 							properties: {
+								projectId: ulidSchema(EXAMPLE_PROJECT_ID),
 								label: {
 									type: "string",
 									description: "Human-readable label for the token.",
@@ -128,12 +139,14 @@ const paths: OpenApiPaths = {
 	"/access-tokens/{tokenId}": {
 		delete: {
 			operationId: "AccessTokens_Revoke",
-			summary: "Revoke a personal access token",
+			summary: "Revoke a Project API key",
+			description:
+				"Revokes an owned Project API key. Requires account authentication. Running tasks continue; subsequent requests using the revoked key are rejected.",
 			tags: ["Access Tokens"],
 			security: bearerSecurity,
 			parameters: [
 				platformIdPathParameter({
-					description: "Personal access token ID.",
+					description: "Project API key ID.",
 					example: EXAMPLE_TOKEN_ID,
 					name: "tokenId",
 				}),
@@ -150,17 +163,17 @@ const paths: OpenApiPaths = {
 	"/files": {
 		get: {
 			operationId: "Files_List",
-			summary: "List files for an app or session",
+			summary: "List files for a Project or session",
 			tags: ["Files"],
 			security: bearerSecurity,
 			parameters: [
 				{
-					description: "App ID that owns the files.",
-					example: EXAMPLE_APP_ID,
+					description: "Project ID that owns the files.",
+					example: EXAMPLE_PROJECT_ID,
 					in: "query",
-					name: "appId",
+					name: "projectId",
 					required: true,
-					schema: ulidSchema(EXAMPLE_APP_ID),
+					schema: ulidSchema(EXAMPLE_PROJECT_ID),
 				},
 				{
 					description: "Optional session ID filter.",
@@ -207,7 +220,7 @@ const paths: OpenApiPaths = {
 									required: ["kind"],
 									properties: {
 										kind: { enum: ["session"], type: "string" },
-										appId: ulidSchema(EXAMPLE_APP_ID),
+										projectId: ulidSchema(EXAMPLE_PROJECT_ID),
 										sessionId: ulidSchema(EXAMPLE_FILE_ID),
 										sessionKind: { enum: ["artifact", "attachment"], type: "string" },
 									},
@@ -488,9 +501,9 @@ const paths: OpenApiPaths = {
 					"multipart/form-data": {
 						schema: {
 							type: "object",
-							required: ["appId"],
+							required: ["projectId"],
 							properties: {
-								appId: ulidSchema(EXAMPLE_APP_ID),
+								projectId: ulidSchema(EXAMPLE_PROJECT_ID),
 								skillId: ulidSchema(EXAMPLE_FILE_ID),
 								file: { type: "string", format: "binary" },
 								githubUrl: { type: "string" },
@@ -518,12 +531,12 @@ const paths: OpenApiPaths = {
 					name: "skillId",
 				}),
 				{
-					description: "App ID that owns the skill.",
-					example: EXAMPLE_APP_ID,
+					description: "Project ID that owns the skill.",
+					example: EXAMPLE_PROJECT_ID,
 					in: "query",
-					name: "appId",
+					name: "projectId",
 					required: true,
-					schema: ulidSchema(EXAMPLE_APP_ID),
+					schema: ulidSchema(EXAMPLE_PROJECT_ID),
 				},
 			],
 			responses: {
@@ -550,12 +563,12 @@ const paths: OpenApiPaths = {
 					name: "skillId",
 				}),
 				{
-					description: "App ID that owns the skill.",
-					example: EXAMPLE_APP_ID,
+					description: "Project ID that owns the skill.",
+					example: EXAMPLE_PROJECT_ID,
 					in: "query",
-					name: "appId",
+					name: "projectId",
 					required: true,
-					schema: ulidSchema(EXAMPLE_APP_ID),
+					schema: ulidSchema(EXAMPLE_PROJECT_ID),
 				},
 			],
 			responses: {
@@ -589,7 +602,7 @@ const document = {
 				scheme: "bearer",
 				bearerFormat: "mosoo Access Token or viewer session",
 				description:
-					"Send Authorization: Bearer mst_... for PAT-authenticated calls. Some routes still require a viewer session cookie until PAT support lands on these paths.",
+					"Send Authorization: Bearer mcli_... for account-level Console operations. Project API keys (msp_...) are restricted to supported Agent, execution, and file operations within their Project and cannot manage API keys.",
 			},
 		},
 	},

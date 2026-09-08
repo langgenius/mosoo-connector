@@ -257,27 +257,40 @@ Failure entries include stable `code` and `action` fields so automation can
 branch without parsing human messages.
 
 For local development targets, the installer can sign in through the local development
-backdoor with an `@mosoo.ai` email, create a personal access token, and write the
-CLI credentials for both hostname bases. This only works against a loopback mosoo
+backdoor with an `@mosoo.ai` email, authorize a CLI device flow, and write the
+account login credentials for both hostname bases. This only works against a loopback mosoo
 API with the development backdoor enabled.
 
-For cloud and custom targets, sign in at `https://cloud.mosoo.ai` or the configured
-web app, use a mosoo API token from that logged-in web session, then run
-`mosoo auth login`. `--hostname` remains available as an advanced override for
-one-off host selection.
-The generated `mosoo console-rest access create` command maps to `POST /access-tokens`,
-but it still needs viewer-level authentication; it is not a first-login mechanism by itself.
+Run `mosoo auth login` for browser authorization. The resulting `mcli_` credential
+grants account access, including operations across your Projects. `--hostname`
+remains available for one-off host selection. Non-interactive installers can use
+an existing account credential through `MOSOO_CLI_TOKEN`.
+
+Application backends use Project API keys (`msp_`). Each key permits Agent
+configuration, execution, and files within one Project. It cannot create or delete
+Projects, manage API keys, or access another Project. After account login, create
+or list keys with:
+
+```sh
+mosoo console-rest access create --set projectId=<project-id> --set label="backend" -o json
+mosoo console-rest access list --project-id <project-id> -o json
+```
+
+Legacy `mst_` and `grt_pat_` credentials no longer work after the Project key
+upgrade. Run `mosoo auth login` again for CLI access. For deployed integrations,
+create a key under the matching Project and replace the old secret. Revoking a
+Project key blocks later requests while existing tasks continue.
 
 ## Common commands
 
 ```sh
 mosoo console user viewer
-mosoo ls --app-limit 20 --agent-limit 20 --credential-limit 20 -o json
-mosoo add-key --input-app-id <app-id> --input-vendor-id openai --input-name OpenAI --input-api-key-env OPENAI_API_KEY -o json
+mosoo ls --project-limit 20 --agent-limit 20 --credential-limit 20 -o json
+mosoo add-key --input-project-id <project-id> --input-vendor-id openai --input-name OpenAI --input-api-key-env OPENAI_API_KEY -o json
 mosoo create-agent --file agent-create.json -o json
-mosoo console agents publish --input-app-id <app-id> --input-agent-id <agent-id> -o json
-mosoo run --input-app-id <app-id> --input-agent-id <agent-id> --input-prompt "Summarize this repository" -o json
-mosoo console sessions events --app-id <app-id> --session-id <session-id> --limit 100 -o json
+mosoo console agents publish --input-project-id <project-id> --input-agent-id <agent-id> -o json
+mosoo run --input-project-id <project-id> --input-agent-id <agent-id> --input-prompt "Summarize this repository" -o json
+mosoo console sessions events --project-id <project-id> --session-id <session-id> --limit 100 -o json
 mosoo search "run agent" --json
 mosoo commands show run --json
 ```

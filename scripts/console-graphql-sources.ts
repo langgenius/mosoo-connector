@@ -1,6 +1,6 @@
 import {
 	agentGraphQLSpec,
-	appGraphQLSpec,
+	projectGraphQLSpec,
 	commonGraphQLSpec,
 	costGraphQLSpec,
 	environmentGraphQLSpec,
@@ -25,7 +25,7 @@ export const moduleGroups: { group: string; spec: { queryFields?: string[]; muta
 	{ group: "Files", spec: fileGraphQLSpec },
 	{ group: "MCP", spec: mcpGraphQLSpec },
 	{ group: "Onboarding", spec: onboardingGraphQLSpec },
-	{ group: "Apps", spec: appGraphQLSpec },
+	{ group: "Projects", spec: projectGraphQLSpec },
 	{ group: "Sessions", spec: sessionGraphQLSpec },
 	{ group: "Skills", spec: skillGraphQLSpec },
 	{ group: "User", spec: userGraphQLSpec },

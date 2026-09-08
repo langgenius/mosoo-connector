@@ -43,7 +43,7 @@ func newEnvCommand() *cobra.Command {
 	envCmd := &cobra.Command{
 		Use:   "env",
 		Short: "Export or write public Agent API environment values",
-		Long:  "Export or write MOSOO_API_BASE, MOSOO_AGENT_ID, and MOSOO_API_TOKEN for backend and Worker integrations. If no token is provided, the logged-in Public API host token is used. Token values are redacted in terminal output.",
+		Long:  "Export or write MOSOO_API_BASE, MOSOO_AGENT_ID, and MOSOO_API_TOKEN for backend and Worker integrations. Supply a Project API key (msp_...) from the Agent's Project. Account login credentials cannot be exported. Token values are redacted in terminal output.",
 	}
 
 	exportOpts := &envCommandOptions{}
@@ -98,7 +98,7 @@ func newEnvCommand() *cobra.Command {
 func addEnvValueFlags(cmd *cobra.Command, opts *envCommandOptions) {
 	cmd.Flags().StringVar(&opts.apiBase, "api-base", "", "Public API base URL (defaults to MOSOO_API_BASE or the resolved target public API host)")
 	cmd.Flags().StringVar(&opts.agentID, "agent-id", "", "Published mosoo Agent ID (defaults to MOSOO_AGENT_ID)")
-	cmd.Flags().StringVar(&opts.apiToken, "api-token", "", "mosoo API token (defaults to MOSOO_API_TOKEN or the logged-in Public API host token)")
+	cmd.Flags().StringVar(&opts.apiToken, "api-token", "", "Project API key (msp_...; defaults to MOSOO_API_TOKEN)")
 	cmd.Flags().BoolVar(&opts.json, "json", false, "Print machine-readable JSON")
 }
 
@@ -155,6 +155,9 @@ func validateEnvValues(values envValues) error {
 	}
 	if len(missing) > 0 {
 		return fmt.Errorf("missing %s", strings.Join(missing, " and "))
+	}
+	if !strings.HasPrefix(values.APIToken, "msp_") {
+		return fmt.Errorf("backend integrations require a Project API key (msp_...); create one in the Agent's Project and supply --api-token or %s", apiTokenEnv)
 	}
 	for name, value := range map[string]string{
 		apiBaseEnv:  values.APIBase,
