@@ -167,7 +167,7 @@ indexes, not as the top-level mosoo Skill.
 ## Command layout
 
 `cli.command_path` is `namespaced`: every generated command lives under its source module
-(`console`, `console-rest`, or `public-thread-api`). Root-level flat mounting is not used
+(`console`, `console-rest`, `public-thread-api`, or `public-thread-api-v2`). Root-level flat mounting is not used
 because the CLI ships three API surfaces.
 
 Help text, examples, and error hints for generated commands come from `overlays/*.yaml`
@@ -182,16 +182,43 @@ reported in the generated command catalog.
 
 ## Hostnames and auth
 
-Three API surfaces share one deployment but use different URL bases:
+Four API modules share one deployment but use different URL bases:
 
 | CLI module | Default hostname (from `MOSOO_HOST_BASE`) | Example paths |
 |------------|-------------------------------------------|---------------|
 | `console`, `console-rest` | `{base}/api` | `/graphql`, `/access-tokens`, `/files` |
-| `public-thread-api` | `{base}/api/v1` | `/agents/{id}/files`, `/agents/{id}/threads`, `/threads/{id}/events` |
+| `public-thread-api` | `{base}/api/v1` | Published-Agent compatibility API; `userId` required |
+| `public-thread-api-v2` | `{base}/api/v2` | Saved-private Agent invocation, optional `userId`, persisted `/threads/{id}/usage` |
 
 Generated specs carry baked fallback hostnames from codegen (`MOSOO_HOST_BASE`).
 Normal mosoo commands resolve a target before using those fallbacks. Override
 any command with `--hostname` or `$MOSOO_HOST`.
+
+## Saved-private Agent sessions (v2)
+
+Use a deployment that advertises `GET /api/v2/openapi.json`; v2 is undergoing
+staging acceptance and is not yet a production availability promise. The CLI
+keeps the existing v1 commands unchanged and exposes v2 explicitly:
+
+```sh
+mosoo --target custom --base-url <service-origin> public-thread-api-v2 threads create --agent-id <saved-agent-id> --idempotency-key <stable-key> -o json
+mosoo --target custom --base-url <service-origin> public-thread-api-v2 events send --thread-id <thread-id> --file events.json --idempotency-key <new-turn-key> -o json
+mosoo --target custom --base-url <service-origin> public-thread-api-v2 events wait --thread-id <thread-id> --final-output
+mosoo --target custom --base-url <service-origin> public-thread-api-v2 threads usage --thread-id <thread-id> --limit 100 -o json
+```
+
+Creation without a body creates an idle Thread with `userId: null`; it does not
+queue model work. Each new Thread freezes the saved configuration. Later Agent
+edits affect new Threads. Provider credentials must already be configured in
+the Project; this feature does not grant platform-funded inference.
+
+All existing file upload, wait and transcript helpers work under both modules.
+Usage preserves `null` for unreported values; `reportedCostUsd` is a runtime
+estimate, not an invoice. Pass `nextCursor` as `--after` to paginate. Keep the
+same idempotency key for a retry with an unchanged body, and a new key for a new
+turn. Run `mosoo auth login` for the chosen target once after upgrading to add the
+v2 credential. Configure Project keys against the explicit v2 hostname.
+API commands never recreate credentials removed by logout.
 
 ## Target resolution
 

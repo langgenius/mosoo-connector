@@ -7,12 +7,14 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strings"
 	"sync/atomic"
 	"testing"
 
 	generatedthreads "github.com/langgenius/mosoo-connector/internal/generated/threads"
+	generatedthreadsv2 "github.com/langgenius/mosoo-connector/internal/generated/threadsv2"
 	latheruntime "github.com/lathe-cli/lathe/pkg/runtime"
 	"github.com/spf13/cobra"
 )
@@ -382,5 +384,88 @@ func TestRetrieveDecodesAPIError(t *testing.T) {
 	}
 	if apiErr.Code != "not_found" {
 		t.Fatalf("code = %q", apiErr.Code)
+	}
+}
+
+func TestV2CreateWithoutUserIDAndUsagePreserveWireValues(t *testing.T) {
+	var requests []string
+	const id = "01J00000000000000000000009"
+	const usage = `{"usage":[{"id":"01J00000000000000000000010","runId":"01J00000000000000000000011","provider":"anthropic","model":"test-model","status":"completed","inputTokens":null,"outputTokens":17,"cacheReadTokens":null,"cacheCreationTokens":null,"reportedCostUsd":null,"usageContract":null}],"nextCursor":"01J00000000000000000000010"}`
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests = append(requests, r.Method+" "+r.URL.RequestURI())
+		if r.Header.Get("Authorization") != "Bearer test-token" {
+			t.Error("missing authorization")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method == "POST" {
+			var body map[string]any
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				t.Error(err)
+			}
+			if len(body) != 0 {
+				t.Errorf("unexpected create body: %v", body)
+			}
+			if r.Header.Get("Idempotency-Key") != "same-input" {
+				t.Error("lost idempotency key")
+			}
+			w.Write([]byte(`{"thread":{"id":"` + id + `","userId":null,"status":"IDLE"},"run":null}`))
+			return
+		}
+		w.Write([]byte(usage))
+	}))
+	defer srv.Close()
+	for _, args := range [][]string{
+		{"threads", "create", "--agent-id", id, "--idempotency-key", "same-input"},
+		{"threads", "usage", "--thread-id", id, "--after", "01J00000000000000000000008", "--limit", "2"},
+	} {
+		root, out := newTestRoot(t, srv.URL+"/api/v2")
+		root.AddGroup(&cobra.Group{ID: "modules", Title: "API modules"})
+		if err := generatedthreadsv2.Mount(root); err != nil {
+			t.Fatal(err)
+		}
+		if err := InstallV2(root, generatedthreadsv2.Specs); err != nil {
+			t.Fatal(err)
+		}
+		root.SetArgs(runArgs(srv.URL+"/api/v2", append([]string{"public-thread-api-v2"}, append(args, "-o", "json")...)...))
+		if err := root.Execute(); err != nil {
+			t.Fatal(err)
+		}
+		var got map[string]any
+		if err := json.Unmarshal(out.Bytes(), &got); err != nil {
+			t.Fatal(err)
+		}
+		if args[1] == "usage" {
+			var want map[string]any
+			json.Unmarshal([]byte(usage), &want)
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("usage changed: %s", out.String())
+			}
+		}
+	}
+	if !reflect.DeepEqual(requests, []string{"POST /api/v2/agents/" + id + "/threads", "GET /api/v2/threads/" + id + "/usage?after=01J00000000000000000000008&limit=2"}) {
+		t.Fatalf("requests = %v", requests)
+	}
+}
+
+func TestV2PausedWaitSuggestsV2Continuation(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"thread":{"id":"t1"},"run":{"id":"r1","status":"waiting_input"}}`))
+	}))
+	defer srv.Close()
+	root, out := newTestRoot(t, srv.URL+"/api/v2")
+	root.AddGroup(&cobra.Group{ID: "modules", Title: "API modules"})
+	if err := generatedthreadsv2.Mount(root); err != nil {
+		t.Fatal(err)
+	}
+	if err := InstallV2(root, generatedthreadsv2.Specs); err != nil {
+		t.Fatal(err)
+	}
+	root.SetArgs(runArgs(srv.URL+"/api/v2", "public-thread-api-v2", "events", "wait", "--thread-id", "t1"))
+	if err := root.Execute(); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out.String(), "mosoo public-thread-api-v2 events send") {
+		t.Fatalf("wrong continuation: %s", out.String())
 	}
 }

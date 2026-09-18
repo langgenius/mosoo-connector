@@ -16,6 +16,10 @@ import (
 // userId. The merge mirrors Lathe's dotted-path semantics (object fields, array
 // indices, and type inference for --set; forced strings for --set-str).
 func buildCreateBody(file string, sets, stringSets []string) ([]byte, error) {
+	return buildCreateBodyForVersion(file, sets, stringSets, "v1")
+}
+
+func buildCreateBodyForVersion(file string, sets, stringSets []string, version string) ([]byte, error) {
 	if len(sets) > 0 || len(stringSets) > 0 {
 		out := map[string]any{}
 		for _, kv := range sets {
@@ -40,19 +44,26 @@ func buildCreateBody(file string, sets, stringSets []string) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		return body, validateCreateBody(body)
+		return body, validateCreateBodyForVersion(body, version)
 	}
 	if file != "" {
 		body, err := latheruntime.ReadBody(file)
 		if err != nil {
 			return nil, err
 		}
-		return body, validateCreateBody(body)
+		return body, validateCreateBodyForVersion(body, version)
+	}
+	if version == "v2" {
+		return []byte("{}"), nil
 	}
 	return nil, fmt.Errorf("create thread body is required and must include userId")
 }
 
 func validateCreateBody(body []byte) error {
+	return validateCreateBodyForVersion(body, "v1")
+}
+
+func validateCreateBodyForVersion(body []byte, version string) error {
 	if len(strings.TrimSpace(string(body))) == 0 {
 		return fmt.Errorf("create thread body is required and must include userId")
 	}
@@ -61,7 +72,13 @@ func validateCreateBody(body []byte) error {
 	if err := json.Unmarshal(body, &document); err != nil {
 		return fmt.Errorf("create thread body must be a JSON object: %w", err)
 	}
+	if document == nil {
+		return fmt.Errorf("create thread body must be a JSON object")
+	}
 	userID, ok := document["userId"]
+	if !ok && version == "v2" {
+		return nil
+	}
 	if !ok {
 		return fmt.Errorf("create thread body must include userId")
 	}

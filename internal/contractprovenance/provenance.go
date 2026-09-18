@@ -12,10 +12,11 @@ type OpenAPI struct {
 }
 
 type Info struct {
-	SchemaVersion       int     `json:"schemaVersion"`
-	Repository          string  `json:"repository"`
-	UpstreamCommit      string  `json:"upstreamCommit"`
-	PublicThreadOpenAPI OpenAPI `json:"publicThreadOpenAPI"`
+	SchemaVersion         int     `json:"schemaVersion"`
+	Repository            string  `json:"repository"`
+	UpstreamCommit        string  `json:"upstreamCommit"`
+	PublicThreadOpenAPIV2 OpenAPI `json:"publicThreadOpenAPIV2"`
+	PublicThreadOpenAPI   OpenAPI `json:"publicThreadOpenAPI"`
 }
 
 //go:embed provenance.json

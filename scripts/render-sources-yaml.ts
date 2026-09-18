@@ -56,6 +56,15 @@ const sourcesYaml = `sources:
     openapi3:
       files:
         - docs/openapi/public-thread-api.openapi.json
+  threadsv2:
+    display_name: public-thread-api-v2
+    default_hostname: ${hostBase}/api/v2
+    repo_url: ${repoURL}
+    pinned_tag: ${pinnedTag}
+    backend: openapi3
+    openapi3:
+      files:
+        - docs/openapi/public-thread-api.v2.openapi.json
   console:
     display_name: console
     default_hostname: ${consoleDefaultHostname}
@@ -84,6 +93,7 @@ ${yamlGroupRules("        ")}
 
 const syncStates = [
 	["threads", "docs/openapi"],
+	["threadsv2", "docs/openapi"],
 	["console", "docs/graphql"],
 	["consolerest", "docs/openapi"],
 ] as const;
@@ -99,5 +109,5 @@ for (const [source, specDir] of syncStates) {
 }
 await writeFile(resolve(repositoryRoot, "specs/sources.yaml"), sourcesYaml, "utf8");
 console.log(
-	`wrote specs/sources.yaml (${queries.length} queries, ${mutations.length} mutations, ${groups.length} groups, 3 sources)`,
+	`wrote specs/sources.yaml (${queries.length} queries, ${mutations.length} mutations, ${groups.length} groups, 4 sources)`,
 );

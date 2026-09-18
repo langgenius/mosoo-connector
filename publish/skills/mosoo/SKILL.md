@@ -2,7 +2,7 @@
 name: mosoo
 description: >
   Use when a coding agent needs to work with mosoo setup, local or cloud runtime
-  state, mosoo CLI operations, or app integration with a published mosoo Agent.
+  state, mosoo CLI operations, or app integration with a saved or published mosoo Agent.
 ---
 
 # mosoo
@@ -14,7 +14,7 @@ separate agent runtime.
 
 1. Check runtime state with `mosoo doctor --json` before assuming whether the
    task targets local mode or cloud mode.
-2. For application code that calls an already published mosoo Agent, read
+2. For application code that calls an existing mosoo Agent, read
    `references/api.md`.
 3. When a Skill declares runtime packages, setup commands, or environment
    variables, preserve those requirements and prepare the Project's mosoo
@@ -25,13 +25,17 @@ separate agent runtime.
 5. For missing first-time setup, read `references/setup.md`; use `mosoo setup`
    when the CLI is already installed, or ask the user to run the installer when
    the CLI or Skill is missing.
-6. For contract-sensitive Public Thread work, compare `references/provenance.json`
+6. Select `public-thread-api-v2` only on a deployment with `/api/v2/openapi.json`.
+   It calls saved-private Agents without publishing; `userId` is optional.
+   Keep `public-thread-api` for the existing published v1 contract. Do not
+   automatically publish an Agent to make v2 work.
+7. For contract-sensitive Public Thread work, compare `references/provenance.json`
    with the `contract` object from `mosoo doctor --json`. Different upstream
    commits or OpenAPI SHA-256 values mean the CLI and Skill are out of sync.
 
 ## Routing
 
-- Existing published Agent integration: do not create or publish anything; use
+- Existing Agent integration (saved-private v2 or published v1): do not create or publish anything; use
   `references/api.md` and app backend code.
 - New app, Agent creation, publishing, credential setup, or Console/API
   inspection: use `references/cli.md`, then run `mosoo search ... --json` and

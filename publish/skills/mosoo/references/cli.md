@@ -16,7 +16,7 @@ mosoo cloud runtime before running API commands.
 ## Command Selection
 
 Use generated CLI commands for mosoo resource operations, and use
-`references/api.md` for application code that calls an already published Agent.
+`references/api.md` for application code that calls a saved or published Agent.
 Do not invent a wrapper command when the generated catalog already exposes the
 operation.
 
@@ -31,6 +31,35 @@ derive `MOSOO_API_BASE`, `MOSOO_AGENT_ID`, and `MOSOO_API_TOKEN` from the
 published Agent/API contract instead of creating new resources.
 
 Use this reference when a user asks you to operate `mosoo`, inspect its API commands, or find the right generated command for an API task.
+
+## Choose the Public API version
+
+`public-thread-api` keeps the published-Agent v1 contract and required `userId`.
+`public-thread-api-v2` calls the latest saved private Agent; body and `userId`
+are optional. Verify that the selected deployment advertises
+`/api/v2/openapi.json` before using v2. It is a staging candidate, not a promise
+of current Cloud availability. Do not publish solely to invoke a saved Agent.
+
+```sh
+mosoo commands show public-thread-api-v2 threads create --json
+mosoo public-thread-api-v2 threads create --agent-id <agent-id> --idempotency-key <stable-create-key> -o json
+mosoo public-thread-api-v2 events send --thread-id <thread-id> --file events.json --idempotency-key <stable-turn-key> -o json
+mosoo public-thread-api-v2 events wait --thread-id <thread-id> --final-output
+mosoo public-thread-api-v2 threads usage --thread-id <thread-id> --limit 100 -o json
+```
+
+Use the same target on every command. An empty create body queues no Run.
+A new Thread freezes Agent configuration; subsequent saved edits affect only
+new Threads. Project provider credentials remain necessary; platform default
+model supply is a release decision. The existing file, wait and transcript
+recipes below also work with the v2 module prefix.
+
+Usage is paginated with `--after <nextCursor>`. `null` means unreported, and
+`reportedCostUsd` is an estimate, not settled billing. Do not combine provider
+cache buckets without inspecting `usageContract`. Run `mosoo auth login` for the target after upgrading to authorize v2, or
+configure the Project key for that explicit v2 hostname. An API invocation
+never restores a credential removed by logout.
+`doctor --json` reports both versioned OpenAPI hashes in `contract`.
 
 ## Common Workflow Recipes
 

@@ -1,8 +1,30 @@
 # mosoo Public Thread API
 
-Use this reference when application backend code calls an already published
-mosoo Agent. For creating, publishing, or changing mosoo resources, use the
+Use this reference when application backend code calls a saved-private v2
+Agent or an already published v1 Agent. For creating, publishing, or changing mosoo resources, use the
 generated CLI workflow in `references/cli.md` instead.
+
+## Version selection
+
+The examples below preserve the v1 published-Agent contract. For saved-private
+Agent invocation, select a deployment with `GET /api/v2/openapi.json` and set
+`MOSOO_API_BASE` to that service's `/api/v2` base. v2 is a staging candidate;
+confirm deployment availability before changing a production integration.
+
+v2 uses the same Thread/Run/file/event routes, accepts an omitted create body
+or `userId`, and adds `GET /threads/{threadId}/usage?limit=100&after=<cursor>`.
+Omitted identity remains `null`; explicit blank/null identity is invalid.
+Creation without input is idle. New Threads freeze the latest saved private
+Agent configuration, so no publish step is required and later saves do not
+change an existing Thread. Project provider credentials must be configured;
+platform-funded default supply is not part of this contract.
+
+Usage returns `usage` and `nextCursor`. Null metrics are unknown, not zero.
+`reportedCostUsd` is a runtime estimate; `usageContract` explains provider
+cache/token conventions. Retrying a request keeps its idempotency key; a new
+turn gets a new key. After an expired recovery window, new execution is
+blocked with `readiness_blocked`; existing history and committed files remain
+readable. Never replace a missing workspace with a fabricated continuation.
 
 ## Documentation sources
 

@@ -15,8 +15,21 @@ const uploadOperationID = "AgentFiles_Upload"
 // Install replaces the generated multipart command with a local-file upload
 // implementation. Lathe exposes multipart schemas but does not build file
 // parts from generated specs.
+type apiSurface struct {
+	name  string
+	specs []latheruntime.CommandSpec
+}
+
 func Install(root *cobra.Command) error {
-	surface := findChild(root, "public-thread-api")
+	return install(root, apiSurface{"public-thread-api", threads.Specs})
+}
+
+func InstallV2(root *cobra.Command, specs []latheruntime.CommandSpec) error {
+	return install(root, apiSurface{"public-thread-api-v2", specs})
+}
+
+func install(root *cobra.Command, api apiSurface) error {
+	surface := findChild(root, api.name)
 	if surface == nil {
 		return fmt.Errorf("public-thread-api command tree is not mounted")
 	}
@@ -24,7 +37,7 @@ func Install(root *cobra.Command) error {
 	if files == nil {
 		return fmt.Errorf("public-thread-api files command tree is not mounted")
 	}
-	replaceCommand(files, "upload", newUploadCommand())
+	replaceCommand(files, "upload", newUploadCommand(api))
 	return nil
 }
 
@@ -33,7 +46,7 @@ type uploadOptions struct {
 	file    string
 }
 
-func newUploadCommand() *cobra.Command {
+func newUploadCommand(api apiSurface) *cobra.Command {
 	var opts uploadOptions
 	cmd := &cobra.Command{
 		Use:     "upload",
@@ -53,7 +66,7 @@ func newUploadCommand() *cobra.Command {
 				return err
 			}
 			format, _ := cmd.Root().PersistentFlags().GetString("output")
-			return latheruntime.FormatOutput(data, format, cmd.OutOrStdout(), uploadCatalogSpec(cmd).Output)
+			return latheruntime.FormatOutput(data, format, cmd.OutOrStdout(), uploadCatalogSpec(cmd, api).Output)
 		},
 	}
 	flags := cmd.Flags()
@@ -61,7 +74,8 @@ func newUploadCommand() *cobra.Command {
 	flags.StringVarP(&opts.file, "file", "f", "", "Local file path to upload as multipart field 'file'")
 	_ = cmd.MarkFlagRequired("agent-id")
 	_ = cmd.MarkFlagRequired("file")
-	latheruntime.AttachCatalogCommand(cmd, "public-thread-api", uploadCatalogSpec(cmd))
+	cmd.Example = strings.ReplaceAll(cmd.Example, "public-thread-api", api.name)
+	latheruntime.AttachCatalogCommand(cmd, api.name, uploadCatalogSpec(cmd, api))
 	return cmd
 }
 
@@ -75,8 +89,8 @@ func (o uploadOptions) validate() error {
 	return nil
 }
 
-func uploadCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
-	spec := generatedSpec(uploadOperationID)
+func uploadCatalogSpec(cmd *cobra.Command, api apiSurface) latheruntime.CommandSpec {
+	spec := api.generatedSpec(uploadOperationID)
 	spec.Long = cmd.Long
 	spec.Example = cmd.Example
 	spec.Params = []latheruntime.ParamSpec{
@@ -91,8 +105,8 @@ func uploadCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
 	return spec
 }
 
-func generatedSpec(operationID string) latheruntime.CommandSpec {
-	for _, spec := range threads.Specs {
+func (api apiSurface) generatedSpec(operationID string) latheruntime.CommandSpec {
+	for _, spec := range api.specs {
 		if spec.OperationID == operationID {
 			return spec
 		}

@@ -781,9 +781,30 @@ function renderOverlay(commands: Record<string, OverlayCommand>): string {
 	return `${lines.join("\n")}\n`;
 }
 
+function buildThreadsV2Overlay(): Record<string, OverlayCommand> {
+	const overlay = buildThreadsOverlay();
+	const create = overlay.create;
+	create.long = "Create a durable Session from the latest saved private Agent configuration, without publishing. The body and userId are optional; existing Sessions retain their admitted configuration.";
+	create.known_errors = [
+		{ status: 400, cause: "The body is invalid or a supplied userId is not a non-blank string." },
+		{ status: 404, cause: "Agent not found or outside this Project." },
+	];
+	for (const example of create.examples ?? []) {
+		if (example.body_shape) delete example.body_shape.userId;
+	}
+	const versioned: Record<string, OverlayCommand> = JSON.parse(JSON.stringify(overlay).replaceAll("public-thread-api ", "public-thread-api-v2 "));
+	versioned.usage = {
+		short: "Read recorded Session usage",
+		long: "Read paginated persisted usage observations. Missing values are null, not zero. Provider cost estimates are not invoices or complete upstream request accounting.",
+		example: "mosoo public-thread-api-v2 threads usage --thread-id <thread-id> -o json",
+	};
+	return versioned;
+}
+
 const overlays = {
 	console: buildConsoleOverlay(),
 	threads: buildThreadsOverlay(),
+	threadsv2: buildThreadsV2Overlay(),
 	consolerest: buildConsolerestOverlay(),
 };
 

@@ -1,7 +1,11 @@
 {
   "schemaVersion": 1,
   "repository": "https://github.com/langgenius/mosoo.git",
-  "upstreamCommit": "51056b328b24c707fc5b8edfdc868b8f01d72527",
+  "upstreamCommit": "e3a598d9304328ddddf7788c03167c3d375c2383",
+  "publicThreadOpenAPIV2": {
+    "sha256": "e863ace20fbaf01eda3d0a04b64858115f0f53029462ef329ba7cc99f8759706",
+    "normalization": "json-sort-keys-v1"
+  },
   "publicThreadOpenAPI": {
     "sha256": "0598fc5398ac829b1aaca2a98bad374bfb1f8885eef369a1330c4956c42fa678",
     "normalization": "json-sort-keys-v1"
