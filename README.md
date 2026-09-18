@@ -220,6 +220,25 @@ turn. Run `mosoo auth login` for the chosen target once after upgrading to add t
 v2 credential. Configure Project keys against the explicit v2 hostname.
 API commands never recreate credentials removed by logout.
 
+The optional v2 budget extension is unreleased; live staging acceptance is pending.
+Confirm the target's schema includes `maxCostUsd` and a deployment budget policy
+is configured before using it. Supply `maxCostUsd` as a top-level JSON number
+in a complete `--file` body, or via `--set maxCostUsd=<usd-amount>` alongside
+the initial `input` or a send request's `user_message` event. Choose a positive
+USD amount with at most six decimal places, within the deployment maximum.
+It applies only to that turn; omission uses a configured deployment default
+when available. An explicit cap without policy returns `409 readiness_blocked`.
+The CLI supplies no default amount and does not fund inference.
+
+Budgeted responses expose `run.budget` (`capUsd`, `estimatedCostUsd`, `state`).
+The estimate can exceed the cap for an in-flight request; reaching the
+threshold blocks new model requests, and unknown usage fails closed. Native
+provider protocols are unchanged. Budget failures keep available outputs
+readable through file/event commands and `events wait` returns a failure;
+they do not promise a successful checkpoint or completed `--final-output`.
+See the [CLI budget recipe](publish/skills/mosoo/references/cli.md#per-turn-model-budget-unreleased)
+for request examples and budget states.
+
 ## Target resolution
 
 Generated API commands resolve a default target before falling back to baked-in hostnames.

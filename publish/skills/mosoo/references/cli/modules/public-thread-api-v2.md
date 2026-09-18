@@ -5,9 +5,9 @@
 - Backend: `openapi3`
 - Default hostname: `http://127.0.0.1:8787/api/v2`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `69de7cea2de4080d409d0d7fdcf8bd91392ee423`
+- Pinned tag: `e060f465ac24a11fe7efe0cf55fde78042f42e2f`
 - Files: `docs/openapi/public-thread-api.v2.openapi.json`
-- Resolved SHA: `69de7cea2de4080d409d0d7fdcf8bd91392ee423`
+- Resolved SHA: `e060f465ac24a11fe7efe0cf55fde78042f42e2f`
 
 ## Events
 
@@ -36,9 +36,18 @@
   - `--thread-id` (path, required, ulid): Thread ID returned by create thread. v1 IDs are bare ULIDs.
   - `--idempotency-key` (header): Optional key for retry-safe create-thread and send-events calls. Reusing the same key with the same request returns the original response. Reusing the key while the original request is still processing returns 409.
 - Output: list path `events`; columns `type`, `requestId`, `run`; response media `application/json`
+- Notes:
+  - Set top-level maxCostUsd with --set maxCostUsd=<usd-amount> or a numeric JSON field in --file. Choose a positive USD amount with at most six decimal places, within the deployment policy maximum.
+  - The cap applies only to this turn. Omission uses the deployment's configured default when available; the CLI does not supply a default amount or platform-funded inference.
+  - A deployment budget policy is required for an explicit cap. Without it the request fails with 409 readiness_blocked. Check the target's v2 schema and budget readiness; the last verified staging source is 69de7cea without budgets, and e060f465 budget deployment and live validation are pending.
+  - Costs are estimates, not invoices. In-flight usage can exceed the cap; reaching the threshold rejects new model requests, and unknown usage fails closed. Native provider protocols are unchanged.
+  - Budgeted runs expose run.budget with capUsd, estimatedCostUsd and state: available, settling, budget_exhausted or budget_usage_unavailable. Unavailable usage means the estimate covers only established usage.
+  - A budget failure remains a failed run. Inspect available files and events; --final-output is only for completed runs, and a failed turn does not guarantee a successful checkpoint.
 - Known errors:
   - HTTP 401: Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again.
   - HTTP 409: Idempotency key reused while the original request is still processing.
+  - HTTP 400: maxCostUsd is invalid, exceeds the deployment maximum, or is supplied without a user_message event.
+  - HTTP 409: readiness_blocked: an explicit maxCostUsd was supplied but this deployment has no budget policy.
 - Examples:
   - Send a user message event to an existing thread.
     Command: `mosoo public-thread-api-v2 events send --thread-id <thread-id> --file events.json -o json`
@@ -46,6 +55,9 @@
     Output list path: `events`
     Follow-up commands:
       - `mosoo public-thread-api-v2 events list-events --thread-id <thread-id> -o json`
+  - Send a new user-message turn with a caller-selected estimate cap; set TURN_MAX_COST_USD first.
+    Command: `mosoo public-thread-api-v2 events send --thread-id <thread-id> --set "events[0].type=user_message" --set-str "events[0].text=Continue this task." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json`
+    Output list path: `events`
 
 ### `mosoo public-thread-api-v2 events stream`
 
@@ -162,9 +174,17 @@
   - `--agent-id` (path, required, ulid): Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs.
   - `--idempotency-key` (header): Optional key for retry-safe create-thread and send-events calls. Reusing the same key with the same request returns the original response. Reusing the key while the original request is still processing returns 409.
 - Output: response media `application/json`
+- Notes:
+  - Set top-level maxCostUsd with --set maxCostUsd=<usd-amount> or a numeric JSON field in --file. Choose a positive USD amount with at most six decimal places, within the deployment policy maximum.
+  - The cap applies only to this turn. Omission uses the deployment's configured default when available; the CLI does not supply a default amount or platform-funded inference.
+  - A deployment budget policy is required for an explicit cap. Without it the request fails with 409 readiness_blocked. Check the target's v2 schema and budget readiness; the last verified staging source is 69de7cea without budgets, and e060f465 budget deployment and live validation are pending.
+  - Costs are estimates, not invoices. In-flight usage can exceed the cap; reaching the threshold rejects new model requests, and unknown usage fails closed. Native provider protocols are unchanged.
+  - Budgeted runs expose run.budget with capUsd, estimatedCostUsd and state: available, settling, budget_exhausted or budget_usage_unavailable. Unavailable usage means the estimate covers only established usage.
+  - A budget failure remains a failed run. Inspect available files and events; --final-output is only for completed runs, and a failed turn does not guarantee a successful checkpoint.
 - Known errors:
-  - HTTP 400: The body is invalid or a supplied userId is not a non-blank string.
+  - HTTP 400: The body or userId is invalid, or maxCostUsd is invalid, exceeds the deployment maximum, or is supplied without input.
   - HTTP 404: Agent not found or outside this Project.
+  - HTTP 409: readiness_blocked: an explicit maxCostUsd was supplied but this deployment has no budget policy.
 - Examples:
   - Create a Thread with an initial user message and capture the Thread ID.
     Command: `mosoo public-thread-api-v2 threads create --agent-id <agent-id> --file thread-create.json -o json`
@@ -179,6 +199,9 @@
     Output ID path: `thread.id`
     Follow-up commands:
       - `mosoo public-thread-api-v2 events list-events --thread-id <thread-id> -o json`
+  - Create an initial turn with a caller-selected estimate cap; set TURN_MAX_COST_USD to your chosen amount first.
+    Command: `mosoo public-thread-api-v2 threads create --agent-id <agent-id> --set input.type=user.message --set "input.content[0].type=text" --set-str "input.content[0].text=Start this turn." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json`
+    Output ID path: `thread.id`
 
 ### `mosoo public-thread-api-v2 threads delete`
 
@@ -212,6 +235,10 @@
 - Flags:
   - `--thread-id` (path, required, ulid): Thread ID returned by create thread. v1 IDs are bare ULIDs.
 - Output: response media `application/json`
+- Notes:
+  - Costs are estimates, not invoices. In-flight usage can exceed the cap; reaching the threshold rejects new model requests, and unknown usage fails closed. Native provider protocols are unchanged.
+  - Budgeted runs expose run.budget with capUsd, estimatedCostUsd and state: available, settling, budget_exhausted or budget_usage_unavailable. Unavailable usage means the estimate covers only established usage.
+  - A budget failure remains a failed run. Inspect available files and events; --final-output is only for completed runs, and a failed turn does not guarantee a successful checkpoint.
 - Example: `mosoo public-thread-api-v2 threads retrieve --thread-id <thread-id>`
 
 ### `mosoo public-thread-api-v2 threads unarchive`

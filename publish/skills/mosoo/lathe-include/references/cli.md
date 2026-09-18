@@ -61,6 +61,45 @@ configure the Project key for that explicit v2 hostname. An API invocation
 never restores a credential removed by logout.
 `doctor --json` reports both versioned OpenAPI hashes in `contract`.
 
+### Per-turn model budget (unreleased)
+
+The last verified staging source, `69de7cea`, predates this budget extension.
+Budget deployment and live validation for `e060f465` are pending. A deployment
+serving v2 may still lack it: confirm `maxCostUsd` in the target's v2 create and
+send schemas, and confirm a configured deployment budget policy before use.
+No default budget amount or platform-funded inference is provided by the CLI.
+
+`maxCostUsd` is an optional top-level JSON number, positive with at most six
+decimal places and within the deployment policy maximum. It requires `input`
+on create or a `user_message` event on send, and applies only to that turn.
+Omission uses the configured deployment default when one exists. An explicit
+cap without a configured policy returns `409 readiness_blocked`.
+
+Set `TURN_MAX_COST_USD` to your chosen amount before using these commands:
+
+```sh
+mosoo public-thread-api-v2 threads create --agent-id <agent-id> --set input.type=user.message --set "input.content[0].type=text" --set-str "input.content[0].text=Start this turn." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json
+mosoo public-thread-api-v2 events send --thread-id <thread-id> --set "events[0].type=user_message" --set-str "events[0].text=Continue this task." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json
+mosoo public-thread-api-v2 threads retrieve --thread-id <thread-id> -o json
+```
+
+Alternatively put the numeric `maxCostUsd` alongside `input` or `events` in a
+complete `--file` body. Keep a retry's body and idempotency key unchanged; a new
+turn can choose another cap and uses a new key. A cap does not change previous
+turns or future defaults.
+
+Budgeted runs expose `run.budget` with `capUsd`, `estimatedCostUsd`, and `state`
+(`available`, `settling`, `budget_exhausted`, or `budget_usage_unavailable`).
+These are cost estimates, not settled bills. An in-flight request can exceed
+the cap; the threshold blocks new model requests. Unknown usage stops execution
+rather than counting as zero, and its estimate covers only established usage.
+The budget guard preserves the native provider protocol.
+
+Budget failure remains a failed Run and `events wait` exits nonzero. Inspect
+available outputs with `files list-files`, `files download`, and the event
+history. `--final-output` is only for completed runs; a budget-failed turn does
+not guarantee a successful checkpoint or new recoverable continuation state.
+
 ## Common Workflow Recipes
 
 Use this section as the entry point for end-to-end mosoo CLI tasks. It defines

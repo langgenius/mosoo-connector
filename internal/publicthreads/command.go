@@ -85,9 +85,9 @@ func addWaitFlags(cmd *cobra.Command, f *waitFlags, withFinalOutput bool) {
 }
 
 func newCreateCommand(api apiSurface) *cobra.Command {
-	bodyHelp := "The JSON body is required and userId must be a non-blank string. "
+	description := "Create a new thread against an agent API endpoint.\n\nThe JSON body is required and userId must be a non-blank string. "
 	if api.version == "v2" {
-		bodyHelp = "Invoke the latest saved private Agent without publishing. The JSON body and userId are optional; a supplied userId must be a non-blank string. "
+		description = api.generatedSpec("Threads", "create").Long + "\n\n"
 	}
 	var (
 		agentID        string
@@ -101,8 +101,7 @@ func newCreateCommand(api apiSurface) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a thread for an agent",
-		Long: "Create a new thread against an agent API endpoint.\n\n" +
-			bodyHelp +
+		Long: description +
 			"With --wait, block until the initial run reaches a terminal state and report the outcome. " +
 			"With --final-output, print only the completed run's final output text (implies --wait). " +
 			"On failure, the run status, run error, tool failures, and last relevant events are shown.",

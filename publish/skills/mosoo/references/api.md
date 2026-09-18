@@ -19,6 +19,23 @@ Agent configuration, so no publish step is required and later saves do not
 change an existing Thread. Project provider credentials must be configured;
 platform-funded default supply is not part of this contract.
 
+The optional v2 budget extension is unreleased; live staging acceptance is pending.
+Check the target schema and deployment policy before sending top-level
+`maxCostUsd` on create with `input`, or on send with a `user_message` event.
+It is a positive USD number with at most six decimal places, bounded by the
+deployment maximum, and applies only to that turn. Omission uses the configured
+default if one exists; the client must not invent a default amount. An explicit
+cap without a configured policy returns `409 readiness_blocked`.
+
+Budgeted Runs expose `budget: { capUsd, estimatedCostUsd, state }`; state is
+`available`, `settling`, `budget_exhausted`, or `budget_usage_unavailable`.
+In-flight usage can exceed the estimate cap. The threshold blocks new model
+requests, unknown usage fails closed, and native provider protocols remain
+unchanged. With unavailable usage, the estimate covers only established usage.
+Budget failures retain their failed outcome and available outputs, without
+guaranteeing a successful checkpoint. Inspect files/events instead of treating
+partial work as completed output. No funded inference is implied.
+
 Usage returns `usage` and `nextCursor`. Null metrics are unknown, not zero.
 `reportedCostUsd` is a runtime estimate; `usageContract` explains provider
 cache/token conventions. Retrying a request keeps its idempotency key; a new
