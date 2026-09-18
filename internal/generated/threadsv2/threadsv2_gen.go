@@ -245,7 +245,7 @@ var Specs = []runtime.CommandSpec{
 			{Name: "Idempotency-Key", Flag: "idempotency-key", In: "header", GoType: "string", Help: "Optional key for retry-safe create-thread and send-events calls. Reusing the same key with the same request returns the original response. Reusing the key while the original request is still processing returns 409. (header)", Required: false},
 		},
 		RequestBody: &runtime.RequestBody{
-			Required:  true,
+			Required:  false,
 			MediaType: "application/json",
 			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"content": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"text": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "text"}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}}}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "content"}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}}, "resources": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"file_id": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{}}, Required: []string{"type", "file_id"}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}}}, "userId": &runtime.SchemaSpec{Type: "string"}}, AdditionalProperties: &runtime.AdditionalPropertiesSpec{}},
 		},

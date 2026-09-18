@@ -5,9 +5,9 @@
 - Backend: `openapi3`
 - Default hostname: `http://127.0.0.1:8787/api/v2`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `e3a598d9304328ddddf7788c03167c3d375c2383`
+- Pinned tag: `0096cad482361de9a6f95b4135f4a3d0b0d26c36`
 - Files: `docs/openapi/public-thread-api.v2.openapi.json`
-- Resolved SHA: `e3a598d9304328ddddf7788c03167c3d375c2383`
+- Resolved SHA: `0096cad482361de9a6f95b4135f4a3d0b0d26c36`
 
 ## Events
 
@@ -157,7 +157,7 @@
 - Summary: Create a thread for an agent
 - HTTP: `POST /agents/{agentId}/threads`
 - Auth: required
-- Body: required; media type `application/json`
+- Body: optional; media type `application/json`
 - Flags:
   - `--agent-id` (path, required, ulid): Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs.
   - `--idempotency-key` (header): Optional key for retry-safe create-thread and send-events calls. Reusing the same key with the same request returns the original response. Reusing the key while the original request is still processing returns 409.
