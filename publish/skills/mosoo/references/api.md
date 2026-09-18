@@ -8,8 +8,8 @@ generated CLI workflow in `references/cli.md` instead.
 
 The examples below preserve the v1 published-Agent contract. For saved-private
 Agent invocation, select a deployment with `GET /api/v2/openapi.json` and set
-`MOSOO_API_BASE` to that service's `/api/v2` base. v2 is a staging candidate;
-confirm deployment availability before changing a production integration.
+`MOSOO_API_BASE` to that service's `/api/v2` base. Confirm the target's available
+features before changing a production integration.
 
 v2 uses the same Thread/Run/file/event routes, accepts an omitted create body
 or `userId`, and adds `GET /threads/{threadId}/usage?limit=100&after=<cursor>`.
@@ -19,8 +19,8 @@ Agent configuration, so no publish step is required and later saves do not
 change an existing Thread. Project provider credentials must be configured;
 platform-funded default supply is not part of this contract.
 
-The optional v2 budget extension is unreleased; live staging acceptance is pending.
-Check the target schema and deployment policy before sending top-level
+The optional v2 budget extension is unreleased. Check the target's
+`/api/v2/openapi.json` and deployment budget policy before sending top-level
 `maxCostUsd` on create with `input`, or on send with a `user_message` event.
 It is a positive USD number with at most six decimal places, bounded by the
 deployment maximum, and applies only to that turn. Omission uses the configured

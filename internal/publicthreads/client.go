@@ -106,10 +106,12 @@ func decodeError(err error) error {
 			Message string `json:"message"`
 		} `json:"error"`
 	}
-	if jerr := json.Unmarshal(he.Body, &env); jerr == nil && (env.Error.Code != "" || env.Error.Message != "") {
+	if jerr := json.Unmarshal(he.Body, &env); jerr == nil && env.Error.Code != "" && env.Error.Message != "" {
 		return &APIError{Status: he.Status, Code: env.Error.Code, Message: env.Error.Message}
 	}
-	return &APIError{Status: he.Status, Message: string(he.Body)}
+	// Lathe's HTTPError formatter reports status without exposing arbitrary
+	// response bodies, which can contain credentials or upstream diagnostics.
+	return err
 }
 
 func (c *Client) getJSON(ctx context.Context, method, path string, body any, headers map[string]string, out any) ([]byte, error) {

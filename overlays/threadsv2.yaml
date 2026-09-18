@@ -68,7 +68,7 @@ commands:
     notes:
       - "Set top-level maxCostUsd with --set maxCostUsd=<usd-amount> or a numeric JSON field in --file. Choose a positive USD amount with at most six decimal places, within the deployment policy maximum."
       - "The cap applies only to this turn. Omission uses the deployment's configured default when available; the CLI does not supply a default amount or platform-funded inference."
-      - "A deployment budget policy is required for an explicit cap. Without it the request fails with 409 readiness_blocked. Check the target's v2 schema and budget readiness; the last verified staging source is 69de7cea without budgets, and e060f465 budget deployment and live validation are pending."
+      - "Per-turn budgets are unreleased. Check maxCostUsd in the target's /api/v2/openapi.json and confirm its deployment budget policy before use. An explicit cap without a policy fails with 409 readiness_blocked."
       - "Costs are estimates, not invoices. In-flight usage can exceed the cap; reaching the threshold rejects new model requests, and unknown usage fails closed. Native provider protocols are unchanged."
       - "Budgeted runs expose run.budget with capUsd, estimatedCostUsd and state: available, settling, budget_exhausted or budget_usage_unavailable. Unavailable usage means the estimate covers only established usage."
       - "A budget failure remains a failed run. Inspect available files and events; --final-output is only for completed runs, and a failed turn does not guarantee a successful checkpoint."
@@ -153,7 +153,7 @@ commands:
     notes:
       - "Set top-level maxCostUsd with --set maxCostUsd=<usd-amount> or a numeric JSON field in --file. Choose a positive USD amount with at most six decimal places, within the deployment policy maximum."
       - "The cap applies only to this turn. Omission uses the deployment's configured default when available; the CLI does not supply a default amount or platform-funded inference."
-      - "A deployment budget policy is required for an explicit cap. Without it the request fails with 409 readiness_blocked. Check the target's v2 schema and budget readiness; the last verified staging source is 69de7cea without budgets, and e060f465 budget deployment and live validation are pending."
+      - "Per-turn budgets are unreleased. Check maxCostUsd in the target's /api/v2/openapi.json and confirm its deployment budget policy before use. An explicit cap without a policy fails with 409 readiness_blocked."
       - "Costs are estimates, not invoices. In-flight usage can exceed the cap; reaching the threshold rejects new model requests, and unknown usage fails closed. Native provider protocols are unchanged."
       - "Budgeted runs expose run.budget with capUsd, estimatedCostUsd and state: available, settling, budget_exhausted or budget_usage_unavailable. Unavailable usage means the estimate covers only established usage."
       - "A budget failure remains a failed run. Inspect available files and events; --final-output is only for completed runs, and a failed turn does not guarantee a successful checkpoint."

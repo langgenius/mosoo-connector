@@ -36,7 +36,19 @@ func Install(root *cobra.Command) error {
 }
 
 func InstallV2(root *cobra.Command, specs []latheruntime.CommandSpec) error {
-	return install(root, apiSurface{"public-thread-api-v2", "v2", specs})
+	if err := install(root, apiSurface{"public-thread-api-v2", "v2", specs}); err != nil {
+		return err
+	}
+	surface := findChild(root, "public-thread-api-v2")
+	// Preserve API rejections from both the custom create helper and Lathe's
+	// generated send command at the runtime.Execute/FormatError boundary.
+	for _, path := range [][2]string{{"threads", "create"}, {"events", "send"}} {
+		command := findChild(findChild(surface, path[0]), path[1])
+		if command != nil && command.RunE != nil {
+			wrapAPIErrorOutput(command)
+		}
+	}
+	return nil
 }
 
 func install(root *cobra.Command, api apiSurface) error {

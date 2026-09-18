@@ -196,9 +196,9 @@ any command with `--hostname` or `$MOSOO_HOST`.
 
 ## Saved-private Agent sessions (v2)
 
-Use a deployment that advertises `GET /api/v2/openapi.json`; v2 is undergoing
-staging acceptance and is not yet a production availability promise. The CLI
-keeps the existing v1 commands unchanged and exposes v2 explicitly:
+Use a deployment that advertises `GET /api/v2/openapi.json` and confirm its
+available features before changing a production integration. The CLI keeps
+the existing v1 commands unchanged and exposes v2 explicitly:
 
 ```sh
 mosoo --target custom --base-url <service-origin> public-thread-api-v2 threads create --agent-id <saved-agent-id> --idempotency-key <stable-key> -o json
@@ -220,8 +220,8 @@ turn. Run `mosoo auth login` for the chosen target once after upgrading to add t
 v2 credential. Configure Project keys against the explicit v2 hostname.
 API commands never recreate credentials removed by logout.
 
-The optional v2 budget extension is unreleased; live staging acceptance is pending.
-Confirm the target's schema includes `maxCostUsd` and a deployment budget policy
+The optional v2 budget extension is unreleased. Confirm that the target's
+`/api/v2/openapi.json` includes `maxCostUsd` and a deployment budget policy
 is configured before using it. Supply `maxCostUsd` as a top-level JSON number
 in a complete `--file` body, or via `--set maxCostUsd=<usd-amount>` alongside
 the initial `input` or a send request's `user_message` event. Choose a positive

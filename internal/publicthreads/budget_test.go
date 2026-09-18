@@ -3,7 +3,6 @@ package publicthreads
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -162,44 +161,101 @@ func TestV2BudgetRequestsPreserveCallerAmountsAndOmission(t *testing.T) {
 	}
 }
 
-func TestV2BudgetPolicyReadinessErrorIsPreserved(t *testing.T) {
+func TestV2BudgetRejectionsReachCLIErrorOutput(t *testing.T) {
 	const id = "01J00000000000000000000009"
-	const response = `{"error":{"code":"readiness_blocked","message":"Turn budgets are not configured on this deployment."}}`
-	for _, args := range [][]string{
-		{"threads", "create", "--agent-id", id, "--set", "input.type=user.message", "--set", "input.content[0].type=text", "--set-str", "input.content[0].text=Start"},
-		{"events", "send", "--thread-id", id, "--set", "events[0].type=user_message", "--set-str", "events[0].text=Continue"},
+	for _, tt := range []struct {
+		status  int
+		code    string
+		message string
+	}{
+		{409, "readiness_blocked", "Turn budgets are not configured on this deployment."},
+		{400, "invalid_request", "maxCostUsd exceeds the platform limit of 1 USD."},
 	} {
-		t.Run(args[1], func(t *testing.T) {
-			var requests atomic.Int32
-			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				requests.Add(1)
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusConflict)
-				_, _ = w.Write([]byte(response))
-			}))
-			defer srv.Close()
-			root, _ := newBudgetTestRoot(t, srv.URL+"/api/v2")
-			args = append(args, "--set", "maxCostUsd=1.234567", "-o", "json")
-			root.SetArgs(runArgs(srv.URL+"/api/v2", append([]string{"public-thread-api-v2"}, args...)...))
-			err := root.Execute()
-			var apiErr *APIError
-			var httpErr *latheruntime.HTTPError
-			switch {
-			case errors.As(err, &apiErr):
-				if apiErr.Status != 409 || apiErr.Code != "readiness_blocked" {
-					t.Fatalf("API error changed: %+v", apiErr)
+		for _, args := range [][]string{
+			{"threads", "create", "--agent-id", id, "--set-str", "input.type=user.message", "--set-str", "input.content[0].type=text", "--set-str", "input.content[0].text=Start"},
+			{"events", "send", "--thread-id", id, "--set-str", "events[0].type=user_message", "--set-str", "events[0].text=Continue"},
+		} {
+			t.Run(args[1]+"/"+tt.code, func(t *testing.T) {
+				var requests atomic.Int32
+				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					requests.Add(1)
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(tt.status)
+					_ = json.NewEncoder(w).Encode(map[string]any{"error": map[string]string{"code": tt.code, "message": tt.message}})
+				}))
+				defer srv.Close()
+				root, out := newBudgetTestRoot(t, srv.URL+"/api/v2")
+				stderr := &bytes.Buffer{}
+				root.SetErr(stderr)
+				args = append(args, "--set", "maxCostUsd=1.000001", "-o", "json")
+				root.SetArgs(runArgs(srv.URL+"/api/v2", append([]string{"public-thread-api-v2"}, args...)...))
+				if exit := latheruntime.Execute(root); exit != latheruntime.ExitAPIError {
+					t.Fatalf("exit = %d, want 3: %s", exit, stderr.String())
 				}
-			case errors.As(err, &httpErr):
-				if httpErr.Status != 409 || !strings.Contains(string(httpErr.Body), `"readiness_blocked"`) {
-					t.Fatalf("HTTP error changed: %+v", httpErr)
+				var got struct {
+					Error latheruntime.LatheError `json:"error"`
 				}
-			default:
-				t.Fatalf("error = %v, want 409 readiness_blocked", err)
-			}
-			if requests.Load() != 1 {
-				t.Fatalf("readiness rejection retried: %d requests", requests.Load())
-			}
-		})
+				if err := json.Unmarshal(stderr.Bytes(), &got); err != nil {
+					t.Fatalf("invalid CLI error JSON: %v: %s", err, stderr.String())
+				}
+				if got.Error.Code != tt.code || got.Error.Message != tt.message || got.Error.HTTP == nil || got.Error.HTTP.Status != tt.status {
+					t.Fatalf("CLI lost API error details: %s", stderr.String())
+				}
+				if out.Len() != 0 {
+					t.Fatalf("rejection wrote success output: %s", out.String())
+				}
+				if requests.Load() != 1 {
+					t.Fatalf("budget rejection retried: %d requests", requests.Load())
+				}
+			})
+		}
+	}
+}
+
+func TestV2CLIErrorOutputRedactsCredentials(t *testing.T) {
+	const reason = "maxCostUsd exceeds the platform limit of 1 USD."
+	for _, tt := range []struct {
+		name    string
+		body    string
+		code    string
+		message string
+	}{
+		{"message", `{"error":{"code":"invalid_request","message":"` + reason + ` Credential: test-token.","token":"extra-secret"}}`, "invalid_request", reason + " Credential: ***."},
+		{"code", `{"error":{"code":"test-token","message":"` + reason + `"}}`, "***", reason},
+		{"html", `<html>test-token extra-secret</html>`, "api_error", "API request failed"},
+		{"nonstandard", `{"message":"test-token extra-secret"}`, "api_error", "API request failed"},
+		{"incomplete", `{"error":{"message":"test-token extra-secret"}}`, "api_error", "API request failed"},
+	} {
+		for _, args := range [][]string{
+			{"threads", "create", "--agent-id", "a1"},
+			{"events", "send", "--thread-id", "t1", "--set", "events[0].type=user_message", "--set-str", "events[0].text=Continue"},
+		} {
+			t.Run(args[1]+"/"+tt.name, func(t *testing.T) {
+				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(http.StatusBadRequest)
+					_, _ = w.Write([]byte(tt.body))
+				}))
+				defer srv.Close()
+				root, out := newBudgetTestRoot(t, srv.URL+"/api/v2")
+				args = append(args, "-o", "json")
+				root.SetArgs(runArgs(srv.URL+"/api/v2", append([]string{"public-thread-api-v2"}, args...)...))
+				if exit := latheruntime.Execute(root); exit != latheruntime.ExitAPIError {
+					t.Fatalf("exit = %d, want 3: %s", exit, out.String())
+				}
+				var got struct {
+					Error latheruntime.LatheError `json:"error"`
+				}
+				if err := json.Unmarshal(out.Bytes(), &got); err != nil {
+					t.Fatal(err)
+				}
+				if strings.Contains(out.String(), "test-token") || strings.Contains(out.String(), "extra-secret") {
+					t.Fatalf("error leaked credentials: %s", out.String())
+				}
+				if got.Error.Code != tt.code || got.Error.Message != tt.message || got.Error.HTTP == nil || got.Error.HTTP.Status != 400 {
+					t.Fatalf("unexpected CLI error: %s", out.String())
+				}
+			})
+		}
 	}
 }
 

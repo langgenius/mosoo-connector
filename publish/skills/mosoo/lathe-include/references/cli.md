@@ -37,8 +37,8 @@ Use this reference when a user asks you to operate `mosoo`, inspect its API comm
 `public-thread-api` keeps the published-Agent v1 contract and required `userId`.
 `public-thread-api-v2` calls the latest saved private Agent; body and `userId`
 are optional. Verify that the selected deployment advertises
-`/api/v2/openapi.json` before using v2. It is a staging candidate, not a promise
-of current Cloud availability. Do not publish solely to invoke a saved Agent.
+`/api/v2/openapi.json` and confirm the features available on that target before
+using v2. Do not publish solely to invoke a saved Agent.
 
 ```sh
 mosoo commands show public-thread-api-v2 threads create --json
@@ -63,10 +63,9 @@ never restores a credential removed by logout.
 
 ### Per-turn model budget (unreleased)
 
-The last verified staging source, `69de7cea`, predates this budget extension.
-Budget deployment and live validation for `e060f465` are pending. A deployment
-serving v2 may still lack it: confirm `maxCostUsd` in the target's v2 create and
-send schemas, and confirm a configured deployment budget policy before use.
+Per-turn budgets are unreleased. A deployment serving v2 may lack this extension:
+confirm `maxCostUsd` in the create and send schemas at the target's
+`/api/v2/openapi.json`, and confirm a configured deployment budget policy before use.
 No default budget amount or platform-funded inference is provided by the CLI.
 
 `maxCostUsd` is an optional top-level JSON number, positive with at most six
