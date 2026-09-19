@@ -50,9 +50,13 @@ mosoo public-thread-api-v2 threads usage --thread-id <thread-id> --limit 100 -o 
 
 Use the same target on every command. An empty create body queues no Run.
 A new Thread freezes Agent configuration; subsequent saved edits affect only
-new Threads. Project provider credentials remain necessary; platform default
-model supply is a release decision. The existing file, wait and transcript
-recipes below also work with the v2 module prefix.
+new Threads. The initial v2 release ([#582](https://github.com/langgenius/mosoo/issues/582))
+uses your own model provider account (BYOK): configure its credentials in the
+Project, save a private Agent, then call the Session API. Platform model supply,
+top-ups, and commercial usage billing are separate work in
+[#636](https://github.com/langgenius/mosoo/issues/636) and do not block #582.
+Usage records and per-turn budget protection remain in scope. The existing
+file, wait and transcript recipes below also work with the v2 module prefix.
 
 Usage is paginated with `--after <nextCursor>`. `null` means unreported, and
 `reportedCostUsd` is an estimate, not settled billing. Do not combine provider
