@@ -225,8 +225,8 @@ func requiresAuth(resolved target.Resolution) bool {
 
 func authCandidateHosts(resolved target.Resolution) []string {
 	seen := map[string]bool{}
-	hosts := make([]string, 0, 2)
-	for _, surface := range []string{target.SurfaceConsole, target.SurfacePublicThreadAPI} {
+	hosts := make([]string, 0, 3)
+	for _, surface := range []string{target.SurfaceConsole, target.SurfacePublicThreadAPI, target.SurfacePublicThreadAPIV2} {
 		host := resolved.Hosts[surface]
 		if host == "" || seen[host] {
 			continue
@@ -261,14 +261,15 @@ func checkFromInstallState(install buildinfo.Info) Check {
 func checkFromContractState(contract contractprovenance.Info) Check {
 	commitBytes, commitErr := hex.DecodeString(contract.UpstreamCommit)
 	digestBytes, digestErr := hex.DecodeString(contract.PublicThreadOpenAPI.SHA256)
-	if contract.SchemaVersion != 1 || len(commitBytes) != 20 || commitErr != nil || len(digestBytes) != 32 || digestErr != nil {
+	v2DigestBytes, v2DigestErr := hex.DecodeString(contract.PublicThreadOpenAPIV2.SHA256)
+	if contract.SchemaVersion != 1 || len(commitBytes) != 20 || commitErr != nil || len(digestBytes) != 32 || digestErr != nil || len(v2DigestBytes) != 32 || v2DigestErr != nil {
 		return Check{Name: "contract", OK: false, Code: "contract_provenance_missing", Message: "embedded Mosoo contract provenance is incomplete"}
 	}
 	return Check{
 		Name:    "contract",
 		OK:      true,
 		Code:    "contract_provenance_present",
-		Message: fmt.Sprintf("Mosoo %s; Public Thread OpenAPI sha256 %s", contract.UpstreamCommit, contract.PublicThreadOpenAPI.SHA256),
+		Message: fmt.Sprintf("Mosoo %s; Public Thread OpenAPI v1 sha256 %s; v2 sha256 %s", contract.UpstreamCommit, contract.PublicThreadOpenAPI.SHA256, contract.PublicThreadOpenAPIV2.SHA256),
 	}
 }
 
@@ -340,6 +341,7 @@ func printHuman(cmd *cobra.Command, report Report) {
 	fmt.Fprintf(out, "install: %s (%s, %s)\n", report.Install.Version, report.Install.Commit, report.Install.Date)
 	fmt.Fprintf(out, "contract.upstreamCommit: %s\n", report.Contract.UpstreamCommit)
 	fmt.Fprintf(out, "contract.publicThreadOpenAPI.sha256: %s\n", report.Contract.PublicThreadOpenAPI.SHA256)
+	fmt.Fprintf(out, "contract.publicThreadOpenAPIV2.sha256: %s\n", report.Contract.PublicThreadOpenAPIV2.SHA256)
 	fmt.Fprintf(out, "ready: %t\n", report.Ready)
 	fmt.Fprintln(out, "checks:")
 	for _, check := range report.Checks {

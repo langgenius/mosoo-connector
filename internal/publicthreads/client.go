@@ -16,6 +16,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/langgenius/mosoo-connector/internal/target"
+
 	latheruntime "github.com/lathe-cli/lathe/pkg/runtime"
 	"github.com/spf13/cobra"
 )
@@ -27,6 +29,7 @@ type transportFunc func(ctx context.Context, method, path string, body any, head
 // Client is a minimal Public Thread API client scoped to thread, run, and
 // event reads plus thread creation. It owns no upload behavior.
 type Client struct {
+	version   string
 	hostname  string
 	opts      latheruntime.ClientOptions
 	transport transportFunc
@@ -45,7 +48,11 @@ func NewClient(cmd *cobra.Command) (*Client, error) {
 	if debug, derr := cmd.Root().PersistentFlags().GetBool("debug"); derr == nil && debug {
 		opts.Debug = true
 	}
-	return &Client{hostname: hostname, opts: opts}, nil
+	version := "v1"
+	if surface, _ := target.SurfaceForCommand(cmd); surface == target.SurfacePublicThreadAPIV2 {
+		version = "v2"
+	}
+	return &Client{hostname: hostname, opts: opts, version: version}, nil
 }
 
 func (c *Client) do(ctx context.Context, method, path string, body any, headers map[string]string) (*latheruntime.RawResult, error) {
@@ -99,10 +106,12 @@ func decodeError(err error) error {
 			Message string `json:"message"`
 		} `json:"error"`
 	}
-	if jerr := json.Unmarshal(he.Body, &env); jerr == nil && (env.Error.Code != "" || env.Error.Message != "") {
+	if jerr := json.Unmarshal(he.Body, &env); jerr == nil && env.Error.Code != "" && env.Error.Message != "" {
 		return &APIError{Status: he.Status, Code: env.Error.Code, Message: env.Error.Message}
 	}
-	return &APIError{Status: he.Status, Message: string(he.Body)}
+	// Lathe's HTTPError formatter reports status without exposing arbitrary
+	// response bodies, which can contain credentials or upstream diagnostics.
+	return err
 }
 
 func (c *Client) getJSON(ctx context.Context, method, path string, body any, headers map[string]string, out any) ([]byte, error) {
@@ -122,7 +131,7 @@ func (c *Client) getJSON(ctx context.Context, method, path string, body any, hea
 // and must carry the caller's non-blank string userId. idempotencyKey, when
 // non-empty, is sent as the Idempotency-Key header for retry-safe creation.
 func (c *Client) CreateThread(ctx context.Context, agentID string, body []byte, idempotencyKey string) (*ThreadState, error) {
-	if err := validateCreateBody(body); err != nil {
+	if err := validateCreateBodyForVersion(body, c.version); err != nil {
 		return nil, err
 	}
 	var headers map[string]string

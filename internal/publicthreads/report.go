@@ -100,9 +100,13 @@ func writeSuccessSummary(w io.Writer, st *ThreadState) {
 
 // writePausedSummary prints a human-readable summary for a run paused awaiting
 // input.
-func writePausedSummary(w io.Writer, st *ThreadState) {
+func writePausedSummary(w io.Writer, st *ThreadState, version string) {
 	fmt.Fprintf(w, "Run %s is waiting for input (status: %s).\n", st.Run.ID, st.Run.Status)
-	fmt.Fprintln(w, "Send a follow-up with `mosoo public-thread-api events send` to continue.")
+	surface := "public-thread-api"
+	if version == "v2" {
+		surface = "public-thread-api-v2"
+	}
+	fmt.Fprintf(w, "Send a follow-up with `mosoo %s events send` to continue.\n", surface)
 }
 
 // writeFailureReport explains why a run did not complete cleanly: its status,

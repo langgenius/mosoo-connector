@@ -781,9 +781,58 @@ function renderOverlay(commands: Record<string, OverlayCommand>): string {
 	return `${lines.join("\n")}\n`;
 }
 
+function buildThreadsV2Overlay(): Record<string, OverlayCommand> {
+	const overlay = buildThreadsOverlay();
+	const create = overlay.create;
+	const budgetNotes = [
+		"Set top-level maxCostUsd with --set maxCostUsd=<usd-amount> or a numeric JSON field in --file. Choose a positive USD amount with at most six decimal places, within the deployment policy maximum.",
+		"The cap applies only to this turn. Omission uses the deployment's configured default when available; the CLI does not supply a default amount or platform-funded inference.",
+		"Per-turn budgets are unreleased. Check maxCostUsd in the target's /api/v2/openapi.json and confirm its deployment budget policy before use. An explicit cap without a policy fails with 409 readiness_blocked.",
+		"Costs are estimates, not invoices. In-flight usage can exceed the cap; reaching the threshold rejects new model requests, and unknown usage fails closed. Native provider protocols are unchanged.",
+		"Budgeted runs expose run.budget with capUsd, estimatedCostUsd and state: available, settling, budget_exhausted or budget_usage_unavailable. Unavailable usage means the estimate covers only established usage.",
+		"A budget failure remains a failed run. Inspect available files and events; --final-output is only for completed runs, and a failed turn does not guarantee a successful checkpoint.",
+	];
+	create.long = "Create a durable Session from the latest saved private Agent configuration, without publishing. The body and userId are optional; a supplied userId must be a non-blank string. Existing Sessions retain their admitted configuration. Optional top-level maxCostUsd applies to the initial input turn and requires a configured deployment budget policy. In-flight usage can exceed this estimate cap. Per-turn budgets are unreleased; verify support on the target deployment before using maxCostUsd.";
+	create.notes = budgetNotes;
+	create.known_errors = [
+		{ status: 400, cause: "The body or userId is invalid, or maxCostUsd is invalid, exceeds the deployment maximum, or is supplied without input." },
+		{ status: 404, cause: "Agent not found or outside this Project." },
+		{ status: 409, cause: "readiness_blocked: an explicit maxCostUsd was supplied but this deployment has no budget policy." },
+	];
+	for (const example of create.examples ?? []) {
+		if (example.body_shape) delete example.body_shape.userId;
+	}
+	create.examples?.push({
+		summary: "Create an initial turn with a caller-selected estimate cap; set TURN_MAX_COST_USD to your chosen amount first.",
+		command: 'mosoo public-thread-api threads create --agent-id <agent-id> --set input.type=user.message --set "input.content[0].type=text" --set-str "input.content[0].text=Start this turn." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json',
+		output_hints: { id_path: "thread.id" },
+	});
+	const send = overlay["thread-events-send"];
+	send.long = "Send user messages, permission decisions, or interrupts to a thread session. Optional top-level maxCostUsd applies only to a user_message turn in this request; it does not change earlier turns or later defaults. Per-turn budgets are unreleased; verify support on the target deployment before using maxCostUsd.";
+	send.notes = budgetNotes;
+	send.known_errors?.push(
+		{ status: 400, cause: "maxCostUsd is invalid, exceeds the deployment maximum, or is supplied without a user_message event." },
+		{ status: 409, cause: "readiness_blocked: an explicit maxCostUsd was supplied but this deployment has no budget policy." },
+	);
+	send.examples?.push({
+		summary: "Send a new user-message turn with a caller-selected estimate cap; set TURN_MAX_COST_USD first.",
+		command: 'mosoo public-thread-api events send --thread-id <thread-id> --set "events[0].type=user_message" --set-str "events[0].text=Continue this task." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json',
+		output_hints: { list_path: "events" },
+	});
+	overlay.retrieve.notes = budgetNotes.slice(3);
+	const versioned: Record<string, OverlayCommand> = JSON.parse(JSON.stringify(overlay).replaceAll("public-thread-api ", "public-thread-api-v2 "));
+	versioned.usage = {
+		short: "Read recorded Session usage",
+		long: "Read paginated persisted usage observations. Missing values are null, not zero. Provider cost estimates are not invoices or complete upstream request accounting.",
+		example: "mosoo public-thread-api-v2 threads usage --thread-id <thread-id> -o json",
+	};
+	return versioned;
+}
+
 const overlays = {
 	console: buildConsoleOverlay(),
 	threads: buildThreadsOverlay(),
+	threadsv2: buildThreadsV2Overlay(),
 	consolerest: buildConsolerestOverlay(),
 };
 

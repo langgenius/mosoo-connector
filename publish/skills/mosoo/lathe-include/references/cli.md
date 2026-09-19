@@ -16,7 +16,7 @@ mosoo cloud runtime before running API commands.
 ## Command Selection
 
 Use generated CLI commands for mosoo resource operations, and use
-`references/api.md` for application code that calls an already published Agent.
+`references/api.md` for application code that calls a saved or published Agent.
 Do not invent a wrapper command when the generated catalog already exposes the
 operation.
 
@@ -31,6 +31,77 @@ derive `MOSOO_API_BASE`, `MOSOO_AGENT_ID`, and `MOSOO_API_TOKEN` from the
 published Agent/API contract instead of creating new resources.
 
 Use this reference when a user asks you to operate `mosoo`, inspect its API commands, or find the right generated command for an API task.
+
+## Choose the Public API version
+
+`public-thread-api` keeps the published-Agent v1 contract and required `userId`.
+`public-thread-api-v2` calls the latest saved private Agent; body and `userId`
+are optional. Verify that the selected deployment advertises
+`/api/v2/openapi.json` and confirm the features available on that target before
+using v2. Do not publish solely to invoke a saved Agent.
+
+```sh
+mosoo commands show public-thread-api-v2 threads create --json
+mosoo public-thread-api-v2 threads create --agent-id <agent-id> --idempotency-key <stable-create-key> -o json
+mosoo public-thread-api-v2 events send --thread-id <thread-id> --file events.json --idempotency-key <stable-turn-key> -o json
+mosoo public-thread-api-v2 events wait --thread-id <thread-id> --final-output
+mosoo public-thread-api-v2 threads usage --thread-id <thread-id> --limit 100 -o json
+```
+
+Use the same target on every command. An empty create body queues no Run.
+A new Thread freezes Agent configuration; subsequent saved edits affect only
+new Threads. The initial v2 release ([#582](https://github.com/langgenius/mosoo/issues/582))
+uses your own model provider account (BYOK): configure its credentials in the
+Project, save a private Agent, then call the Session API. Platform model supply,
+top-ups, and commercial usage billing are separate work in
+[#636](https://github.com/langgenius/mosoo/issues/636) and do not block #582.
+Usage records and per-turn budget protection remain in scope. The existing
+file, wait and transcript recipes below also work with the v2 module prefix.
+
+Usage is paginated with `--after <nextCursor>`. `null` means unreported, and
+`reportedCostUsd` is an estimate, not settled billing. Do not combine provider
+cache buckets without inspecting `usageContract`. Run `mosoo auth login` for the target after upgrading to authorize v2, or
+configure the Project key for that explicit v2 hostname. An API invocation
+never restores a credential removed by logout.
+`doctor --json` reports both versioned OpenAPI hashes in `contract`.
+
+### Per-turn model budget (unreleased)
+
+Per-turn budgets are unreleased. A deployment serving v2 may lack this extension:
+confirm `maxCostUsd` in the create and send schemas at the target's
+`/api/v2/openapi.json`, and confirm a configured deployment budget policy before use.
+No default budget amount or platform-funded inference is provided by the CLI.
+
+`maxCostUsd` is an optional top-level JSON number, positive with at most six
+decimal places and within the deployment policy maximum. It requires `input`
+on create or a `user_message` event on send, and applies only to that turn.
+Omission uses the configured deployment default when one exists. An explicit
+cap without a configured policy returns `409 readiness_blocked`.
+
+Set `TURN_MAX_COST_USD` to your chosen amount before using these commands:
+
+```sh
+mosoo public-thread-api-v2 threads create --agent-id <agent-id> --set input.type=user.message --set "input.content[0].type=text" --set-str "input.content[0].text=Start this turn." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json
+mosoo public-thread-api-v2 events send --thread-id <thread-id> --set "events[0].type=user_message" --set-str "events[0].text=Continue this task." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json
+mosoo public-thread-api-v2 threads retrieve --thread-id <thread-id> -o json
+```
+
+Alternatively put the numeric `maxCostUsd` alongside `input` or `events` in a
+complete `--file` body. Keep a retry's body and idempotency key unchanged; a new
+turn can choose another cap and uses a new key. A cap does not change previous
+turns or future defaults.
+
+Budgeted runs expose `run.budget` with `capUsd`, `estimatedCostUsd`, and `state`
+(`available`, `settling`, `budget_exhausted`, or `budget_usage_unavailable`).
+These are cost estimates, not settled bills. An in-flight request can exceed
+the cap; the threshold blocks new model requests. Unknown usage stops execution
+rather than counting as zero, and its estimate covers only established usage.
+The budget guard preserves the native provider protocol.
+
+Budget failure remains a failed Run and `events wait` exits nonzero. Inspect
+available outputs with `files list-files`, `files download`, and the event
+history. `--final-output` is only for completed runs; a budget-failed turn does
+not guarantee a successful checkpoint or new recoverable continuation state.
 
 ## Common Workflow Recipes
 

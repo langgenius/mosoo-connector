@@ -133,3 +133,20 @@ func TestCreateThreadRejectsInvalidUserIDBeforeTransport(t *testing.T) {
 		t.Fatalf("transport calls = %d, want 0", transportCalls)
 	}
 }
+
+func TestV2CreateAllowsOmittedIdentityAndStillRejectsInvalidIdentity(t *testing.T) {
+	for _, body := range []string{`{}`, `{"input":{"type":"user.message","content":[{"type":"text","text":"hello"}]}}`, `{"userId":"optional-owner"}`} {
+		if err := validateCreateBodyForVersion([]byte(body), "v2"); err != nil {
+			t.Fatalf("v2 rejected %s: %v", body, err)
+		}
+	}
+	for _, body := range []string{`null`, `[]`, `{"userId":null}`, `{"userId":1}`, `{"userId":" "}`} {
+		if err := validateCreateBodyForVersion([]byte(body), "v2"); err == nil {
+			t.Fatalf("v2 accepted invalid body %s", body)
+		}
+	}
+	body, err := buildCreateBodyForVersion("", nil, nil, "v2")
+	if err != nil || string(body) != "{}" {
+		t.Fatalf("v2 no-body = %s, %v; want {}", body, err)
+	}
+}

@@ -53,13 +53,14 @@ const operationMetadata: Record<string, Partial<Record<HttpMethod, OperationMeta
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, "..");
-const outputPath = resolve(repositoryRoot, ".cache/mosoo/docs/openapi/public-thread-api.openapi.json");
+for (const version of ["v1", "v2"] as const) {
+const outputPath = resolve(repositoryRoot, `.cache/mosoo/docs/openapi/public-thread-api${version === "v2" ? ".v2" : ""}.openapi.json`);
 const committedOrigin = "https://cloud.mosoo.ai";
 
-const document = createPublicApiOpenApiDocument(committedOrigin);
+const document = createPublicApiOpenApiDocument(committedOrigin, version);
 // Target resolution owns /api/v1; keep Lathe operation paths relative to it.
 document.servers = [];
-for (const [path, methods] of Object.entries(operationMetadata)) {
+for (const [path, methods] of Object.entries({ ...operationMetadata, ...(version === "v2" ? { "/threads/{threadId}/usage": { get: { operationId: "Threads_Usage", tags: ["Threads"] } } } : {}) })) {
 	const pathItem = document.paths[path];
 	if (pathItem === undefined) {
 		throw new Error(`OpenAPI path missing: ${path}`);
@@ -77,3 +78,5 @@ for (const [path, methods] of Object.entries(operationMetadata)) {
 await mkdir(dirname(outputPath), { recursive: true });
 await writeFile(outputPath, `${JSON.stringify(document, null, 2)}\n`, "utf8");
 console.log(`wrote ${outputPath}`);
+
+}

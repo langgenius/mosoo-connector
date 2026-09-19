@@ -107,6 +107,7 @@ func TestReportValidatesStoredConsoleCredentials(t *testing.T) {
 		body          string
 		disconnect    bool
 		missingPublic bool
+		missingV2     bool
 		wantCode      string
 		wantReady     bool
 	}{
@@ -122,6 +123,7 @@ func TestReportValidatesStoredConsoleCredentials(t *testing.T) {
 		{name: "network failure", token: "mcli_doctor_unreachable", disconnect: true, wantCode: "auth_validation_unreachable"},
 		{name: "unexpected response", token: "mcli_doctor_invalid_json", status: http.StatusOK, body: "not a session", wantCode: "auth_validation_failed"},
 		{name: "missing account", token: "mcli_doctor_empty_session", status: http.StatusOK, body: `{"user":{}}`, wantCode: "auth_validation_failed"},
+		{name: "missing v2 credential", token: "mcli_doctor_missing_v2", missingV2: true, wantCode: "auth_missing_credentials"},
 		{name: "missing Public API credential", token: "mcli_doctor_missing_public", missingPublic: true, wantCode: "auth_missing_credentials"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -165,6 +167,9 @@ func TestReportValidatesStoredConsoleCredentials(t *testing.T) {
 			if !tc.missingPublic {
 				hosts.Set(srv.URL+"/api/v1", entry)
 			}
+			if !tc.missingV2 {
+				hosts.Set(srv.URL+"/api/v2", entry)
+			}
 			if err := hosts.Save(); err != nil {
 				t.Fatal(err)
 			}
@@ -186,6 +191,10 @@ func TestReportValidatesStoredConsoleCredentials(t *testing.T) {
 			if tc.missingPublic {
 				if len(report.Auth.MissingHosts) != 1 || report.Auth.MissingHosts[0] != srv.URL+"/api/v1" {
 					t.Fatalf("missing hosts = %v, want the Public API host", report.Auth.MissingHosts)
+				}
+			} else if tc.missingV2 {
+				if len(report.Auth.MissingHosts) != 1 || report.Auth.MissingHosts[0] != srv.URL+"/api/v2" {
+					t.Fatalf("missing hosts = %v", report.Auth.MissingHosts)
 				}
 			} else {
 				select {
@@ -340,6 +349,10 @@ func TestReportJSONHasStructuredReadinessSections(t *testing.T) {
 	openAPIState := contractState["publicThreadOpenAPI"].(map[string]any)
 	if len(openAPIState["sha256"].(string)) != 64 {
 		t.Fatalf("contract.publicThreadOpenAPI.sha256 = %v", openAPIState["sha256"])
+	}
+	v2OpenAPIState := contractState["publicThreadOpenAPIV2"].(map[string]any)
+	if len(v2OpenAPIState["sha256"].(string)) != 64 {
+		t.Fatalf("contract.publicThreadOpenAPIV2.sha256 = %v", v2OpenAPIState["sha256"])
 	}
 
 	failures := got["failures"].([]any)

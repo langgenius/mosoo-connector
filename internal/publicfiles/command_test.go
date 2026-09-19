@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	generatedthreadsv2 "github.com/langgenius/mosoo-connector/internal/generated/threadsv2"
 	latheconfig "github.com/lathe-cli/lathe/pkg/config"
 	latheruntime "github.com/lathe-cli/lathe/pkg/runtime"
 	"github.com/spf13/cobra"
@@ -151,4 +152,43 @@ func newTestRoot(t *testing.T, host string) (*cobra.Command, *bytes.Buffer) {
 	root.SetOut(output)
 	root.SetErr(output)
 	return root, output
+}
+
+func TestV2UploadPreservesMultipartBytesAndBasePath(t *testing.T) {
+	body := []byte{0, 1, 255, 13, 10}
+	filePath := filepath.Join(t.TempDir(), "input.bin")
+	if err := os.WriteFile(filePath, body, 0600); err != nil {
+		t.Fatal(err)
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" || r.URL.Path != "/api/v2/agents/agent1/files" || r.Header.Get("Authorization") != "Bearer test-token" {
+			t.Errorf("incorrect upload target/auth: %s %s", r.Method, r.URL.Path)
+		}
+		file, header, err := r.FormFile("file")
+		if err != nil {
+			t.Error(err)
+			w.WriteHeader(400)
+			return
+		}
+		defer file.Close()
+		got, err := io.ReadAll(file)
+		if err != nil || !bytes.Equal(got, body) || header.Filename != "input.bin" {
+			t.Error("upload bytes/name changed")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"file":{"id":"file1"}}`))
+	}))
+	defer srv.Close()
+	root, _ := newTestRoot(t, srv.URL+"/api/v2")
+	root.AddGroup(&cobra.Group{ID: "modules", Title: "API modules"})
+	if err := generatedthreadsv2.Mount(root); err != nil {
+		t.Fatal(err)
+	}
+	if err := InstallV2(root, generatedthreadsv2.Specs); err != nil {
+		t.Fatal(err)
+	}
+	root.SetArgs([]string{"--hostname", srv.URL + "/api/v2", "public-thread-api-v2", "files", "upload", "--agent-id", "agent1", "--file", filePath})
+	if err := root.Execute(); err != nil {
+		t.Fatal(err)
+	}
 }
