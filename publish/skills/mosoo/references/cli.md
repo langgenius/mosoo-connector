@@ -16,7 +16,7 @@ mosoo cloud runtime before running API commands.
 ## Command Selection
 
 Use generated CLI commands for mosoo resource operations, and use
-`references/api.md` for application code that calls a saved or published Agent.
+`references/api.md` for application code that creates or continues a Session.
 Do not invent a wrapper command when the generated catalog already exposes the
 operation.
 
@@ -27,32 +27,66 @@ flags and body shape with `mosoo commands show <shortcut> --json`.
 
 For a new Project, Agent creation, publishing, credential setup, or Console/API
 inspection, search the generated catalog first. For app environment files only,
-derive `MOSOO_API_BASE`, `MOSOO_AGENT_ID`, and `MOSOO_API_TOKEN` from the
-published Agent/API contract instead of creating new resources.
+derive `MOSOO_API_BASE`, `MOSOO_PROJECT_ID`, and `MOSOO_API_TOKEN` from the
+Project Session contract. `MOSOO_AGENT_ID` is needed only for an Agent integration.
 
 Use this reference when a user asks you to operate `mosoo`, inspect its API commands, or find the right generated command for an API task.
 
 ## Choose the Public API version
 
 `public-thread-api` keeps the published-Agent v1 contract and required `userId`.
-`public-thread-api-v2` calls the latest saved private Agent; body and `userId`
-are optional. Verify that the selected deployment advertises
+`public-thread-api-v2` creates a durable Session directly in a Project; no Agent
+is required. Choose an explicit inline configuration or an optional saved
+private Agent preset. `userId` is optional. Verify that the selected deployment advertises
 `/api/v2/openapi.json` and confirm the features available on that target before
 using v2. Do not publish solely to invoke a saved Agent.
 
 ```sh
 mosoo commands show public-thread-api-v2 threads create --json
-mosoo public-thread-api-v2 threads create --agent-id <agent-id> --idempotency-key <stable-create-key> -o json
+mosoo public-thread-api-v2 files upload --project-id <project-id> --file ./brief.txt -o json
+mosoo public-thread-api-v2 threads create --project-id <project-id> --file session.json --idempotency-key <stable-create-key> -o json
 mosoo public-thread-api-v2 events send --thread-id <thread-id> --file events.json --idempotency-key <stable-turn-key> -o json
 mosoo public-thread-api-v2 events wait --thread-id <thread-id> --final-output
 mosoo public-thread-api-v2 threads usage --thread-id <thread-id> --limit 100 -o json
 ```
 
-Use the same target on every command. An empty create body queues no Run.
-A new Thread freezes Agent configuration; subsequent saved edits affect only
-new Threads. The initial v2 release ([#582](https://github.com/langgenius/mosoo/issues/582))
+Use the same target on every command. `session.json` must contain an explicit
+configuration; use the uploaded `file.id` in resources only when a file is needed:
+
+```json
+{
+  "configuration": {
+    "type": "inline",
+    "harness": "openai-runtime",
+    "provider": "openai",
+    "model": "<model-id>",
+    "instructions": "Analyze the supplied material and save the results."
+  },
+  "input": {
+    "type": "user.message",
+    "content": [{ "type": "text", "text": "Summarize the attachment." }]
+  },
+  "resources": [{ "type": "file", "file_id": "<file-id>" }]
+}
+```
+
+The `inline` mode requires non-blank harness, provider, model and instructions.
+For a saved private preset use only
+`"configuration": { "type": "agent", "agent_id": "<agent-id>" }`.
+Never add inline overrides to a preset. Omit input for an idle Session; omit
+userId to keep it null. The Session freezes its admitted configuration, and
+follow-ups use the returned `thread.id`. Inline execution creates no hidden Agent.
+Reusing a create idempotency key with changed configuration returns 409.
+
+A Project key can only use its own Project. CLI account login also requires an
+explicit owned `--project-id` for Session creation and Project uploads. The
+compatibility `threads create --agent-id` and `files upload --agent-id` forms
+remain available; creation on that Agent route still permits an omitted body.
+Do not combine `--project-id` and `--agent-id`; Project presets belong in the body.
+
+The initial v2 release ([#582](https://github.com/langgenius/mosoo/issues/582))
 uses your own model provider account (BYOK): configure its credentials in the
-Project, save a private Agent, then call the Session API. Platform model supply,
+Project, then call the Session API. Saving an Agent is optional. Platform model supply,
 top-ups, and commercial usage billing are separate work in
 [#636](https://github.com/langgenius/mosoo/issues/636) and do not block #582.
 Usage records and per-turn budget protection remain in scope. The existing
@@ -81,7 +115,7 @@ cap without a configured policy returns `409 readiness_blocked`.
 Set `TURN_MAX_COST_USD` to your chosen amount before using these commands:
 
 ```sh
-mosoo public-thread-api-v2 threads create --agent-id <agent-id> --set input.type=user.message --set "input.content[0].type=text" --set-str "input.content[0].text=Start this turn." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json
+mosoo public-thread-api-v2 threads create --project-id <project-id> --set configuration.type=inline --set configuration.harness=openai-runtime --set configuration.provider=openai --set-str configuration.model=<model-id> --set-str "configuration.instructions=Analyze the supplied material." --set input.type=user.message --set "input.content[0].type=text" --set-str "input.content[0].text=Start this turn." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json
 mosoo public-thread-api-v2 events send --thread-id <thread-id> --set "events[0].type=user_message" --set-str "events[0].text=Continue this task." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json
 mosoo public-thread-api-v2 threads retrieve --thread-id <thread-id> -o json
 ```
@@ -109,7 +143,12 @@ Use this section as the entry point for end-to-end mosoo CLI tasks. It defines
 workflow order and handoff values only; keep detailed command flags and request
 shapes in the owning workflow sections below.
 
-For a backend or Worker integration with a published Agent:
+For a direct Session integration, select the Project, configure BYOK provider
+credentials, then follow `Choose the Public API version` above. Pass inline
+configuration, optionally upload files, and persist the returned Thread ID for
+continuation. Saving or publishing an Agent is not a prerequisite.
+
+For an existing backend or Worker integration with a published Agent:
 
 1. Resolve runtime and hosts with `Runtime State` and `Host Context`.
 2. Provision or select the Project and Agent with `Agent Project Provisioning Workflow`.
@@ -129,12 +168,12 @@ guessing.
 ## Public API Tokens
 
 `MOSOO_API_TOKEN` is a server-side credential for application backends or
-Workers that call a published Agent through the Public API. Do not expose it in
+Workers that create or continue Sessions through the Public API. Do not expose it in
 browser or frontend code.
 
-Create Project API keys (`msp_...`) under the Agent's Project. One account can own
+Create Project API keys (`msp_...`) under the selected Project. One account can own
 multiple Projects and each Project can have multiple keys. Mosoo enforces the
-Project boundary for Agent configuration, execution, and files. A Project key
+Project boundary for Session execution, Agent configuration, and files. A Project key
 cannot manage API keys, account settings, or other Projects. Your backend still
 owns application-level tenant and user mapping.
 
@@ -274,13 +313,13 @@ retrying; do not recreate resources until the current remote state is known.
 
 ## Public Thread File Upload Workflow
 
-For Public Thread file uploads, upload each file to the Agent endpoint before
+For v2 Public Thread file uploads, upload each file to the Project endpoint before
 creating or continuing a Thread. Save `response.file.id`, then reference it as
 `resources[].file_id` in the Thread create body or a `user_message` event body:
 
 ```sh
-mosoo public-thread-api files upload --agent-id <agent-id> --file <path> -o json
-mosoo public-thread-api threads create --agent-id <agent-id> --file thread-create.json -o json
+mosoo public-thread-api-v2 files upload --project-id <project-id> --file <path> -o json
+mosoo public-thread-api-v2 threads create --project-id <project-id> --file session.json -o json
 ```
 
 The upload uses `multipart/form-data` with exactly one `file` field and returns
@@ -288,7 +327,13 @@ a ready draft file. A create body references it like this:
 
 ```json
 {
-  "userId": "demo-user-001",
+  "configuration": {
+    "type": "inline",
+    "harness": "openai-runtime",
+    "provider": "openai",
+    "model": "<model-id>",
+    "instructions": "Summarize the supplied attachment."
+  },
   "input": {
     "content": [{ "type": "text", "text": "Summarize the attachment." }],
     "type": "user.message"
@@ -300,20 +345,21 @@ a ready draft file. A create body references it like this:
 The same `resources` shape is available on a follow-up `user_message` event.
 mosoo claims the draft file into that Thread before queueing the Run. There is
 no public create-upload, PUT, complete, or post-create attach command. Use
-`mosoo commands show public-thread-api files upload --json` before uploading to
+`mosoo commands show public-thread-api-v2 files upload --json` before uploading to
 confirm the generated flags and host selection.
+The v1 and v2 compatibility uploads use `--agent-id` with their Agent route.
 
 ## Public Thread Wait, Final Output, And Transcript Workflow
 
-Every create body is required and must contain a non-blank string `userId`.
-Omitting `input` creates an idle Thread, but omitting the body or `userId` is
-rejected locally before the CLI makes a network request.
+Project create requires an explicit configuration; userId is optional. Omitting
+input creates an idle Session with no Run to wait for. The compatibility v1
+Agent route still requires a body with a non-blank userId.
 
 ```sh
-mosoo public-thread-api threads create --agent-id <agent-id> --file body.json --wait -o json
-mosoo public-thread-api threads create --agent-id <agent-id> --file body.json --final-output
-mosoo public-thread-api events wait --thread-id <thread-id> --final-output
-mosoo public-thread-api threads transcript --thread-id <thread-id>
+mosoo public-thread-api-v2 threads create --project-id <project-id> --file session.json --wait -o json
+mosoo public-thread-api-v2 threads create --project-id <project-id> --file session.json --final-output
+mosoo public-thread-api-v2 events wait --thread-id <thread-id> --final-output
+mosoo public-thread-api-v2 threads transcript --thread-id <thread-id>
 ```
 
 ## Workflow

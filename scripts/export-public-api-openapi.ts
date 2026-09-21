@@ -51,6 +51,18 @@ const operationMetadata: Record<string, Partial<Record<HttpMethod, OperationMeta
 	},
 };
 
+const v2OperationMetadata: typeof operationMetadata = {
+	"/projects/{projectId}/threads": {
+		post: { operationId: "Threads_CreateInProject", tags: ["Threads"] },
+	},
+	"/projects/{projectId}/files": {
+		post: { operationId: "ProjectFiles_Upload", tags: ["Files"] },
+	},
+	"/threads/{threadId}/usage": {
+		get: { operationId: "Threads_Usage", tags: ["Threads"] },
+	},
+};
+
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, "..");
 for (const version of ["v1", "v2"] as const) {
@@ -58,9 +70,9 @@ const outputPath = resolve(repositoryRoot, `.cache/mosoo/docs/openapi/public-thr
 const committedOrigin = "https://cloud.mosoo.ai";
 
 const document = createPublicApiOpenApiDocument(committedOrigin, version);
-// Target resolution owns /api/v1; keep Lathe operation paths relative to it.
+// Target resolution owns the API version base; keep operation paths relative to it.
 document.servers = [];
-for (const [path, methods] of Object.entries({ ...operationMetadata, ...(version === "v2" ? { "/threads/{threadId}/usage": { get: { operationId: "Threads_Usage", tags: ["Threads"] } } } : {}) })) {
+for (const [path, methods] of Object.entries({ ...operationMetadata, ...(version === "v2" ? v2OperationMetadata : {}) })) {
 	const pathItem = document.paths[path];
 	if (pathItem === undefined) {
 		throw new Error(`OpenAPI path missing: ${path}`);

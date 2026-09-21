@@ -427,8 +427,8 @@ func TestV2CreateWithoutUserIDAndUsagePreserveWireValues(t *testing.T) {
 			t.Fatal(err)
 		}
 		create, ok := latheruntime.FindCatalogCommand(root, []string{"public-thread-api-v2", "threads", "create"}, latheruntime.CatalogOptions{})
-		if !ok || create.Body == nil || create.Body.Required || slices.Contains(create.Body.Schema.Required, "userId") {
-			t.Fatalf("v2 create catalog must allow omitted body and identity: %+v", create.Body)
+		if !ok || create.Body == nil || !create.Body.Required || !slices.Contains(create.Body.Schema.Required, "configuration") || slices.Contains(create.Body.Schema.Required, "userId") {
+			t.Fatalf("v2 Project create catalog must require configuration but allow omitted identity: %+v", create.Body)
 		}
 		root.SetArgs(runArgs(srv.URL+"/api/v2", append([]string{"public-thread-api-v2"}, append(args, "-o", "json")...)...))
 		if err := root.Execute(); err != nil {

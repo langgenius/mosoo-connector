@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	generatedthreadsv2 "github.com/langgenius/mosoo-connector/internal/generated/threadsv2"
@@ -155,40 +156,87 @@ func newTestRoot(t *testing.T, host string) (*cobra.Command, *bytes.Buffer) {
 }
 
 func TestV2UploadPreservesMultipartBytesAndBasePath(t *testing.T) {
-	body := []byte{0, 1, 255, 13, 10}
-	filePath := filepath.Join(t.TempDir(), "input.bin")
-	if err := os.WriteFile(filePath, body, 0600); err != nil {
-		t.Fatal(err)
+	for _, scope := range []struct{ path, flag string }{{"agents", "agent-id"}, {"projects", "project-id"}} {
+		t.Run(scope.path, func(t *testing.T) {
+			body := []byte{0, 1, 255, 13, 10}
+			filePath := filepath.Join(t.TempDir(), "input.bin")
+			if err := os.WriteFile(filePath, body, 0600); err != nil {
+				t.Fatal(err)
+			}
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != "POST" || r.URL.Path != "/api/v2/"+scope.path+"/owner1/files" || r.Header.Get("Authorization") != "Bearer test-token" {
+					t.Errorf("incorrect upload target/auth: %s %s", r.Method, r.URL.Path)
+				}
+				file, header, err := r.FormFile("file")
+				if err != nil {
+					t.Error(err)
+					w.WriteHeader(400)
+					return
+				}
+				defer file.Close()
+				got, err := io.ReadAll(file)
+				if err != nil || !bytes.Equal(got, body) || header.Filename != "input.bin" {
+					t.Error("upload bytes/name changed")
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"file":{"id":"file1"}}`))
+			}))
+			defer srv.Close()
+			root, _ := newTestRoot(t, srv.URL+"/api/v2")
+			root.AddGroup(&cobra.Group{ID: "modules", Title: "API modules"})
+			if err := generatedthreadsv2.Mount(root); err != nil {
+				t.Fatal(err)
+			}
+			if err := InstallV2(root, generatedthreadsv2.Specs); err != nil {
+				t.Fatal(err)
+			}
+			root.SetArgs([]string{"--hostname", srv.URL + "/api/v2", "public-thread-api-v2", "files", "upload", "--" + scope.flag, "owner1", "--file", filePath})
+			if err := root.Execute(); err != nil {
+				t.Fatal(err)
+			}
+		})
 	}
+}
+
+func TestV2UploadRequiresOneExplicitScope(t *testing.T) {
+	var requests atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" || r.URL.Path != "/api/v2/agents/agent1/files" || r.Header.Get("Authorization") != "Bearer test-token" {
-			t.Errorf("incorrect upload target/auth: %s %s", r.Method, r.URL.Path)
-		}
-		file, header, err := r.FormFile("file")
-		if err != nil {
-			t.Error(err)
-			w.WriteHeader(400)
-			return
-		}
-		defer file.Close()
-		got, err := io.ReadAll(file)
-		if err != nil || !bytes.Equal(got, body) || header.Filename != "input.bin" {
-			t.Error("upload bytes/name changed")
-		}
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"file":{"id":"file1"}}`))
+		requests.Add(1)
+		w.WriteHeader(500)
 	}))
 	defer srv.Close()
-	root, _ := newTestRoot(t, srv.URL+"/api/v2")
-	root.AddGroup(&cobra.Group{ID: "modules", Title: "API modules"})
-	if err := generatedthreadsv2.Mount(root); err != nil {
-		t.Fatal(err)
+	for _, flags := range [][]string{
+		{},
+		{"--project-id", " "},
+		{"--project-id", "p1", "--agent-id", "a1"},
+	} {
+		root, _ := newTestRoot(t, srv.URL+"/api/v2")
+		root.AddGroup(&cobra.Group{ID: "modules", Title: "API modules"})
+		if err := generatedthreadsv2.Mount(root); err != nil {
+			t.Fatal(err)
+		}
+		if err := InstallV2(root, generatedthreadsv2.Specs); err != nil {
+			t.Fatal(err)
+		}
+		command, ok := latheruntime.FindCatalogCommand(root, []string{"public-thread-api-v2", "files", "upload"}, latheruntime.CatalogOptions{})
+		if !ok || command.HTTP.PathTemplate != "/projects/{projectId}/files" {
+			t.Fatalf("wrong primary upload catalog: %+v", command)
+		}
+		if strings.Contains(command.Example, "v2-v2") || !strings.Contains(command.Example, "--project-id") {
+			t.Fatalf("incorrect canonical upload example: %s", command.Example)
+		}
+		for _, flag := range []string{"project-id", "agent-id", "file"} {
+			if !catalogHasFlag(command, flag) {
+				t.Fatalf("upload catalog missing --%s", flag)
+			}
+		}
+		args := append([]string{"--hostname", srv.URL + "/api/v2", "public-thread-api-v2", "files", "upload", "--file", "unread-file"}, flags...)
+		root.SetArgs(args)
+		if err := root.Execute(); err == nil || (!strings.Contains(err.Error(), "required") && !strings.Contains(err.Error(), "none of the others")) {
+			t.Fatalf("scope flags %v error = %v", flags, err)
+		}
 	}
-	if err := InstallV2(root, generatedthreadsv2.Specs); err != nil {
-		t.Fatal(err)
-	}
-	root.SetArgs([]string{"--hostname", srv.URL + "/api/v2", "public-thread-api-v2", "files", "upload", "--agent-id", "agent1", "--file", filePath})
-	if err := root.Execute(); err != nil {
-		t.Fatal(err)
+	if requests.Load() != 0 {
+		t.Fatalf("invalid upload reached network: %d", requests.Load())
 	}
 }

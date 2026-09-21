@@ -127,19 +127,29 @@ func (c *Client) getJSON(ctx context.Context, method, path string, body any, hea
 	return res.Body, nil
 }
 
-// CreateThread creates a thread for an agent. body is the raw JSON request body
-// and must carry the caller's non-blank string userId. idempotencyKey, when
-// non-empty, is sent as the Idempotency-Key header for retry-safe creation.
+// CreateThread preserves the Agent route; v1 requires userId and v2 allows it
+// to be omitted. The Project route uses CreateProjectThread.
 func (c *Client) CreateThread(ctx context.Context, agentID string, body []byte, idempotencyKey string) (*ThreadState, error) {
 	if err := validateCreateBodyForVersion(body, c.version); err != nil {
 		return nil, err
 	}
+	return c.createThread(ctx, "/agents/"+pathEscape(agentID)+"/threads", body, idempotencyKey)
+}
+
+func (c *Client) CreateProjectThread(ctx context.Context, projectID string, body []byte, idempotencyKey string) (*ThreadState, error) {
+	if err := validateProjectCreateBody(body); err != nil {
+		return nil, err
+	}
+	return c.createThread(ctx, "/projects/"+pathEscape(projectID)+"/threads", body, idempotencyKey)
+}
+
+func (c *Client) createThread(ctx context.Context, path string, body []byte, idempotencyKey string) (*ThreadState, error) {
 	var headers map[string]string
 	if idempotencyKey != "" {
 		headers = map[string]string{"Idempotency-Key": idempotencyKey}
 	}
 	st := &ThreadState{}
-	raw, err := c.getJSON(ctx, "POST", "/agents/"+pathEscape(agentID)+"/threads", bodyOrNil(body), headers, st)
+	raw, err := c.getJSON(ctx, "POST", path, bodyOrNil(body), headers, st)
 	if err != nil {
 		return nil, err
 	}

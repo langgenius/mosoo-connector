@@ -92,6 +92,52 @@ func validateCreateBodyForVersion(body []byte, version string) error {
 	return nil
 }
 
+// The Project route requires an explicit choice, so no preset field can
+// silently override inline configuration (or vice versa).
+func validateProjectCreateBody(body []byte) error {
+	if err := validateCreateBodyForVersion(body, "v2"); err != nil {
+		return err
+	}
+	var document map[string]any
+	_ = json.Unmarshal(body, &document)
+	configuration, ok := document["configuration"].(map[string]any)
+	if !ok {
+		return fmt.Errorf("Project Session body must include configuration with type inline or agent")
+	}
+	var required []string
+	switch configuration["type"] {
+	case "inline":
+		required = []string{"harness", "provider", "model", "instructions"}
+	case "agent":
+		required = []string{"agent_id"}
+	default:
+		return fmt.Errorf("configuration.type must be inline or agent")
+	}
+	allowed := map[string]bool{"type": true}
+	for _, field := range required {
+		value, ok := configuration[field].(string)
+		if !ok || strings.TrimSpace(value) == "" {
+			return fmt.Errorf("configuration.%s must be a non-blank string", field)
+		}
+		allowed[field] = true
+	}
+	for field := range configuration {
+		if !allowed[field] {
+			return fmt.Errorf("configuration.%s is not allowed for type %s; inline and Agent preset fields cannot be mixed", field, configuration["type"])
+		}
+	}
+	return nil
+}
+
+func rejectLegacyConfiguration(body []byte) error {
+	var document map[string]any
+	_ = json.Unmarshal(body, &document)
+	if _, exists := document["configuration"]; exists {
+		return fmt.Errorf("configuration requires --project-id; for a preset use configuration.type=agent with configuration.agent_id")
+	}
+	return nil
+}
+
 func parseSet(kv, flag string) (string, string, error) {
 	eq := strings.Index(kv, "=")
 	if eq < 0 {

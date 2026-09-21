@@ -5,9 +5,9 @@
 - Backend: `openapi3`
 - Default hostname: `http://127.0.0.1:8787/api/v2`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `e060f465ac24a11fe7efe0cf55fde78042f42e2f`
+- Pinned tag: `70bfda2a10a0410ba2ab11a7656e01ee9d04c340`
 - Files: `docs/openapi/public-thread-api.v2.openapi.json`
-- Resolved SHA: `e060f465ac24a11fe7efe0cf55fde78042f42e2f`
+- Resolved SHA: `70bfda2a10a0410ba2ab11a7656e01ee9d04c340`
 
 ## Events
 
@@ -132,24 +132,27 @@
 
 ### `mosoo public-thread-api-v2 files upload`
 
-- Summary: Upload a file for an agent
-- HTTP: `POST /agents/{agentId}/files`
+- Summary: Upload a file to a Project
+- HTTP: `POST /projects/{projectId}/files`
 - Auth: required
 - Body: required; media type `multipart/form-data`
 - Flags:
-  - `--agent-id` (path, required, ulid): Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs.
+  - `--project-id` (path, required, ulid): Owned Project. A Project key can access only its own Project; CLI login supplies an explicit owned Project.
   - `--file` (formData, required, binary): file
 - Output: response media `application/json`
+- Notes:
+  - A Project key is restricted to its own Project; CLI login supplies an explicit owned Project.
+  - The compatibility --agent-id form remains available. --project-id and --agent-id are mutually exclusive.
 - Known errors:
   - HTTP 401: Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again.
   - HTTP 400: The multipart request must contain exactly one file field.
   - HTTP 413: The upload exceeds the Public API file size limit.
 - Examples:
-  - Upload a file and capture the draft file ID for a thread request.
-    Command: `mosoo public-thread-api-v2 files upload --agent-id <agent-id> --file <path> -o json`
+  - Upload a Project file for a direct or preset Session.
+    Command: `mosoo public-thread-api-v2 files upload --project-id <project-id> --file <path> -o json`
     Output ID path: `file.id`
     Follow-up commands:
-      - `mosoo public-thread-api-v2 threads create --agent-id <agent-id> --file thread-create.json -o json`
+      - `mosoo public-thread-api-v2 threads create --project-id <project-id> --file session.json -o json`
 
 ## Threads
 
@@ -166,15 +169,18 @@
 
 ### `mosoo public-thread-api-v2 threads create`
 
-- Summary: Create a thread for an agent
-- HTTP: `POST /agents/{agentId}/threads`
+- Summary: Create a durable Session in a Project
+- HTTP: `POST /projects/{projectId}/threads`
 - Auth: required
-- Body: optional; media type `application/json`
+- Body: required; media type `application/json`
 - Flags:
-  - `--agent-id` (path, required, ulid): Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs.
+  - `--project-id` (path, required, ulid): Owned Project. A Project key can access only its own Project; CLI login supplies an explicit owned Project.
   - `--idempotency-key` (header): Optional key for retry-safe create-thread and send-events calls. Reusing the same key with the same request returns the original response. Reusing the key while the original request is still processing returns 409.
 - Output: response media `application/json`
 - Notes:
+  - Project credentials are BYOK. A Project key is restricted to its own Project; CLI login must supply an explicit owned Project. No Agent is created for inline execution.
+  - Continue with events send --thread-id using the returned thread.id. Reuse the same idempotency key only with an unchanged request; changing configuration under that key returns 409.
+  - The compatibility form threads create --agent-id <agent-id> retains the saved-private Agent route and optional body. --agent-id and --project-id are mutually exclusive; use configuration.type=agent for a Project-scoped preset.
   - Set top-level maxCostUsd with --set maxCostUsd=<usd-amount> or a numeric JSON field in --file. Choose a positive USD amount with at most six decimal places, within the deployment policy maximum.
   - The cap applies only to this turn. Omission uses the deployment's configured default when available; the CLI does not supply a default amount or platform-funded inference.
   - Per-turn budgets are unreleased. Check maxCostUsd in the target's /api/v2/openapi.json and confirm its deployment budget policy before use. An explicit cap without a policy fails with 409 readiness_blocked.
@@ -182,25 +188,23 @@
   - Budgeted runs expose run.budget with capUsd, estimatedCostUsd and state: available, settling, budget_exhausted or budget_usage_unavailable. Unavailable usage means the estimate covers only established usage.
   - A budget failure remains a failed run. Inspect available files and events; --final-output is only for completed runs, and a failed turn does not guarantee a successful checkpoint.
 - Known errors:
-  - HTTP 400: The body or userId is invalid, or maxCostUsd is invalid, exceeds the deployment maximum, or is supplied without input.
-  - HTTP 404: Agent not found or outside this Project.
+  - HTTP 400: The configuration is missing, mixes inline and preset fields, or has blank instructions; userId or maxCostUsd may also be invalid.
+  - HTTP 404: Project or preset Agent not found or not owned by this caller.
+  - HTTP 409: The idempotency key was reused with a different request or configuration.
   - HTTP 409: readiness_blocked: an explicit maxCostUsd was supplied but this deployment has no budget policy.
 - Examples:
-  - Create a Thread with an initial user message and capture the Thread ID.
-    Command: `mosoo public-thread-api-v2 threads create --agent-id <agent-id> --file thread-create.json -o json`
-    Body shape: `{"input":{"content":[{"text":"Say hello from the API.","type":"text"}],"type":"user.message"}}`
+  - Create a Session directly from harness/model/instructions and an uploaded Project file.
+    Command: `mosoo public-thread-api-v2 threads create --project-id <project-id> --file session.json --idempotency-key <stable-create-key> -o json`
+    Body shape: `{"configuration":{"harness":"openai-runtime","instructions":"Analyze the supplied material and save the results.","model":"\u003cmodel-id\u003e","provider":"openai","type":"inline"},"input":{"content":[{"text":"Summarize the attachment.","type":"text"}],"type":"user.message"},"resources":[{"file_id":"\u003cfile-id\u003e","type":"file"}]}`
     Output ID path: `thread.id`
     Follow-up commands:
-      - `mosoo public-thread-api-v2 threads retrieve --thread-id <thread-id> -o json`
-      - `mosoo public-thread-api-v2 events list-events --thread-id <thread-id> -o json`
-  - Create a Thread with a file uploaded through the Agent endpoint.
-    Command: `mosoo public-thread-api-v2 threads create --agent-id <agent-id> --file thread-create-with-file.json -o json`
-    Body shape: `{"input":{"content":[{"text":"Summarize the attachment.","type":"text"}],"type":"user.message"},"resources":[{"file_id":"\u003cfile-id\u003e","type":"file"}]}`
+      - `mosoo public-thread-api-v2 events send --thread-id <thread-id> --file events.json -o json`
+  - Create an idle Session from an optional saved private Agent preset.
+    Command: `mosoo public-thread-api-v2 threads create --project-id <project-id> --set configuration.type=agent --set-str configuration.agent_id=<agent-id> -o json`
+    Body shape: `{"configuration":{"agent_id":"\u003cagent-id\u003e","type":"agent"}}`
     Output ID path: `thread.id`
-    Follow-up commands:
-      - `mosoo public-thread-api-v2 events list-events --thread-id <thread-id> -o json`
   - Create an initial turn with a caller-selected estimate cap; set TURN_MAX_COST_USD to your chosen amount first.
-    Command: `mosoo public-thread-api-v2 threads create --agent-id <agent-id> --set input.type=user.message --set "input.content[0].type=text" --set-str "input.content[0].text=Start this turn." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json`
+    Command: `mosoo public-thread-api-v2 threads create --project-id <project-id> --set configuration.type=inline --set configuration.harness=openai-runtime --set configuration.provider=openai --set-str configuration.model=<model-id> --set-str "configuration.instructions=Analyze the supplied material." --set input.type=user.message --set "input.content[0].type=text" --set-str "input.content[0].text=Start this turn." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json`
     Output ID path: `thread.id`
 
 ### `mosoo public-thread-api-v2 threads delete`

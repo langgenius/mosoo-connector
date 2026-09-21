@@ -3,7 +3,7 @@ sources:
     display_name: public-thread-api
     default_hostname: http://127.0.0.1:8787/api/v1
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: e060f465ac24a11fe7efe0cf55fde78042f42e2f
+    pinned_tag: 70bfda2a10a0410ba2ab11a7656e01ee9d04c340
     backend: openapi3
     openapi3:
       files:
@@ -12,7 +12,7 @@ sources:
     display_name: public-thread-api-v2
     default_hostname: http://127.0.0.1:8787/api/v2
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: e060f465ac24a11fe7efe0cf55fde78042f42e2f
+    pinned_tag: 70bfda2a10a0410ba2ab11a7656e01ee9d04c340
     backend: openapi3
     openapi3:
       files:
@@ -21,7 +21,7 @@ sources:
     display_name: console
     default_hostname: http://127.0.0.1:8787/api
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: e060f465ac24a11fe7efe0cf55fde78042f42e2f
+    pinned_tag: 70bfda2a10a0410ba2ab11a7656e01ee9d04c340
     backend: graphql
     graphql:
       schema: docs/graphql/console.graphql
@@ -217,7 +217,7 @@ sources:
     display_name: console-rest
     default_hostname: http://127.0.0.1:8787/api
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: e060f465ac24a11fe7efe0cf55fde78042f42e2f
+    pinned_tag: 70bfda2a10a0410ba2ab11a7656e01ee9d04c340
     backend: openapi3
     openapi3:
       files:

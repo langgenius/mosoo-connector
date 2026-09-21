@@ -1420,6 +1420,7 @@ var Specs = []runtime.CommandSpec{
 		Params: []runtime.ParamSpec{
 			{Name: "projectId", Flag: "project-id", In: "variable", GoType: "string", Help: "projectId (variable, required)", Required: true},
 			{Name: "agentId", Flag: "agent-id", In: "variable", GoType: "string", Help: "agentId (variable, required)", Required: true},
+			{Name: "sessionId", Flag: "session-id", In: "variable", GoType: "string", Help: "sessionId (variable)", Required: false},
 			{Name: "archived", Flag: "archived", In: "variable", GoType: "bool", Help: "archived (variable)", Required: false},
 			{Name: "beforeCursor", Flag: "before-cursor", In: "variable", GoType: "string", Help: "beforeCursor (variable)", Required: false},
 			{Name: "limit", Flag: "limit", In: "variable", GoType: "int64", Help: "limit (variable)", Required: false},
@@ -1429,8 +1430,8 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
-			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "archived": &runtime.SchemaSpec{Type: "boolean"}, "beforeCursor": &runtime.SchemaSpec{Type: "string"}, "limit": &runtime.SchemaSpec{Type: "integer"}, "participantOnly": &runtime.SchemaSpec{Type: "boolean"}, "projectId": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"projectId", "agentId"}},
-			Template:  "{\"query\":\"query agentSessionList($projectId: ULID!, $agentId: ULID!, $archived: Boolean, $beforeCursor: String, $limit: Int, $participantOnly: Boolean, $type: SessionType) { agentSessionList(projectId: $projectId, agentId: $agentId, archived: $archived, beforeCursor: $beforeCursor, limit: $limit, participantOnly: $participantOnly, type: $type) { nodes { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt projectId } pageInfo { endCursor hasMore startCursor } } }\",\"variables\":{}}",
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"agentId": &runtime.SchemaSpec{Type: "string"}, "archived": &runtime.SchemaSpec{Type: "boolean"}, "beforeCursor": &runtime.SchemaSpec{Type: "string"}, "limit": &runtime.SchemaSpec{Type: "integer"}, "participantOnly": &runtime.SchemaSpec{Type: "boolean"}, "projectId": &runtime.SchemaSpec{Type: "string"}, "sessionId": &runtime.SchemaSpec{Type: "string"}, "type": &runtime.SchemaSpec{Type: "string"}}, Required: []string{"projectId", "agentId"}},
+			Template:  "{\"query\":\"query agentSessionList($projectId: ULID!, $agentId: ULID!, $sessionId: ULID, $archived: Boolean, $beforeCursor: String, $limit: Int, $participantOnly: Boolean, $type: SessionType) { agentSessionList(projectId: $projectId, agentId: $agentId, sessionId: $sessionId, archived: $archived, beforeCursor: $beforeCursor, limit: $limit, participantOnly: $participantOnly, type: $type) { nodes { agentId archivedAt createdAt deploymentVersionId deploymentVersionNumber id kind lastMessageAt lastRun { completedAt createdAt deploymentVersionId deploymentVersionNumber error { code details message retryable } id model provider startedAt status traceId trigger updatedAt } model provider runtimeId status title type updatedAt projectId } pageInfo { endCursor hasMore startCursor } } }\",\"variables\":{}}",
 			MergePath: "variables",
 		},
 	},

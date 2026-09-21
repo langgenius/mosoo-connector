@@ -102,6 +102,7 @@ func newCreateCommand(api apiSurface) *cobra.Command {
 		description = api.generatedSpec("Threads", "create").Long + "\n\n"
 	}
 	var (
+		projectID      string
 		agentID        string
 		file           string
 		sets           []string
@@ -119,9 +120,25 @@ func newCreateCommand(api apiSurface) *cobra.Command {
 			"On failure, the run status, run error, tool failures, and last relevant events are shown.",
 		Example: "mosoo public-thread-api threads create --agent-id <agent-id> --file body.json --wait --final-output\n",
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			if api.version == "v2" {
+				projectID = strings.TrimSpace(projectID)
+				agentID = strings.TrimSpace(agentID)
+				if projectID == "" && agentID == "" {
+					return fmt.Errorf("a non-blank --project-id or compatibility --agent-id is required")
+				}
+			}
 			body, err := buildCreateBodyForVersion(file, sets, stringSets, api.version)
 			if err != nil {
 				return err
+			}
+			if projectID != "" {
+				if err := validateProjectCreateBody(body); err != nil {
+					return err
+				}
+			} else if api.version == "v2" {
+				if err := rejectLegacyConfiguration(body); err != nil {
+					return err
+				}
 			}
 			client, err := NewClient(cmd)
 			if err != nil {
@@ -132,7 +149,12 @@ func newCreateCommand(api apiSurface) *cobra.Command {
 				ctx = context.Background()
 			}
 
-			st, err := client.CreateThread(ctx, agentID, body, idempotencyKey)
+			var st *ThreadState
+			if projectID != "" {
+				st, err = client.CreateProjectThread(ctx, projectID, body, idempotencyKey)
+			} else {
+				st, err = client.CreateThread(ctx, agentID, body, idempotencyKey)
+			}
 			if err != nil {
 				return err
 			}
@@ -166,8 +188,17 @@ func newCreateCommand(api apiSurface) *cobra.Command {
 	flags.StringVar(&idempotencyKey, "idempotency-key", "", "Optional key for retry-safe create-thread calls. (header)")
 	flags.BoolVar(&wait, "wait", false, "Block until the initial run reaches a terminal state")
 	addWaitFlags(cmd, &wf, true)
-	_ = cmd.MarkFlagRequired("agent-id")
-	cmd.Example = strings.ReplaceAll(cmd.Example, "public-thread-api", api.name)
+	if api.version == "v2" {
+		cmd.Short = "Create a durable Session in a Project"
+		cmd.Example = api.generatedSpec("Threads", "create").Example
+		flags.StringVar(&projectID, "project-id", "", "Explicit owned Project ID; required for inline configuration or a Project preset")
+		flags.Lookup("agent-id").Usage = "Compatibility Agent endpoint; mutually exclusive with --project-id"
+		cmd.MarkFlagsOneRequired("project-id", "agent-id")
+		cmd.MarkFlagsMutuallyExclusive("project-id", "agent-id")
+	} else {
+		_ = cmd.MarkFlagRequired("agent-id")
+	}
+	cmd.Example = strings.ReplaceAll(cmd.Example, "public-thread-api ", api.name+" ")
 	latheruntime.AttachCatalogCommand(cmd, api.name, createCatalogSpec(cmd, api))
 	return cmd
 }
@@ -218,7 +249,7 @@ func newWaitCommand(api apiSurface) *cobra.Command {
 	cmd.Flags().StringVar(&threadID, "thread-id", "", "Thread ID returned by create thread. (required, ulid)")
 	addWaitFlags(cmd, &wf, true)
 	_ = cmd.MarkFlagRequired("thread-id")
-	cmd.Example = strings.ReplaceAll(cmd.Example, "public-thread-api", api.name)
+	cmd.Example = strings.ReplaceAll(cmd.Example, "public-thread-api ", api.name+" ")
 	latheruntime.AttachCatalogCommand(cmd, api.name, waitCatalogSpec(cmd, api))
 	return cmd
 }
@@ -271,13 +302,22 @@ func newTranscriptCommand(api apiSurface) *cobra.Command {
 	cmd.Flags().IntVar(&limit, "limit", 100, "Maximum number of latest thread events to fetch")
 	cmd.Flags().BoolVar(&includeThinking, "include-thinking", false, "Include agent thinking events in the transcript")
 	_ = cmd.MarkFlagRequired("thread-id")
-	cmd.Example = strings.ReplaceAll(cmd.Example, "public-thread-api", api.name)
+	cmd.Example = strings.ReplaceAll(cmd.Example, "public-thread-api ", api.name+" ")
 	latheruntime.AttachCatalogCommand(cmd, api.name, transcriptCatalogSpec(cmd, api))
 	return cmd
 }
 
 func createCatalogSpec(cmd *cobra.Command, api apiSurface) latheruntime.CommandSpec {
 	spec := api.generatedSpec("Threads", "create")
+	if api.version == "v2" {
+		for i := range spec.Params {
+			if spec.Params[i].Flag == "project-id" {
+				spec.Params[i].Required = false // Required unless the compatibility Agent path is selected.
+				spec.Params[i].Help = "Explicit owned Project; required unless compatibility --agent-id is supplied"
+			}
+		}
+		spec.Params = append(spec.Params, localParam("agentId", "agent-id", "string", "Compatibility Agent endpoint; mutually exclusive with --project-id", ""))
+	}
 	spec.Long = cmd.Long
 	spec.Example = cmd.Example
 	spec.Params = append(spec.Params,

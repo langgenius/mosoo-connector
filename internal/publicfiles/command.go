@@ -42,8 +42,9 @@ func install(root *cobra.Command, api apiSurface) error {
 }
 
 type uploadOptions struct {
-	agentID string
-	file    string
+	projectID string
+	agentID   string
+	file      string
 }
 
 func newUploadCommand(api apiSurface) *cobra.Command {
@@ -72,16 +73,28 @@ func newUploadCommand(api apiSurface) *cobra.Command {
 	flags := cmd.Flags()
 	flags.StringVar(&opts.agentID, "agent-id", "", "Agent API Endpoint ID. (path, required, ulid)")
 	flags.StringVarP(&opts.file, "file", "f", "", "Local file path to upload as multipart field 'file'")
-	_ = cmd.MarkFlagRequired("agent-id")
+	if api.name == "public-thread-api-v2" {
+		flags.StringVar(&opts.projectID, "project-id", "", "Explicit owned Project ID; no Agent is required")
+		flags.Lookup("agent-id").Usage = "Compatibility Agent endpoint; mutually exclusive with --project-id"
+		cmd.MarkFlagsOneRequired("project-id", "agent-id")
+		cmd.MarkFlagsMutuallyExclusive("project-id", "agent-id")
+		spec := api.generatedSpec("ProjectFiles_Upload")
+		cmd.Short, cmd.Long, cmd.Example = spec.Short, spec.Long, spec.Example
+	} else {
+		_ = cmd.MarkFlagRequired("agent-id")
+	}
 	_ = cmd.MarkFlagRequired("file")
-	cmd.Example = strings.ReplaceAll(cmd.Example, "public-thread-api", api.name)
+	cmd.Example = strings.ReplaceAll(cmd.Example, "public-thread-api ", api.name+" ")
 	latheruntime.AttachCatalogCommand(cmd, api.name, uploadCatalogSpec(cmd, api))
 	return cmd
 }
 
 func (o uploadOptions) validate() error {
-	if strings.TrimSpace(o.agentID) == "" {
-		return fmt.Errorf("--agent-id is required")
+	if strings.TrimSpace(o.agentID) == "" && strings.TrimSpace(o.projectID) == "" {
+		return fmt.Errorf("a non-blank --project-id or compatibility --agent-id is required")
+	}
+	if o.projectID != "" && o.agentID != "" {
+		return fmt.Errorf("--project-id and --agent-id are mutually exclusive")
 	}
 	if strings.TrimSpace(o.file) == "" {
 		return fmt.Errorf("--file is required")
@@ -90,12 +103,22 @@ func (o uploadOptions) validate() error {
 }
 
 func uploadCatalogSpec(cmd *cobra.Command, api apiSurface) latheruntime.CommandSpec {
-	spec := api.generatedSpec(uploadOperationID)
+	operationID := uploadOperationID
+	if api.name == "public-thread-api-v2" {
+		operationID = "ProjectFiles_Upload"
+	}
+	spec := api.generatedSpec(operationID)
 	spec.Long = cmd.Long
 	spec.Example = cmd.Example
 	spec.Params = []latheruntime.ParamSpec{
 		{Name: "agentId", Flag: "agent-id", In: latheruntime.InPath, GoType: "string", Help: "Agent API Endpoint ID. (path, required, ulid)", Required: true, Format: "ulid"},
 		{Name: "file", Flag: "file", In: latheruntime.InFormData, GoType: "string", Help: "Local file path uploaded as multipart field 'file'.", Required: true},
+	}
+	if api.name == "public-thread-api-v2" {
+		spec.Params[0].In = "local"
+		spec.Params[0].Required = false
+		spec.Params[0].Help = "Compatibility Agent endpoint; mutually exclusive with --project-id"
+		spec.Params = append(spec.Params, latheruntime.ParamSpec{Name: "projectId", Flag: "project-id", In: latheruntime.InPath, GoType: "string", Help: "Explicit owned Project; required unless --agent-id is supplied", Format: "ulid"})
 	}
 	spec.KnownErrors = []latheruntime.KnownError{
 		{Status: http.StatusBadRequest, Cause: "The multipart request must contain exactly one file field."},
