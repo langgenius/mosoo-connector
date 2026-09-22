@@ -17,6 +17,7 @@ type OverlayCommand = {
 	examples?: OverlayExample[];
 	hidden?: boolean;
 	ignore?: boolean;
+	params?: Record<string, { help: string; deprecated: boolean }>;
 	notes?: string[];
 	prerequisites?: string[];
 	known_errors?: { status: number; cause: string }[];
@@ -154,14 +155,14 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		aliases: ["create"],
 		shortcuts: [{ use: "create-agent" }],
 		short: "Create an Agent",
-		long: "Create an Agent draft from a structured input. Publish it with publish-agent after provider credentials are configured.",
+		params: { "input.kind": { help: "Legacy compatibility field; ignored. Sessions own execution state.", deprecated: true } },
+		long: "Save an optional Agent preset from a structured input. Project-direct Sessions do not require an Agent; publish only for flows that use a published Agent, including v1.",
 		example: [
 			"cat > agent-create.json <<'JSON'",
 			"{",
 			"  \"input\": {",
 			"    \"projectId\": \"<project-id>\",",
 			"    \"name\": \"Research Agent\",",
-			"    \"kind\": \"<pet-or-cattle>\",",
 			"    \"runtimeId\": \"<runtime-id>\",",
 			"    \"provider\": \"<provider>\",",
 			"    \"model\": \"<model>\",",
@@ -180,7 +181,6 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 					input: {
 						projectId: "<project-id>",
 						name: "Research Agent",
-						kind: "pet",
 						runtimeId: "<runtime-id>",
 						provider: "<provider>",
 						model: "<model>",
@@ -193,10 +193,12 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 				},
 				follow_up_commands: [
 					"mosoo console agents agent --project-id <project-id> --agent-id <id> -o json",
-					"mosoo console agents publish-agent --input-project-id <project-id> --input-agent-id <id> -o json",
 				],
 			},
 		],
+	},
+	createAgentFork: {
+		params: { "input.kind": { help: "Legacy compatibility field; ignored. Sessions own execution state.", deprecated: true } },
 	},
 	createVendorCredential: {
 		aliases: ["create"],
@@ -757,6 +759,9 @@ function renderOverlay(commands: Record<string, OverlayCommand>): string {
 		}
 		if (command.ignore !== undefined) {
 			lines.push(`    ignore: ${command.ignore ? "true" : "false"}`);
+		}
+		if (command.params) {
+			renderYamlValue(lines, "params", command.params, 4);
 		}
 		if (command.notes?.length) {
 			lines.push("    notes:");

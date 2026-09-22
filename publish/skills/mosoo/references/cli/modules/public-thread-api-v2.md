@@ -5,9 +5,9 @@
 - Backend: `openapi3`
 - Default hostname: `http://127.0.0.1:8787/api/v2`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `9bff2a7c11aa6bb8e721df43073f2322ff27d560`
+- Pinned tag: `2bda2d940acf382dfc718745619ecc54797ce793`
 - Files: `docs/openapi/public-thread-api.v2.openapi.json`
-- Resolved SHA: `9bff2a7c11aa6bb8e721df43073f2322ff27d560`
+- Resolved SHA: `2bda2d940acf382dfc718745619ecc54797ce793`
 
 ## Events
 
@@ -205,7 +205,7 @@
 - Flags:
   - `--agent-id` (path, required, ulid): Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs.
   - `--archived` (query): Filter by archived state: true returns only archived Threads, false only active ones. Omit to return all Threads.
-- Output: list path `threads`; columns `kind`, `id`, `agent_id`, `created_at`, `last_run_id`, `source`; response media `application/json`
+- Output: list path `threads`; columns `id`, `agent_id`, `created_at`, `last_run_id`, `source`, `status`; response media `application/json`
 - Example: `mosoo public-thread-api-v2 threads list-for-agent --agent-id <agent-id>`
 
 ### `mosoo public-thread-api-v2 threads retrieve`

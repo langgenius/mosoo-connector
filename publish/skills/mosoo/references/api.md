@@ -36,9 +36,10 @@ Agent or change v1 selection.
 Usage returns `usage` and `nextCursor`. Null metrics are unknown, not zero.
 `reportedCostUsd` is a runtime estimate; `usageContract` explains provider
 cache/token conventions. Retrying a request keeps its idempotency key; a new
-turn gets a new key. After an expired recovery window, new execution is
-blocked with `readiness_blocked`; existing history and committed files remain
-readable. Never replace a missing workspace with a fabricated continuation.
+turn gets a new key. Formal API Sessions do not expire merely from inactivity.
+Cloud debug Previews have a separate 30-day inactivity policy; console login or
+history reads do not renew it. Existing recovery and ownership checks still
+apply. Never replace a missing workspace with a fabricated continuation.
 
 ## Documentation sources
 

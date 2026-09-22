@@ -285,7 +285,7 @@ var Specs = []runtime.CommandSpec{
 			{Name: "agentId", Flag: "agent-id", In: "path", GoType: "string", Help: "Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs. (path, required, ulid)", Required: true, Format: "ulid"},
 			{Name: "archived", Flag: "archived", In: "query", GoType: "bool", Help: "Filter by archived state: true returns only archived Threads, false only active ones. Omit to return all Threads. (query)", Required: false},
 		},
-		Output:   runtime.OutputHints{ListPath: "threads", DefaultColumns: []string{"kind", "id", "agent_id", "created_at", "last_run_id", "source"}, ResponseMediaType: "application/json"},
+		Output:   runtime.OutputHints{ListPath: "threads", DefaultColumns: []string{"id", "agent_id", "created_at", "last_run_id", "source", "status"}, ResponseMediaType: "application/json"},
 		Security: &runtime.SecurityHint{},
 	},
 	{

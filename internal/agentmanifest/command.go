@@ -22,13 +22,12 @@ import (
 const (
 	agentManifestQuery = `query agentManifest($projectId: ULID!, $agentId: ULID!) { agentManifest(projectId: $projectId, agentId: $agentId) { agentId json yaml } }`
 
-	updateAgentConfigMutation = `mutation updateAgentConfig($input: UpdateAgentConfigInput!) { updateAgentConfig(input: $input) { createdAt description id kind liveVersion { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility projectId } }`
+	updateAgentConfigMutation = `mutation updateAgentConfig($input: UpdateAgentConfigInput!) { updateAgentConfig(input: $input) { createdAt description id liveVersion { agentId createdAt createdByAccountId environmentId id isLive model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility projectId } }`
 )
 
 var requiredUpdateFields = []string{
 	"agentId",
 	"projectId",
-	"kind",
 	"mcpServerIds",
 	"model",
 	"name",
@@ -510,6 +509,9 @@ func validatePatchFields(patch map[string]any) error {
 			return fmt.Errorf("unknown manifest spec field %q", key)
 		}
 	}
+	if kind := patch["kind"]; kind != nil && kind != "pet" && kind != "cattle" {
+		return fmt.Errorf("invalid legacy manifest kind %v: must be pet, cattle, or null", kind)
+	}
 	return nil
 }
 
@@ -532,7 +534,6 @@ func updateInputFromManifest(manifest map[string]any) map[string]any {
 		copyIfPresent(out, metadata, "name")
 	}
 	copyIfPresent(out, source, "description")
-	copyIfPresent(out, source, "kind")
 	copyIfPresent(out, source, "mcpServerIds")
 	copyIfPresent(out, source, "model")
 	copyIfPresent(out, source, "name")
