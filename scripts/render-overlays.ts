@@ -784,29 +784,19 @@ function renderOverlay(commands: Record<string, OverlayCommand>): string {
 function buildThreadsV2Overlay(): Record<string, OverlayCommand> {
 	const overlay = buildThreadsOverlay();
 	const create = overlay.create;
-	const budgetNotes = [
-		"Set top-level maxCostUsd with --set maxCostUsd=<usd-amount> or a numeric JSON field in --file. Choose a positive USD amount with at most six decimal places, within the deployment policy maximum.",
-		"The cap applies only to this turn. Omission uses the deployment's configured default when available; the CLI does not supply a default amount or platform-funded inference.",
-		"Per-turn budgets are unreleased. Check maxCostUsd in the target's /api/v2/openapi.json and confirm its deployment budget policy before use. An explicit cap without a policy fails with 409 readiness_blocked.",
-		"Costs are estimates, not invoices. In-flight usage can exceed the cap; reaching the threshold rejects new model requests, and unknown usage fails closed. Native provider protocols are unchanged.",
-		"Budgeted runs expose run.budget with capUsd, estimatedCostUsd and state: available, settling, budget_exhausted or budget_usage_unavailable. Unavailable usage means the estimate covers only established usage.",
-		"A budget failure remains a failed run. Inspect available files and events; --final-output is only for completed runs, and a failed turn does not guarantee a successful checkpoint.",
-	];
 	create.use = "create";
 	create.short = "Create a durable Session in a Project";
-	create.long = "Create a durable Session with --project-id and a required configuration object: type=inline with harness, provider, model and non-blank instructions, or type=agent with agent_id for an optional saved private preset. Never mix preset and inline fields. Input, resources and userId are optional; a supplied userId must be a non-blank string. Existing Sessions retain their admitted configuration. Optional top-level maxCostUsd applies to the initial input turn and requires a configured deployment budget policy. In-flight usage can exceed this estimate cap. Per-turn budgets are unreleased; verify support on the target deployment before using maxCostUsd.";
+	create.long = "Create a durable Session with --project-id and a required configuration object: type=inline with harness, provider, model and non-blank instructions, or type=agent with agent_id for an optional saved private preset. Never mix preset and inline fields. Input, resources and userId are optional; a supplied userId must be a non-blank string. Existing Sessions retain their admitted configuration.";
 	create.example = "mosoo public-thread-api threads create --project-id <project-id> --file session.json --idempotency-key <stable-create-key> -o json";
 	create.notes = [
 		"Project credentials are BYOK. A Project key is restricted to its own Project; CLI login must supply an explicit owned Project. No Agent is created for inline execution.",
 		"Continue with events send --thread-id using the returned thread.id. Reuse the same idempotency key only with an unchanged request; changing configuration under that key returns 409.",
 		"The compatibility form threads create --agent-id <agent-id> retains the saved-private Agent route and optional body. --agent-id and --project-id are mutually exclusive; use configuration.type=agent for a Project-scoped preset.",
-		...budgetNotes,
 	];
 	create.known_errors = [
-		{ status: 400, cause: "The configuration is missing, mixes inline and preset fields, or has blank instructions; userId or maxCostUsd may also be invalid." },
+		{ status: 400, cause: "The configuration is missing, mixes inline and preset fields, or has blank instructions; userId may also be invalid." },
 		{ status: 404, cause: "Project or preset Agent not found or not owned by this caller." },
 		{ status: 409, cause: "The idempotency key was reused with a different request or configuration." },
-		{ status: 409, cause: "readiness_blocked: an explicit maxCostUsd was supplied but this deployment has no budget policy." },
 	];
 	create.examples = [{
 		summary: "Create a Session directly from harness/model/instructions and an uploaded Project file.",
@@ -824,11 +814,6 @@ function buildThreadsV2Overlay(): Record<string, OverlayCommand> {
 		body_shape: { configuration: { type: "agent", agent_id: "<agent-id>" } },
 		output_hints: { id_path: "thread.id" },
 	}];
-	create.examples?.push({
-		summary: "Create an initial turn with a caller-selected estimate cap; set TURN_MAX_COST_USD to your chosen amount first.",
-		command: 'mosoo public-thread-api threads create --project-id <project-id> --set configuration.type=inline --set configuration.harness=openai-runtime --set configuration.provider=openai --set-str configuration.model=<model-id> --set-str "configuration.instructions=Analyze the supplied material." --set input.type=user.message --set "input.content[0].type=text" --set-str "input.content[0].text=Start this turn." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json',
-		output_hints: { id_path: "thread.id" },
-	});
 	// The existing helpers preserve --agent-id compatibility under the same
 	// commands, so do not generate a second create/upload command tree.
 	overlay["create-in-project"] = create;
@@ -848,19 +833,6 @@ function buildThreadsV2Overlay(): Record<string, OverlayCommand> {
 		notes: ["A Project key is restricted to its own Project; CLI login supplies an explicit owned Project.", "The compatibility --agent-id form remains available. --project-id and --agent-id are mutually exclusive."],
 	};
 	overlay["agent-files-upload"] = { ignore: true };
-	const send = overlay["thread-events-send"];
-	send.long = "Send user messages, permission decisions, or interrupts to a thread session. Optional top-level maxCostUsd applies only to a user_message turn in this request; it does not change earlier turns or later defaults. Per-turn budgets are unreleased; verify support on the target deployment before using maxCostUsd.";
-	send.notes = budgetNotes;
-	send.known_errors?.push(
-		{ status: 400, cause: "maxCostUsd is invalid, exceeds the deployment maximum, or is supplied without a user_message event." },
-		{ status: 409, cause: "readiness_blocked: an explicit maxCostUsd was supplied but this deployment has no budget policy." },
-	);
-	send.examples?.push({
-		summary: "Send a new user-message turn with a caller-selected estimate cap; set TURN_MAX_COST_USD first.",
-		command: 'mosoo public-thread-api events send --thread-id <thread-id> --set "events[0].type=user_message" --set-str "events[0].text=Continue this task." --set "maxCostUsd=$TURN_MAX_COST_USD" -o json',
-		output_hints: { list_path: "events" },
-	});
-	overlay.retrieve.notes = budgetNotes.slice(3);
 	const versioned: Record<string, OverlayCommand> = JSON.parse(JSON.stringify(overlay).replaceAll("public-thread-api ", "public-thread-api-v2 "));
 	versioned.usage = {
 		short: "Read recorded Session usage",

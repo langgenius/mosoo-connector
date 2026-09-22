@@ -5,13 +5,13 @@
 - Backend: `graphql`
 - Default hostname: `http://127.0.0.1:8787/api`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `70bfda2a10a0410ba2ab11a7656e01ee9d04c340`
+- Pinned tag: `be71268498d41f949c4d16d37c51587b0e572f7a`
 - Schema: `docs/graphql/console.graphql`
 - Expose queries: `accessibleAgentList`, `agent`, `agentCostCard`, `agentEditorState`, `agentManifest`, `agentSessionDiagnostics`, `agentSessionList`, `agentSessionRetrieve`, `appInfo`, `availableAgentModels`, `controlPlaneOverview`, `environment`, `exportAgentPackage`, `fileList`, `listSessionResources`, `mcpOAuthFlowStatus`, `mcpRegistry`, `organizationBillingCostCard`, `projectCostCard`, `projectEnvironmentList`, `projectList`, `projectOverview`, `projectSkillList`, `session`, `sessionList`, `sessionMessages`, `sessionProcessEvents`, `skillDetail`, `threadAgentSessionList`, `threadAgentSessionRetrieve`, `threadSessionMessages`, `threadSessionProcessEvents`, `vendorCredentialList`, `viewer`
 - Expose mutations: `addSessionResource`, `archiveAgentSession`, `autoTitleSession`, `connectMcpBearer`, `createAgent`, `createAgentFork`, `createAgentSession`, `createEnvironment`, `createEnvironmentFork`, `createProject`, `createProjectMcpServer`, `createSkillFork`, `createVendorCredential`, `deleteAgent`, `deleteAgentSession`, `deleteEnvironment`, `deleteMcpServer`, `deleteOwnedSkill`, `deleteVendorCredential`, `importAgentPackage`, `onboardingBootstrap`, `prewarmAgentSession`, `publishAgent`, `recreateSandbox`, `removeSessionResource`, `renameProject`, `renameSession`, `resetAgentState`, `restartDriver`, `revokeMcpCredential`, `setDefaultVendorCredential`, `setEnvironmentVariableValue`, `setMcpServerEnabled`, `setProjectDefaultEnvironment`, `setSystemAgentModel`, `startAgentRun`, `startMcpOAuth`, `testVendorCredential`, `unarchiveAgentSession`, `unpublishAgent`, `updateAgentConfig`, `updateEnvironment`, `updateProfile`, `updateProjectMcpServer`, `updateVendorCredential`
 - Group policies: `12`
 - Selection policy: max depth `5`
-- Resolved SHA: `70bfda2a10a0410ba2ab11a7656e01ee9d04c340`
+- Resolved SHA: `be71268498d41f949c4d16d37c51587b0e572f7a`
 
 ## Agents
 
@@ -74,7 +74,7 @@
   - `mosoo create-agent`
 - Flags:
   - `--input-description` (variable): input.description
-  - `--input-kind` (variable, required, one of: pet|cattle): input.kind
+  - `--input-kind` (variable, one of: pet|cattle): input.kind
   - `--input-model` (variable, required): input.model
   - `--input-name` (variable, required): input.name
   - `--input-prompt` (variable, required): input.prompt

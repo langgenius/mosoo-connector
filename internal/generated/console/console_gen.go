@@ -157,7 +157,7 @@ var Specs = []runtime.CommandSpec{
 		DefaultHostname: "http://127.0.0.1:8787/api",
 		Params: []runtime.ParamSpec{
 			{Name: "input.description", Flag: "input-description", In: "variable", GoType: "string", Help: "input.description (variable)", Required: false},
-			{Name: "input.kind", Flag: "input-kind", In: "variable", GoType: "string", Help: "input.kind (variable, required, one of: pet|cattle)", Required: true, Enum: []string{"pet", "cattle"}},
+			{Name: "input.kind", Flag: "input-kind", In: "variable", GoType: "string", Help: "input.kind (variable, one of: pet|cattle)", Required: false, Enum: []string{"pet", "cattle"}},
 			{Name: "input.model", Flag: "input-model", In: "variable", GoType: "string", Help: "input.model (variable, required)", Required: true},
 			{Name: "input.name", Flag: "input-name", In: "variable", GoType: "string", Help: "input.name (variable, required)", Required: true},
 			{Name: "input.prompt", Flag: "input-prompt", In: "variable", GoType: "string", Help: "input.prompt (variable, required)", Required: true},
@@ -169,7 +169,7 @@ var Specs = []runtime.CommandSpec{
 		RequestBody: &runtime.RequestBody{
 			Required:  true,
 			MediaType: "application/json",
-			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"description": &runtime.SchemaSpec{Type: "string"}, "kind": &runtime.SchemaSpec{Type: "string"}, "model": &runtime.SchemaSpec{Type: "string"}, "name": &runtime.SchemaSpec{Type: "string"}, "projectId": &runtime.SchemaSpec{Type: "string"}, "prompt": &runtime.SchemaSpec{Type: "string"}, "provider": &runtime.SchemaSpec{Type: "string"}, "runtimeId": &runtime.SchemaSpec{Type: "string"}, "skillIds": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}}, Required: []string{"kind", "model", "name", "prompt", "provider", "runtimeId", "skillIds", "projectId"}}}, Required: []string{"input"}},
+			Schema:    &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"input": &runtime.SchemaSpec{Type: "object", Properties: map[string]*runtime.SchemaSpec{"description": &runtime.SchemaSpec{Type: "string"}, "kind": &runtime.SchemaSpec{Type: "string"}, "model": &runtime.SchemaSpec{Type: "string"}, "name": &runtime.SchemaSpec{Type: "string"}, "projectId": &runtime.SchemaSpec{Type: "string"}, "prompt": &runtime.SchemaSpec{Type: "string"}, "provider": &runtime.SchemaSpec{Type: "string"}, "runtimeId": &runtime.SchemaSpec{Type: "string"}, "skillIds": &runtime.SchemaSpec{Type: "array", Items: &runtime.SchemaSpec{Type: "string"}}}, Required: []string{"model", "name", "prompt", "provider", "runtimeId", "skillIds", "projectId"}}}, Required: []string{"input"}},
 			Template:  "{\"query\":\"mutation createAgent($input: CreateAgentInput!) { createAgent(input: $input) { createdAt description id kind liveVersion { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility projectId } }\",\"variables\":{\"input\":{}}}",
 			MergePath: "variables",
 		},

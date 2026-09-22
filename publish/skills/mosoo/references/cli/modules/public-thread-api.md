@@ -5,9 +5,9 @@
 - Backend: `openapi3`
 - Default hostname: `http://127.0.0.1:8787/api/v1`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `70bfda2a10a0410ba2ab11a7656e01ee9d04c340`
+- Pinned tag: `be71268498d41f949c4d16d37c51587b0e572f7a`
 - Files: `docs/openapi/public-thread-api.openapi.json`
-- Resolved SHA: `70bfda2a10a0410ba2ab11a7656e01ee9d04c340`
+- Resolved SHA: `be71268498d41f949c4d16d37c51587b0e572f7a`
 
 ## Events
 

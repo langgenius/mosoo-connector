@@ -18,7 +18,7 @@ import (
 const inlineConfiguration = `{"type":"inline","harness":"openai-runtime","provider":"openai","model":"test-model","instructions":"Preserve the supplied bytes. 分析附件。"}`
 
 func TestProjectCreateCatalogDescribesExplicitConfiguration(t *testing.T) {
-	root, _ := newBudgetTestRoot(t, "http://unused.test")
+	root, _ := newPublicThreadTestRoot(t, "http://unused.test")
 	command, ok := latheruntime.FindCatalogCommand(root, []string{"public-thread-api-v2", "threads", "create"}, latheruntime.CatalogOptions{})
 	if !ok || command.HTTP.PathTemplate != "/projects/{projectId}/threads" || command.Body == nil || !command.Body.Required {
 		t.Fatalf("missing Project create contract: %+v", command)
@@ -53,7 +53,7 @@ func TestProjectCreateCatalogDescribesExplicitConfiguration(t *testing.T) {
 	}
 }
 
-func TestProjectCreatePreservesConfigurationResourcesAndBudget(t *testing.T) {
+func TestProjectCreatePreservesConfigurationAndResources(t *testing.T) {
 	for _, kind := range []string{"inline", "agent"} {
 		for _, inputMode := range []string{"file", "set"} {
 			t.Run(kind+"/"+inputMode, func(t *testing.T) {
@@ -63,14 +63,14 @@ func TestProjectCreatePreservesConfigurationResourcesAndBudget(t *testing.T) {
 					configuration = `{"type":"agent","agent_id":"preset1"}`
 					sets = []string{"--set", "configuration.type=agent", "--set-str", "configuration.agent_id=preset1"}
 				}
-				body := `{"configuration":` + configuration + `,"input":{"type":"user.message","content":[{"type":"text","text":"Analyze"}]},"resources":[{"type":"file","file_id":"file1"}],"maxCostUsd":0.123456}`
-				sets = append(sets, "--set", "input.type=user.message", "--set", "input.content[0].type=text", "--set-str", "input.content[0].text=Analyze", "--set", "resources[0].type=file", "--set-str", "resources[0].file_id=file1", "--set", "maxCostUsd=0.123456")
+				body := `{"configuration":` + configuration + `,"input":{"type":"user.message","content":[{"type":"text","text":"Analyze"}]},"resources":[{"type":"file","file_id":"file1"}]}`
+				sets = append(sets, "--set", "input.type=user.message", "--set", "input.content[0].type=text", "--set-str", "input.content[0].text=Analyze", "--set", "resources[0].type=file", "--set-str", "resources[0].file_id=file1")
 				var expected map[string]any
 				if err := json.Unmarshal([]byte(body), &expected); err != nil {
 					t.Fatal(err)
 				}
 				var requests atomic.Int32
-				response := `{"thread":{"id":"session1","agent_id":null,"userId":null,"status":"RUNNING"},"run":{"id":"run1","status":"queued","budget":{"capUsd":0.123456,"estimatedCostUsd":0,"state":"available"}}}`
+				response := `{"thread":{"id":"session1","agent_id":null,"userId":null,"status":"RUNNING"},"run":{"id":"run1","status":"queued"}}`
 				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					requests.Add(1)
 					if r.Method != "POST" || r.URL.Path != "/api/v2/projects/project1/threads" {
@@ -87,7 +87,7 @@ func TestProjectCreatePreservesConfigurationResourcesAndBudget(t *testing.T) {
 					_, _ = w.Write([]byte(response))
 				}))
 				defer srv.Close()
-				root, output := newBudgetTestRoot(t, srv.URL+"/api/v2")
+				root, output := newPublicThreadTestRoot(t, srv.URL+"/api/v2")
 				args := []string{"public-thread-api-v2", "threads", "create", "--project-id", "project1", "--idempotency-key", "stable-create", "-o", "json"}
 				if inputMode == "file" {
 					path := filepath.Join(t.TempDir(), "session.json")
@@ -138,7 +138,7 @@ func TestProjectCreateRejectsAmbiguousConfigurationBeforeNetwork(t *testing.T) {
 		{"legacy override", `{"configuration":` + inlineConfiguration + `}`, "configuration requires --project-id", []string{"--agent-id", "a1"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			root, _ := newBudgetTestRoot(t, srv.URL+"/api/v2")
+			root, _ := newPublicThreadTestRoot(t, srv.URL+"/api/v2")
 			file := filepath.Join(t.TempDir(), "session.json")
 			if err := os.WriteFile(file, []byte(tc.body), 0600); err != nil {
 				t.Fatal(err)
@@ -175,7 +175,7 @@ func TestProjectCreateRetainsConflictAndOwnershipErrors(t *testing.T) {
 				_ = json.NewEncoder(w).Encode(map[string]any{"error": map[string]any{"code": tc.code, "message": tc.message}})
 			}))
 			defer srv.Close()
-			root, output := newBudgetTestRoot(t, srv.URL+"/api/v2")
+			root, output := newPublicThreadTestRoot(t, srv.URL+"/api/v2")
 			root.SetArgs(runArgs(srv.URL+"/api/v2", "public-thread-api-v2", "threads", "create", "--project-id", "project1", "--set", "configuration.type=agent", "--set-str", "configuration.agent_id=preset1", "--idempotency-key", "unchanged-key", "-o", "json"))
 			if exit := latheruntime.Execute(root); exit != 3 || !strings.Contains(output.String(), tc.code) || !strings.Contains(output.String(), tc.message) || requests.Load() != 1 {
 				t.Fatalf("exit=%d, output=%s, requests=%d", exit, output.String(), requests.Load())
@@ -190,7 +190,7 @@ func TestProjectCreateIdleWaitPreservesNullableAgentProvenance(t *testing.T) {
 		_, _ = w.Write([]byte(`{"thread":{"id":"session1","agent_id":null,"userId":null,"status":"IDLE"},"run":null}`))
 	}))
 	defer srv.Close()
-	root, output := newBudgetTestRoot(t, srv.URL+"/api/v2")
+	root, output := newPublicThreadTestRoot(t, srv.URL+"/api/v2")
 	root.SetArgs(runArgs(srv.URL+"/api/v2", "public-thread-api-v2", "threads", "create", "--project-id", "project1", "--set", "configuration.type=inline", "--set", "configuration.harness=openai-runtime", "--set", "configuration.provider=openai", "--set", "configuration.model=test-model", "--set-str", "configuration.instructions=Analyze", "--wait", "-o", "json"))
 	if err := root.Execute(); err != nil {
 		t.Fatal(err)
