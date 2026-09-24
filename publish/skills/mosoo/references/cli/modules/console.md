@@ -5,13 +5,13 @@
 - Backend: `graphql`
 - Default hostname: `http://127.0.0.1:8787/api`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `c97e304f9b99d8a96ee37d3246b2c1077e597a45`
+- Pinned tag: `b0088e33a898d25b88264973087b507a47e38c92`
 - Schema: `docs/graphql/console.graphql`
 - Expose queries: `accessibleAgentList`, `agent`, `agentCostCard`, `agentEditorState`, `agentManifest`, `agentSessionDiagnostics`, `agentSessionList`, `agentSessionRetrieve`, `appInfo`, `availableAgentModels`, `controlPlaneOverview`, `environment`, `exportAgentPackage`, `fileList`, `listSessionResources`, `mcpOAuthFlowStatus`, `mcpRegistry`, `organizationBillingCostCard`, `projectCostCard`, `projectEnvironmentList`, `projectList`, `projectOverview`, `projectSkillList`, `session`, `sessionList`, `sessionMessages`, `sessionProcessEvents`, `skillDetail`, `threadAgentSessionList`, `threadAgentSessionRetrieve`, `threadSessionMessages`, `threadSessionProcessEvents`, `vendorCredentialList`, `viewer`
 - Expose mutations: `addSessionResource`, `archiveAgentSession`, `autoTitleSession`, `connectMcpBearer`, `createAgent`, `createAgentFork`, `createAgentSession`, `createEnvironment`, `createEnvironmentFork`, `createProject`, `createProjectMcpServer`, `createSkillFork`, `createVendorCredential`, `deleteAgent`, `deleteAgentSession`, `deleteEnvironment`, `deleteMcpServer`, `deleteOwnedSkill`, `deleteVendorCredential`, `importAgentPackage`, `onboardingBootstrap`, `prewarmAgentSession`, `publishAgent`, `recreateSessionSandbox`, `removeSessionResource`, `renameProject`, `renameSession`, `restartSessionDriver`, `revokeMcpCredential`, `setDefaultVendorCredential`, `setEnvironmentVariableValue`, `setMcpServerEnabled`, `setProjectDefaultEnvironment`, `setSystemAgentModel`, `startAgentRun`, `startMcpOAuth`, `testVendorCredential`, `unarchiveAgentSession`, `unpublishAgent`, `updateAgentConfig`, `updateEnvironment`, `updateProfile`, `updateProjectMcpServer`, `updateVendorCredential`
 - Group policies: `12`
 - Selection policy: max depth `5`
-- Resolved SHA: `c97e304f9b99d8a96ee37d3246b2c1077e597a45`
+- Resolved SHA: `b0088e33a898d25b88264973087b507a47e38c92`
 
 ## Agents
 
