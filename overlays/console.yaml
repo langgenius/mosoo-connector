@@ -152,14 +152,13 @@ commands:
     shortcuts:
       - use: create-agent
     short: "Create an Agent"
-    long: "Create an Agent draft from a structured input. Publish it with publish-agent after provider credentials are configured."
+    long: "Save an optional Agent preset from a structured input. Project-direct Sessions do not require an Agent; publish only for flows that use a published Agent, including v1."
     example: |
       cat > agent-create.json <<'JSON'
       {
         "input": {
           "projectId": "<project-id>",
           "name": "Research Agent",
-          "kind": "<pet-or-cattle>",
           "runtimeId": "<runtime-id>",
           "provider": "<provider>",
           "model": "<model>",
@@ -176,7 +175,6 @@ commands:
           input:
             projectId: "<project-id>"
             name: "Research Agent"
-            kind: pet
             runtimeId: "<runtime-id>"
             provider: "<provider>"
             model: "<model>"
@@ -186,7 +184,10 @@ commands:
           id_path: data.createAgent.id
         follow_up_commands:
           - "mosoo console agents agent --project-id <project-id> --agent-id <id> -o json"
-          - "mosoo console agents publish-agent --input-project-id <project-id> --input-agent-id <id> -o json"
+    params:
+      input.kind:
+        help: "Legacy compatibility field; ignored. Sessions own execution state."
+        deprecated: true
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -195,6 +196,10 @@ commands:
   create-agent-fork:
     short: "Create an agent fork"
     long: "Create an agent fork via the mosoo Console GraphQL API (Agents surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
+    params:
+      input.kind:
+        help: "Legacy compatibility field; ignored. Sessions own execution state."
+        deprecated: true
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -479,9 +484,9 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  recreate-sandbox:
-    short: "Recreate a sandbox"
-    long: "Recreate a sandbox via the mosoo Console GraphQL API (Agents surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
+  recreate-session-sandbox:
+    short: "Recreate a session sandbox"
+    long: "Recreate a session sandbox via the mosoo Console GraphQL API (Sessions surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -511,17 +516,9 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  reset-agent-state:
-    short: "Reset an agent state"
-    long: "Reset an agent state via the mosoo Console GraphQL API (Agents surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  restart-driver:
-    short: "Restart a driver"
-    long: "Restart a driver via the mosoo Console GraphQL API (Agents surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
+  restart-session-driver:
+    short: "Restart a session driver"
+    long: "Restart a session driver via the mosoo Console GraphQL API (Sessions surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:

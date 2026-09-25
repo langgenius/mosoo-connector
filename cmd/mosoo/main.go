@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"os"
 
+	kitup "github.com/lathe-cli/kitup/go"
+	kitupcobra "github.com/lathe-cli/kitup/go-cobra"
 	"github.com/lathe-cli/lathe/pkg/config"
 	"github.com/lathe-cli/lathe/pkg/lathe"
 	"github.com/lathe-cli/lathe/pkg/runtime"
-	kitup "github.com/lathe-cli/kitup/go"
-	kitupcobra "github.com/lathe-cli/kitup/go-cobra"
 
 	"github.com/langgenius/mosoo-connector/internal/agentmanifest"
 	"github.com/langgenius/mosoo-connector/internal/buildinfo"
 	"github.com/langgenius/mosoo-connector/internal/consolecommands"
 	"github.com/langgenius/mosoo-connector/internal/doctor"
 	"github.com/langgenius/mosoo-connector/internal/generated"
+	threadsv2 "github.com/langgenius/mosoo-connector/internal/generated/threadsv2"
 	"github.com/langgenius/mosoo-connector/internal/publicfiles"
 	"github.com/langgenius/mosoo-connector/internal/publicthreads"
 	"github.com/langgenius/mosoo-connector/internal/setup"
@@ -60,6 +61,12 @@ func main() {
 		os.Exit(runtime.FormatError(err, "table", os.Stderr))
 	}
 	if err := publicthreads.Install(root); err != nil {
+		os.Exit(runtime.FormatError(err, "table", os.Stderr))
+	}
+	if err := publicfiles.InstallV2(root, threadsv2.Specs); err != nil {
+		os.Exit(runtime.FormatError(err, "table", os.Stderr))
+	}
+	if err := publicthreads.InstallV2(root, threadsv2.Specs); err != nil {
 		os.Exit(runtime.FormatError(err, "table", os.Stderr))
 	}
 	os.Exit(runtime.Execute(root))

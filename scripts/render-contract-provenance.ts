@@ -47,10 +47,13 @@ function canonicalJSON(value: unknown): string {
 
 const openAPI = JSON.parse(await readFile(openAPIPath, "utf8")) as unknown;
 const digest = createHash("sha256").update(canonicalJSON(openAPI)).digest("hex");
+const openAPIV2 = JSON.parse(await readFile(resolve(mosooRoot, "docs/openapi/public-thread-api.v2.openapi.json"), "utf8")) as unknown;
+const digestV2 = createHash("sha256").update(canonicalJSON(openAPIV2)).digest("hex");
 const provenance = {
 	schemaVersion: 1,
 	repository,
 	upstreamCommit: actualCommit,
+	publicThreadOpenAPIV2: { sha256: digestV2, normalization: "json-sort-keys-v1" },
 	publicThreadOpenAPI: {
 		sha256: digest,
 		normalization: "json-sort-keys-v1",

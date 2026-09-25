@@ -3,6 +3,7 @@ package publicthreads
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	threadspecs "github.com/langgenius/mosoo-connector/internal/generated/threads"
@@ -24,8 +25,34 @@ const (
 //
 // It is a no-op-safe extension: it only augments the thread/run/event read
 // surface and never touches file upload behavior.
+type apiSurface struct {
+	name    string
+	version string
+	specs   []latheruntime.CommandSpec
+}
+
 func Install(root *cobra.Command) error {
-	surface := findChild(root, "public-thread-api")
+	return install(root, apiSurface{"public-thread-api", "v1", threadspecs.Specs})
+}
+
+func InstallV2(root *cobra.Command, specs []latheruntime.CommandSpec) error {
+	if err := install(root, apiSurface{"public-thread-api-v2", "v2", specs}); err != nil {
+		return err
+	}
+	surface := findChild(root, "public-thread-api-v2")
+	// Preserve API rejections from both the custom create helper and Lathe's
+	// generated send command at the runtime.Execute/FormatError boundary.
+	for _, path := range [][2]string{{"threads", "create"}, {"events", "send"}} {
+		command := findChild(findChild(surface, path[0]), path[1])
+		if command != nil && command.RunE != nil {
+			wrapAPIErrorOutput(command)
+		}
+	}
+	return nil
+}
+
+func install(root *cobra.Command, api apiSurface) error {
+	surface := findChild(root, api.name)
 	if surface == nil {
 		return fmt.Errorf("public-thread-api command tree is not mounted")
 	}
@@ -41,17 +68,17 @@ func Install(root *cobra.Command) error {
 	if existing := findChild(threads, "create"); existing != nil {
 		threads.RemoveCommand(existing)
 	}
-	threads.AddCommand(newCreateCommand())
+	threads.AddCommand(newCreateCommand(api))
 
 	if existing := findChild(threads, "transcript"); existing != nil {
 		threads.RemoveCommand(existing)
 	}
-	threads.AddCommand(newTranscriptCommand())
+	threads.AddCommand(newTranscriptCommand(api))
 
 	if existing := findChild(events, "wait"); existing != nil {
 		events.RemoveCommand(existing)
 	}
-	events.AddCommand(newWaitCommand())
+	events.AddCommand(newWaitCommand(api))
 	return nil
 }
 
@@ -69,8 +96,13 @@ func addWaitFlags(cmd *cobra.Command, f *waitFlags, withFinalOutput bool) {
 	}
 }
 
-func newCreateCommand() *cobra.Command {
+func newCreateCommand(api apiSurface) *cobra.Command {
+	description := "Create a new thread against an agent API endpoint.\n\nThe JSON body is required and userId must be a non-blank string. "
+	if api.version == "v2" {
+		description = api.generatedSpec("Threads", "create").Long + "\n\n"
+	}
 	var (
+		projectID      string
 		agentID        string
 		file           string
 		sets           []string
@@ -82,16 +114,31 @@ func newCreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a thread for an agent",
-		Long: "Create a new thread against an agent API endpoint.\n\n" +
-			"The JSON body is required and userId must be a non-blank string. " +
+		Long: description +
 			"With --wait, block until the initial run reaches a terminal state and report the outcome. " +
 			"With --final-output, print only the completed run's final output text (implies --wait). " +
 			"On failure, the run status, run error, tool failures, and last relevant events are shown.",
 		Example: "mosoo public-thread-api threads create --agent-id <agent-id> --file body.json --wait --final-output\n",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			body, err := buildCreateBody(file, sets, stringSets)
+			if api.version == "v2" {
+				projectID = strings.TrimSpace(projectID)
+				agentID = strings.TrimSpace(agentID)
+				if projectID == "" && agentID == "" {
+					return fmt.Errorf("a non-blank --project-id or compatibility --agent-id is required")
+				}
+			}
+			body, err := buildCreateBodyForVersion(file, sets, stringSets, api.version)
 			if err != nil {
 				return err
+			}
+			if projectID != "" {
+				if err := validateProjectCreateBody(body); err != nil {
+					return err
+				}
+			} else if api.version == "v2" {
+				if err := rejectLegacyConfiguration(body); err != nil {
+					return err
+				}
 			}
 			client, err := NewClient(cmd)
 			if err != nil {
@@ -102,7 +149,12 @@ func newCreateCommand() *cobra.Command {
 				ctx = context.Background()
 			}
 
-			st, err := client.CreateThread(ctx, agentID, body, idempotencyKey)
+			var st *ThreadState
+			if projectID != "" {
+				st, err = client.CreateProjectThread(ctx, projectID, body, idempotencyKey)
+			} else {
+				st, err = client.CreateThread(ctx, agentID, body, idempotencyKey)
+			}
 			if err != nil {
 				return err
 			}
@@ -129,19 +181,29 @@ func newCreateCommand() *cobra.Command {
 		},
 	}
 	flags := cmd.Flags()
-	flags.StringVar(&agentID, "agent-id", "", "Agent API Endpoint ID from the Agent's API Access panel. v1 IDs are bare ULIDs. (path, required, ulid)")
+	flags.StringVar(&agentID, "agent-id", "", "Agent ID in the selected Project. (path, required, ulid)")
 	flags.StringVarP(&file, "file", "f", "", "path to JSON body file, or '-' for stdin")
 	flags.StringArrayVar(&sets, "set", nil, "set body field with type inference, e.g. --set input.type=user.message (repeatable; nested via dots)")
 	flags.StringArrayVar(&stringSets, "set-str", nil, "set body field as string (repeatable; nested via dots)")
 	flags.StringVar(&idempotencyKey, "idempotency-key", "", "Optional key for retry-safe create-thread calls. (header)")
 	flags.BoolVar(&wait, "wait", false, "Block until the initial run reaches a terminal state")
 	addWaitFlags(cmd, &wf, true)
-	_ = cmd.MarkFlagRequired("agent-id")
-	latheruntime.AttachCatalogCommand(cmd, "public-thread-api", createCatalogSpec(cmd))
+	if api.version == "v2" {
+		cmd.Short = "Create a durable Session in a Project"
+		cmd.Example = api.generatedSpec("Threads", "create").Example
+		flags.StringVar(&projectID, "project-id", "", "Explicit owned Project ID; required for inline configuration or a Project preset")
+		flags.Lookup("agent-id").Usage = "Compatibility Agent endpoint; mutually exclusive with --project-id"
+		cmd.MarkFlagsOneRequired("project-id", "agent-id")
+		cmd.MarkFlagsMutuallyExclusive("project-id", "agent-id")
+	} else {
+		_ = cmd.MarkFlagRequired("agent-id")
+	}
+	cmd.Example = strings.ReplaceAll(cmd.Example, "public-thread-api ", api.name+" ")
+	latheruntime.AttachCatalogCommand(cmd, api.name, createCatalogSpec(cmd, api))
 	return cmd
 }
 
-func newWaitCommand() *cobra.Command {
+func newWaitCommand(api apiSurface) *cobra.Command {
 	var (
 		threadID string
 		wf       waitFlags
@@ -184,14 +246,15 @@ func newWaitCommand() *cobra.Command {
 			return finishWait(cmd, client, final, waitErr, wf.finalOutput)
 		},
 	}
-	cmd.Flags().StringVar(&threadID, "thread-id", "", "Thread ID returned by create thread. v1 IDs are bare ULIDs. (required, ulid)")
+	cmd.Flags().StringVar(&threadID, "thread-id", "", "Thread ID returned by create thread. (required, ulid)")
 	addWaitFlags(cmd, &wf, true)
 	_ = cmd.MarkFlagRequired("thread-id")
-	latheruntime.AttachCatalogCommand(cmd, "public-thread-api", waitCatalogSpec(cmd))
+	cmd.Example = strings.ReplaceAll(cmd.Example, "public-thread-api ", api.name+" ")
+	latheruntime.AttachCatalogCommand(cmd, api.name, waitCatalogSpec(cmd, api))
 	return cmd
 }
 
-func newTranscriptCommand() *cobra.Command {
+func newTranscriptCommand(api apiSurface) *cobra.Command {
 	var (
 		threadID        string
 		runID           string
@@ -234,17 +297,27 @@ func newTranscriptCommand() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&threadID, "thread-id", "", "Thread ID returned by create thread. v1 IDs are bare ULIDs. (required, ulid)")
+	cmd.Flags().StringVar(&threadID, "thread-id", "", "Thread ID returned by create thread. (required, ulid)")
 	cmd.Flags().StringVar(&runID, "run-id", "", "Only include events for this run ID")
 	cmd.Flags().IntVar(&limit, "limit", 100, "Maximum number of latest thread events to fetch")
 	cmd.Flags().BoolVar(&includeThinking, "include-thinking", false, "Include agent thinking events in the transcript")
 	_ = cmd.MarkFlagRequired("thread-id")
-	latheruntime.AttachCatalogCommand(cmd, "public-thread-api", transcriptCatalogSpec(cmd))
+	cmd.Example = strings.ReplaceAll(cmd.Example, "public-thread-api ", api.name+" ")
+	latheruntime.AttachCatalogCommand(cmd, api.name, transcriptCatalogSpec(cmd, api))
 	return cmd
 }
 
-func createCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
-	spec := mustGeneratedSpec("Threads", "create")
+func createCatalogSpec(cmd *cobra.Command, api apiSurface) latheruntime.CommandSpec {
+	spec := api.generatedSpec("Threads", "create")
+	if api.version == "v2" {
+		for i := range spec.Params {
+			if spec.Params[i].Flag == "project-id" {
+				spec.Params[i].Required = false // Required unless the compatibility Agent path is selected.
+				spec.Params[i].Help = "Explicit owned Project; required unless compatibility --agent-id is supplied"
+			}
+		}
+		spec.Params = append(spec.Params, localParam("agentId", "agent-id", "string", "Compatibility Agent endpoint; mutually exclusive with --project-id", ""))
+	}
 	spec.Long = cmd.Long
 	spec.Example = cmd.Example
 	spec.Params = append(spec.Params,
@@ -259,8 +332,8 @@ func createCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
 	return spec
 }
 
-func waitCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
-	spec := mustGeneratedSpec("Threads", "retrieve")
+func waitCatalogSpec(cmd *cobra.Command, api apiSurface) latheruntime.CommandSpec {
+	spec := api.generatedSpec("Threads", "retrieve")
 	spec.Group = "Events"
 	spec.Use = "wait"
 	spec.Short = cmd.Short
@@ -275,8 +348,8 @@ func waitCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
 	return spec
 }
 
-func transcriptCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
-	spec := mustGeneratedSpec("Events", "list-events")
+func transcriptCatalogSpec(cmd *cobra.Command, api apiSurface) latheruntime.CommandSpec {
+	spec := api.generatedSpec("Events", "list-events")
 	spec.Use = "transcript"
 	spec.Short = cmd.Short
 	spec.Long = cmd.Long
@@ -289,8 +362,8 @@ func transcriptCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
 	return spec
 }
 
-func mustGeneratedSpec(group, use string) latheruntime.CommandSpec {
-	for _, spec := range threadspecs.Specs {
+func (api apiSurface) generatedSpec(group, use string) latheruntime.CommandSpec {
+	for _, spec := range api.specs {
 		if spec.Group == group && spec.Use == use {
 			return cloneSpec(spec)
 		}
@@ -357,7 +430,7 @@ func finishWait(cmd *cobra.Command, client *Client, st *ThreadState, waitErr err
 	}
 	switch {
 	case run.Status == StatusWaitingInput:
-		writePausedSummary(cmd.OutOrStdout(), st)
+		writePausedSummary(cmd.OutOrStdout(), st, client.version)
 	case finalOutputOnly:
 		return writeFinalOutput(cmd.OutOrStdout(), run)
 	default:

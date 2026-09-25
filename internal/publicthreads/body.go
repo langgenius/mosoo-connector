@@ -16,6 +16,10 @@ import (
 // userId. The merge mirrors Lathe's dotted-path semantics (object fields, array
 // indices, and type inference for --set; forced strings for --set-str).
 func buildCreateBody(file string, sets, stringSets []string) ([]byte, error) {
+	return buildCreateBodyForVersion(file, sets, stringSets, "v1")
+}
+
+func buildCreateBodyForVersion(file string, sets, stringSets []string, version string) ([]byte, error) {
 	if len(sets) > 0 || len(stringSets) > 0 {
 		out := map[string]any{}
 		for _, kv := range sets {
@@ -40,19 +44,26 @@ func buildCreateBody(file string, sets, stringSets []string) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		return body, validateCreateBody(body)
+		return body, validateCreateBodyForVersion(body, version)
 	}
 	if file != "" {
 		body, err := latheruntime.ReadBody(file)
 		if err != nil {
 			return nil, err
 		}
-		return body, validateCreateBody(body)
+		return body, validateCreateBodyForVersion(body, version)
+	}
+	if version == "v2" {
+		return []byte("{}"), nil
 	}
 	return nil, fmt.Errorf("create thread body is required and must include userId")
 }
 
 func validateCreateBody(body []byte) error {
+	return validateCreateBodyForVersion(body, "v1")
+}
+
+func validateCreateBodyForVersion(body []byte, version string) error {
 	if len(strings.TrimSpace(string(body))) == 0 {
 		return fmt.Errorf("create thread body is required and must include userId")
 	}
@@ -61,7 +72,13 @@ func validateCreateBody(body []byte) error {
 	if err := json.Unmarshal(body, &document); err != nil {
 		return fmt.Errorf("create thread body must be a JSON object: %w", err)
 	}
+	if document == nil {
+		return fmt.Errorf("create thread body must be a JSON object")
+	}
 	userID, ok := document["userId"]
+	if !ok && version == "v2" {
+		return nil
+	}
 	if !ok {
 		return fmt.Errorf("create thread body must include userId")
 	}
@@ -71,6 +88,52 @@ func validateCreateBody(body []byte) error {
 	}
 	if strings.TrimSpace(value) == "" {
 		return fmt.Errorf("create thread body userId must not be blank")
+	}
+	return nil
+}
+
+// The Project route requires an explicit choice, so no preset field can
+// silently override inline configuration (or vice versa).
+func validateProjectCreateBody(body []byte) error {
+	if err := validateCreateBodyForVersion(body, "v2"); err != nil {
+		return err
+	}
+	var document map[string]any
+	_ = json.Unmarshal(body, &document)
+	configuration, ok := document["configuration"].(map[string]any)
+	if !ok {
+		return fmt.Errorf("Project Session body must include configuration with type inline or agent")
+	}
+	var required []string
+	switch configuration["type"] {
+	case "inline":
+		required = []string{"harness", "provider", "model", "instructions"}
+	case "agent":
+		required = []string{"agent_id"}
+	default:
+		return fmt.Errorf("configuration.type must be inline or agent")
+	}
+	allowed := map[string]bool{"type": true}
+	for _, field := range required {
+		value, ok := configuration[field].(string)
+		if !ok || strings.TrimSpace(value) == "" {
+			return fmt.Errorf("configuration.%s must be a non-blank string", field)
+		}
+		allowed[field] = true
+	}
+	for field := range configuration {
+		if !allowed[field] {
+			return fmt.Errorf("configuration.%s is not allowed for type %s; inline and Agent preset fields cannot be mixed", field, configuration["type"])
+		}
+	}
+	return nil
+}
+
+func rejectLegacyConfiguration(body []byte) error {
+	var document map[string]any
+	_ = json.Unmarshal(body, &document)
+	if _, exists := document["configuration"]; exists {
+		return fmt.Errorf("configuration requires --project-id; for a preset use configuration.type=agent with configuration.agent_id")
 	}
 	return nil
 }

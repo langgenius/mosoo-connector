@@ -15,7 +15,7 @@ type ThreadState struct {
 // ThreadSummary is the subset of the public ThreadSummary the helpers read.
 type ThreadSummary struct {
 	ID        string  `json:"id"`
-	AgentID   string  `json:"agent_id"`
+	AgentID   *string `json:"agent_id"`
 	Status    string  `json:"status"`
 	Title     *string `json:"title"`
 	LastRunID *string `json:"last_run_id"`

@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const updateAgentConfigMutation = `mutation updateAgentConfig($input: UpdateAgentConfigInput!) { updateAgentConfig(input: $input) { createdAt description id kind liveVersion { agentId createdAt createdByAccountId environmentId id isLive kind model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility projectId } }`
+const updateAgentConfigMutation = `mutation updateAgentConfig($input: UpdateAgentConfigInput!) { updateAgentConfig(input: $input) { createdAt description id liveVersion { agentId createdAt createdByAccountId environmentId id isLive model provider runtimeId summary versionNumber } model name prompt provider runtimeId skills { ownerName skillId skillName state } status updatedAt visibility projectId } }`
 
 // Install mounts hand-maintained replacements for commands that Lathe cannot
 // currently express correctly through generated specs.
@@ -89,7 +89,8 @@ func newUpdateConfigCommand() *cobra.Command {
 	flags.StringVar(&opts.agentID, "input-agent-id", "", "input.agentId (variable, required)")
 	flags.StringVar(&opts.description, "input-description", "", "input.description (variable)")
 	flags.StringVar(&opts.environmentID, "input-environment-environment-id", "", "input.environment.environmentId (variable)")
-	flags.StringVar(&opts.kind, "input-kind", "", "input.kind (variable, required, one of: pet|cattle)")
+	flags.StringVar(&opts.kind, "input-kind", "", "Legacy input.kind (ignored)")
+	_ = flags.MarkHidden("input-kind")
 	flags.StringSliceVar(&opts.mcpServerIDs, "input-mcp-server-ids", nil, "input.mcpServerIds (variable, required)")
 	flags.StringVar(&opts.model, "input-model", "", "input.model (variable, required)")
 	flags.StringVar(&opts.name, "input-name", "", "input.name (variable, required)")
@@ -101,7 +102,6 @@ func newUpdateConfigCommand() *cobra.Command {
 	flags.StringVar(&opts.projectID, "input-project-id", "", "input.projectId (variable, required)")
 	for _, name := range []string{
 		"input-agent-id",
-		"input-kind",
 		"input-mcp-server-ids",
 		"input-model",
 		"input-name",
@@ -135,7 +135,6 @@ func updateConfigCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
 			{Name: "input.agentId", Flag: "input-agent-id", In: latheruntime.InVariable, GoType: "string", Help: "input.agentId (variable, required)", Required: true},
 			{Name: "input.description", Flag: "input-description", In: latheruntime.InVariable, GoType: "string", Help: "input.description (variable)", Required: false},
 			{Name: "input.environment.environmentId", Flag: "input-environment-environment-id", In: latheruntime.InVariable, GoType: "string", Help: "input.environment.environmentId (variable)", Required: false},
-			{Name: "input.kind", Flag: "input-kind", In: latheruntime.InVariable, GoType: "string", Help: "input.kind (variable, required, one of: pet|cattle)", Required: true, Enum: []string{"pet", "cattle"}},
 			{Name: "input.mcpServerIds", Flag: "input-mcp-server-ids", In: latheruntime.InVariable, GoType: "[]string", Help: "input.mcpServerIds (variable, required)", Required: true},
 			{Name: "input.model", Flag: "input-model", In: latheruntime.InVariable, GoType: "string", Help: "input.model (variable, required)", Required: true},
 			{Name: "input.name", Flag: "input-name", In: latheruntime.InVariable, GoType: "string", Help: "input.name (variable, required)", Required: true},
@@ -163,7 +162,7 @@ func updateConfigCatalogSpec(cmd *cobra.Command) latheruntime.CommandSpec {
 }
 
 func (o updateConfigOptions) input(cmd *cobra.Command) (map[string]any, error) {
-	if o.kind != "pet" && o.kind != "cattle" {
+	if cmd.Flags().Changed("input-kind") && o.kind != "pet" && o.kind != "cattle" {
 		return nil, fmt.Errorf("invalid value %q for --input-kind: must be one of pet, cattle", o.kind)
 	}
 	providerOptions, err := parseJSONObjectFlag("input-provider-options", o.providerOptionsRaw)
@@ -178,7 +177,6 @@ func (o updateConfigOptions) input(cmd *cobra.Command) (map[string]any, error) {
 		"agentId":         o.agentID,
 		"projectId":       o.projectID,
 		"environment":     environment,
-		"kind":            o.kind,
 		"mcpServerIds":    o.mcpServerIDs,
 		"model":           o.model,
 		"name":            o.name,

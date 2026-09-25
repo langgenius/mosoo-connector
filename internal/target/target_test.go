@@ -1,6 +1,7 @@
 package target
 
 import (
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -305,5 +306,62 @@ func TestValidateExplicitHostnameForSurfaceAcceptsPublicAPI(t *testing.T) {
 	}
 	if err := ValidateExplicitHostnameForSurface(root, SurfacePublicThreadAPI); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestV2CommandsDoNotRestoreRemovedCredentials(t *testing.T) {
+	for _, tc := range []struct{ name, source, existing, want string }{
+		{"v1 entry does not recreate v2", "https://example.test/mosoo/api/v1", "", ""},
+		{"console entry does not recreate v2", "https://example.test/mosoo/api", "", ""},
+		{"explicit v2 wins", "https://example.test/mosoo/api/v1", "v2-token", "v2-token"},
+		{"different service denied", "https://other.test/mosoo/api/v1", "", ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			bindTestManifest(t, filepath.Join(t.TempDir(), "config"))
+			hosts, err := latheconfig.LoadHosts()
+			if err != nil {
+				t.Fatal(err)
+			}
+			hosts.Set(tc.source, latheconfig.HostEntry{AuthType: "bearer", OAuthToken: "old-token"})
+			if tc.existing != "" {
+				hosts.Set("https://example.test/mosoo/api/v2", latheconfig.HostEntry{AuthType: "bearer", OAuthToken: tc.existing})
+			}
+			if err := hosts.Save(); err != nil {
+				t.Fatal(err)
+			}
+			root := &cobra.Command{Use: "mosoo"}
+			root.PersistentFlags().String("hostname", "", "")
+			root.PersistentFlags().Bool("insecure", false, "")
+			Install(root)
+			surface := &cobra.Command{Use: SurfacePublicThreadAPIV2}
+			surface.AddCommand(&cobra.Command{Use: "get", RunE: func(cmd *cobra.Command, _ []string) error {
+				host, opts, err := latheruntime.LoadHostOptions(cmd)
+				if tc.want == "" {
+					if err == nil {
+						t.Fatal("removed or unconfigured v2 credential was restored")
+					}
+					return nil
+				}
+				if err != nil {
+					return err
+				}
+				req, err := http.NewRequest("GET", host+"/threads/test", nil)
+				if err != nil {
+					return err
+				}
+				if err := opts.Auth.Apply(req); err != nil {
+					return err
+				}
+				if req.Header.Get("Authorization") != "Bearer "+tc.want {
+					t.Fatal("wrong credential chosen")
+				}
+				return nil
+			}})
+			root.AddCommand(surface)
+			root.SetArgs([]string{"--target", "custom", "--base-url", "https://example.test/mosoo", SurfacePublicThreadAPIV2, "get"})
+			if err := root.Execute(); err != nil {
+				t.Fatal(err)
+			}
+		})
 	}
 }

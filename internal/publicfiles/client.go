@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Client owns multipart construction for the Public Agent file endpoint.
+// Client owns multipart construction for the Project and compatibility Agent file endpoints.
 type Client struct {
 	multipart *multipartclient.Client
 }
@@ -24,5 +24,8 @@ func NewClient(cmd *cobra.Command) (*Client, error) {
 
 func (c *Client) Upload(ctx context.Context, opts uploadOptions) ([]byte, error) {
 	path := "/agents/" + url.PathEscape(strings.TrimSpace(opts.agentID)) + "/files"
+	if opts.projectID != "" {
+		path = "/projects/" + url.PathEscape(strings.TrimSpace(opts.projectID)) + "/files"
+	}
 	return c.multipart.Post(ctx, path, nil, strings.TrimSpace(opts.file))
 }

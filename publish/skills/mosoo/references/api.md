@@ -1,8 +1,45 @@
 # mosoo Public Thread API
 
-Use this reference when application backend code calls an already published
-mosoo Agent. For creating, publishing, or changing mosoo resources, use the
+Use this reference when application backend code creates a durable Project
+Session, optionally using a saved private Agent preset. Existing v1 Agent
+integrations remain supported. For creating, publishing, or changing mosoo resources, use the
 generated CLI workflow in `references/cli.md` instead.
+
+## Version selection
+
+The examples below use direct Project Sessions. Select a deployment with
+`GET /api/v2/openapi.json` and set
+`MOSOO_API_BASE` to that service's `/api/v2` base. Confirm the target's available
+features before changing a production integration.
+
+v2 creates a Session at `POST /projects/{projectId}/threads`. The body requires
+`configuration`: choose `type: "inline"` with harness, provider, model and
+non-blank instructions, or `type: "agent"` with only `agent_id` for a saved
+private preset. Mixed configuration is rejected. Inline execution creates no
+Agent. Input, resources and `userId` are optional; omitted identity remains
+`null`, while blank/null identity is invalid. No input creates an idle Session.
+
+The returned `thread.id` is the durable handle for continuation, reads and files.
+Its admitted configuration stays fixed; a new configuration requires a new
+Session. A changed request under the same idempotency key returns 409.
+`GET /threads/{threadId}/usage?limit=100&after=<cursor>` reads persisted usage.
+Project provider credentials must be configured (BYOK). Platform model supply,
+top-ups and commercial billing are tracked separately in
+[#636](https://github.com/langgenius/mosoo/issues/636).
+
+The v2 Agent compatibility route `POST /agents/{agentId}/threads` still accepts
+an omitted body and freezes the latest saved private Agent configuration.
+v1 keeps its existing admission/live selection and required non-blank userId
+contract at `/api/v1/agents/{agentId}/threads`; this change does not publish an
+Agent or change v1 selection.
+
+Usage returns `usage` and `nextCursor`. Null metrics are unknown, not zero.
+`reportedCostUsd` is a runtime estimate; `usageContract` explains provider
+cache/token conventions. Retrying a request keeps its idempotency key; a new
+turn gets a new key. Formal API Sessions do not expire merely from inactivity.
+Cloud debug Previews have a separate 30-day inactivity policy; console login or
+history reads do not renew it. Existing recovery and ownership checks still
+apply. Never replace a missing workspace with a fabricated continuation.
 
 ## Documentation sources
 
@@ -11,7 +48,7 @@ generated CLI workflow in `references/cli.md` instead.
 - Complete documentation index: `https://mosoo.ai/docs/llms.txt`
 - Published OpenAPI document: `https://mosoo.ai/docs/openapi/mosoo-openapi.en.generated.json`
 
-The checked-in mosoo OpenAPI document at `GET /api/v1/openapi.json` is the wire
+The target's OpenAPI document at `GET /api/v2/openapi.json` (or v1 equivalent) is the wire
 contract. This guide explains the integration workflow and intentionally does
 not duplicate every generated schema field.
 
@@ -19,21 +56,22 @@ not duplicate every generated schema field.
 
 Your application owns its UI, backend routes, user authentication, business
 data, correlation IDs, API token storage, and persisted `thread.id` values. Its
-trusted backend supplies an opaque `userId` when creating each Thread. mosoo
-owns the published Agent runtime, provider and tool configuration, sandbox
+trusted backend may supply an opaque `userId` when creating a v2 Session; v1
+requires it. mosoo owns the Session runtime, provider and tool configuration, sandbox
 execution, Thread lifecycle, and public events.
 
-Do not expose `MOSOO_API_TOKEN` in frontend or browser code. Do not send model,
-provider, channel, Skill, MCP, or runtime configuration through the Public
-Thread API.
+Do not expose `MOSOO_API_TOKEN` in frontend or browser code. Do not send model
+provider credentials, channel, Skill or MCP configuration through the Public
+Thread API. The inline configuration accepts only the documented harness,
+provider, model and instructions fields.
 
 ## Configuration
 
 Application backends need these values:
 
 ```sh
-MOSOO_API_BASE=https://cloud.mosoo.ai/api/v1
-MOSOO_AGENT_ID=<published-agent-id>
+MOSOO_API_BASE=https://cloud.mosoo.ai/api/v2
+MOSOO_PROJECT_ID=<project-id>
 MOSOO_API_TOKEN=<project-api-key>
 ```
 
@@ -43,10 +81,11 @@ Authenticate every request with:
 Authorization: Bearer <MOSOO_API_TOKEN>
 ```
 
-Create a Project API key (`msp_...`) under the Agent's Project. It can access
-Agent configuration, execution, and files in that Project; it cannot manage
+Create a Project API key (`msp_...`) under the selected Project. It can access
+Session execution and files in that Project; it cannot manage
 keys or access another Project. Keep account credentials from `mosoo auth
-login` (`mcli_...`) in the CLI credential store. Legacy `mst_...` and
+login` (`mcli_...`) in the CLI credential store and supply an explicit owned
+Project when creating Sessions or uploading Project files. Legacy `mst_...` and
 `grt_pat_...` tokens must be replaced after the Project key upgrade.
 
 Use `Idempotency-Key` on Thread creation and event submission. Keep keys stable
@@ -58,11 +97,18 @@ changes.
 Create a Thread and queue its first Run:
 
 ```sh
-curl -X POST "$MOSOO_API_BASE/agents/$MOSOO_AGENT_ID/threads" \
+curl -X POST "$MOSOO_API_BASE/projects/$MOSOO_PROJECT_ID/threads" \
   -H "Authorization: Bearer $MOSOO_API_TOKEN" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: ticket-182-create" \
   -d '{
+    "configuration": {
+      "type": "inline",
+      "harness": "openai-runtime",
+      "provider": "openai",
+      "model": "<model-id>",
+      "instructions": "Analyze the supplied material and save the results."
+    },
     "userId": "customer-123",
     "input": {
       "type": "user.message",
@@ -116,10 +162,10 @@ it is present.
 ## File workflow
 
 The public write flow has one upload step. Upload exactly one multipart field
-named `file` to the Agent endpoint before creating or continuing a Thread:
+named `file` to the Project endpoint before creating or continuing a Thread:
 
 ```sh
-curl -X POST "$MOSOO_API_BASE/agents/$MOSOO_AGENT_ID/files" \
+curl -X POST "$MOSOO_API_BASE/projects/$MOSOO_PROJECT_ID/files" \
   -H "Authorization: Bearer $MOSOO_API_TOKEN" \
   -F "file=@brief.txt"
 ```
@@ -129,6 +175,13 @@ The response contains a ready draft at `response.file`. Save
 
 ```json
 {
+  "configuration": {
+    "type": "inline",
+    "harness": "openai-runtime",
+    "provider": "openai",
+    "model": "<model-id>",
+    "instructions": "Summarize the supplied attachment."
+  },
   "userId": "customer-123",
   "input": {
     "type": "user.message",
@@ -192,10 +245,14 @@ mutation.
 
 ## Routes
 
-All paths are relative to `MOSOO_API_BASE` (`/api/v1`).
+All paths are relative to `MOSOO_API_BASE` (`/api/v2`). Project routes and usage
+are v2-only; Agent routes remain available for compatibility in both versions.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
+| `POST` | `/projects/{projectId}/threads` | Create a Session from inline configuration or an optional Agent preset |
+| `POST` | `/projects/{projectId}/files` | Upload one ready Project draft file |
+| `GET` | `/threads/{threadId}/usage` | Read paginated persisted usage |
 | `POST` | `/agents/{agentId}/files` | Upload one ready draft file as multipart field `file` |
 | `GET` | `/files/{fileId}` | Retrieve public file metadata |
 | `DELETE` | `/files/{fileId}` | Delete a draft or Thread file |
@@ -215,11 +272,11 @@ All paths are relative to `MOSOO_API_BASE` (`/api/v1`).
 
 ## Lifecycle and limits
 
-- A create body may omit `input`; `{ "userId": "..." }` creates an idle Thread
-  without a Run. The body itself and its non-blank string `userId` are required.
+- A Project create body requires `configuration`. Omit `input` to create an
+  idle Session without a Run. Its Agent provenance may be null.
 - A submitted event batch contains at least one event.
 - Create-Thread input text is limited to 32000 characters.
-- `userId` is required, immutable for the Thread, and limited to 255 characters.
+- `userId` is optional in v2, required in v1, immutable for the Thread, and limited to 255 characters.
 - Public file uploads are limited to 67108864 bytes.
 - Event lists default to 100 entries and accept at most 1000.
 - Thread lists return at most 100 Threads.
