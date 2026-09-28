@@ -49,10 +49,15 @@ mosoo doctor --json
 ```
 
 `mosoo setup` stores the cloud service root (`https://cloud.mosoo.ai`). The CLI
-derives the console API (`/api`) and Public API (`/api/v1`) hosts internally.
+derives the console API (`/api`) and Public API (`/api/v1`, `/api/v2`) hosts internally.
 `mosoo auth login` opens browser authorization and saves an account credential
-(`mcli_...`) for both hosts. Project API keys (`msp_...`) are for application
+(`mcli_...`) for those hosts. Project API keys (`msp_...`) are for application
 integrations and do not replace account login.
+
+Direct v2 Session creation and file uploads require an explicit owned
+`--project-id`, including when authenticated through account login. Configure
+your model provider credentials in that Project, then supply inline
+harness/provider/model/instructions; saving an Agent preset is optional.
 
 After the Project key upgrade, update the CLI and run `mosoo auth login` again.
 Create a new API key in each integration's Project and replace its old

@@ -6,6 +6,7 @@ import (
 	console "github.com/langgenius/mosoo-connector/internal/generated/console"
 	consolerest "github.com/langgenius/mosoo-connector/internal/generated/consolerest"
 	threads "github.com/langgenius/mosoo-connector/internal/generated/threads"
+	threadsv2 "github.com/langgenius/mosoo-connector/internal/generated/threadsv2"
 	"github.com/spf13/cobra"
 )
 
@@ -26,6 +27,9 @@ func MountModules(root *cobra.Command) error {
 		return err
 	}
 	if err := threads.Mount(root); err != nil {
+		return err
+	}
+	if err := threadsv2.Mount(root); err != nil {
 		return err
 	}
 	return nil

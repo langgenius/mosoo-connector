@@ -28,13 +28,15 @@ func TestGeneratedProvenanceMatchesContractLockAndSkill(t *testing.T) {
 	if _, err := hex.DecodeString(info.UpstreamCommit); err != nil {
 		t.Fatalf("upstream commit is not hexadecimal: %v", err)
 	}
-	if len(info.PublicThreadOpenAPI.SHA256) != 64 {
-		t.Fatalf("OpenAPI SHA-256 = %q", info.PublicThreadOpenAPI.SHA256)
-	}
-	if _, err := hex.DecodeString(info.PublicThreadOpenAPI.SHA256); err != nil {
-		t.Fatalf("OpenAPI SHA-256 is not hexadecimal: %v", err)
-	}
-	if info.PublicThreadOpenAPI.Normalization != "json-sort-keys-v1" {
-		t.Fatalf("normalization = %q", info.PublicThreadOpenAPI.Normalization)
+	for version, spec := range map[string]OpenAPI{"v1": info.PublicThreadOpenAPI, "v2": info.PublicThreadOpenAPIV2} {
+		if len(spec.SHA256) != 64 {
+			t.Fatalf("%s OpenAPI SHA-256 = %q", version, spec.SHA256)
+		}
+		if _, err := hex.DecodeString(spec.SHA256); err != nil {
+			t.Fatalf("%s OpenAPI SHA-256 is not hexadecimal: %v", version, err)
+		}
+		if spec.Normalization != "json-sort-keys-v1" {
+			t.Fatalf("%s normalization = %q", version, spec.Normalization)
+		}
 	}
 }

@@ -17,6 +17,7 @@ type OverlayCommand = {
 	examples?: OverlayExample[];
 	hidden?: boolean;
 	ignore?: boolean;
+	params?: Record<string, { help: string; deprecated: boolean }>;
 	notes?: string[];
 	prerequisites?: string[];
 	known_errors?: { status: number; cause: string }[];
@@ -154,14 +155,14 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		aliases: ["create"],
 		shortcuts: [{ use: "create-agent" }],
 		short: "Create an Agent",
-		long: "Create an Agent draft from a structured input. Publish it with publish-agent after provider credentials are configured.",
+		params: { "input.kind": { help: "Legacy compatibility field; ignored. Sessions own execution state.", deprecated: true } },
+		long: "Save an optional Agent preset from a structured input. Project-direct Sessions do not require an Agent; publish only for flows that use a published Agent, including v1.",
 		example: [
 			"cat > agent-create.json <<'JSON'",
 			"{",
 			"  \"input\": {",
 			"    \"projectId\": \"<project-id>\",",
 			"    \"name\": \"Research Agent\",",
-			"    \"kind\": \"<pet-or-cattle>\",",
 			"    \"runtimeId\": \"<runtime-id>\",",
 			"    \"provider\": \"<provider>\",",
 			"    \"model\": \"<model>\",",
@@ -180,7 +181,6 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 					input: {
 						projectId: "<project-id>",
 						name: "Research Agent",
-						kind: "pet",
 						runtimeId: "<runtime-id>",
 						provider: "<provider>",
 						model: "<model>",
@@ -193,10 +193,12 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 				},
 				follow_up_commands: [
 					"mosoo console agents agent --project-id <project-id> --agent-id <id> -o json",
-					"mosoo console agents publish-agent --input-project-id <project-id> --input-agent-id <id> -o json",
 				],
 			},
 		],
+	},
+	createAgentFork: {
+		params: { "input.kind": { help: "Legacy compatibility field; ignored. Sessions own execution state.", deprecated: true } },
 	},
 	createVendorCredential: {
 		aliases: ["create"],
@@ -758,6 +760,9 @@ function renderOverlay(commands: Record<string, OverlayCommand>): string {
 		if (command.ignore !== undefined) {
 			lines.push(`    ignore: ${command.ignore ? "true" : "false"}`);
 		}
+		if (command.params) {
+			renderYamlValue(lines, "params", command.params, 4);
+		}
 		if (command.notes?.length) {
 			lines.push("    notes:");
 			for (const note of command.notes) {
@@ -781,9 +786,71 @@ function renderOverlay(commands: Record<string, OverlayCommand>): string {
 	return `${lines.join("\n")}\n`;
 }
 
+function buildThreadsV2Overlay(): Record<string, OverlayCommand> {
+	const overlay = buildThreadsOverlay();
+	const create = overlay.create;
+	create.use = "create";
+	create.short = "Create a durable Session in a Project";
+	create.long = "Create a durable Session with --project-id and a required configuration object: type=inline with harness, provider, model and non-blank instructions, or type=agent with agent_id for an optional saved private preset. Never mix preset and inline fields. Input, resources and userId are optional; a supplied userId must be a non-blank string. Existing Sessions retain their admitted configuration.";
+	create.example = "mosoo public-thread-api threads create --project-id <project-id> --file session.json --idempotency-key <stable-create-key> -o json";
+	create.notes = [
+		"Project credentials are BYOK. A Project key is restricted to its own Project; CLI login must supply an explicit owned Project. No Agent is created for inline execution.",
+		"Continue with events send --thread-id using the returned thread.id. Reuse the same idempotency key only with an unchanged request; changing configuration under that key returns 409.",
+		"The compatibility form threads create --agent-id <agent-id> retains the saved-private Agent route and optional body. --agent-id and --project-id are mutually exclusive; use configuration.type=agent for a Project-scoped preset.",
+	];
+	create.known_errors = [
+		{ status: 400, cause: "The configuration is missing, mixes inline and preset fields, or has blank instructions; userId may also be invalid." },
+		{ status: 404, cause: "Project or preset Agent not found or not owned by this caller." },
+		{ status: 409, cause: "The idempotency key was reused with a different request or configuration." },
+	];
+	create.examples = [{
+		summary: "Create a Session directly from harness/model/instructions and an uploaded Project file.",
+		command: create.example,
+		body_shape: {
+			configuration: { type: "inline", harness: "openai-runtime", provider: "openai", model: "<model-id>", instructions: "Analyze the supplied material and save the results." },
+			input: { type: "user.message", content: [{ type: "text", text: "Summarize the attachment." }] },
+			resources: [{ type: "file", file_id: "<file-id>" }],
+		},
+		output_hints: { id_path: "thread.id" },
+		follow_up_commands: ["mosoo public-thread-api events send --thread-id <thread-id> --file events.json -o json"],
+	}, {
+		summary: "Create an idle Session from an optional saved private Agent preset.",
+		command: "mosoo public-thread-api threads create --project-id <project-id> --set configuration.type=agent --set-str configuration.agent_id=<agent-id> -o json",
+		body_shape: { configuration: { type: "agent", agent_id: "<agent-id>" } },
+		output_hints: { id_path: "thread.id" },
+	}];
+	// The existing helpers preserve --agent-id compatibility under the same
+	// commands, so do not generate a second create/upload command tree.
+	overlay["create-in-project"] = create;
+	overlay.create = { ignore: true };
+	overlay["project-files-upload"] = {
+		...overlay["agent-files-upload"],
+		use: "upload",
+		short: "Upload a file to a Project",
+		long: "Upload one local file with --project-id and --file, then reference file.id in resources[].file_id when creating or continuing a Session. No Agent is required.",
+		example: "mosoo public-thread-api files upload --project-id <project-id> --file <path> -o json",
+		examples: [{
+			summary: "Upload a Project file for a direct or preset Session.",
+			command: "mosoo public-thread-api files upload --project-id <project-id> --file <path> -o json",
+			output_hints: { id_path: "file.id" },
+			follow_up_commands: ["mosoo public-thread-api threads create --project-id <project-id> --file session.json -o json"],
+		}],
+		notes: ["A Project key is restricted to its own Project; CLI login supplies an explicit owned Project.", "The compatibility --agent-id form remains available. --project-id and --agent-id are mutually exclusive."],
+	};
+	overlay["agent-files-upload"] = { ignore: true };
+	const versioned: Record<string, OverlayCommand> = JSON.parse(JSON.stringify(overlay).replaceAll("public-thread-api ", "public-thread-api-v2 "));
+	versioned.usage = {
+		short: "Read recorded Session usage",
+		long: "Read paginated persisted usage observations. Missing values are null, not zero. Provider cost estimates are not invoices or complete upstream request accounting.",
+		example: "mosoo public-thread-api-v2 threads usage --thread-id <thread-id> -o json",
+	};
+	return versioned;
+}
+
 const overlays = {
 	console: buildConsoleOverlay(),
 	threads: buildThreadsOverlay(),
+	threadsv2: buildThreadsV2Overlay(),
 	consolerest: buildConsolerestOverlay(),
 };
 

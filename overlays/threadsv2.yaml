@@ -1,0 +1,178 @@
+commands:
+  agent-files-upload:
+    ignore: true
+  archive:
+    short: "Archive a thread"
+    long: "Mark a thread as archived."
+    example: |
+      mosoo public-thread-api-v2 threads archive --thread-id <thread-id>
+  create:
+    ignore: true
+  create-in-project:
+    use: create
+    short: "Create a durable Session in a Project"
+    long: "Create a durable Session with --project-id and a required configuration object: type=inline with harness, provider, model and non-blank instructions, or type=agent with agent_id for an optional saved private preset. Never mix preset and inline fields. Input, resources and userId are optional; a supplied userId must be a non-blank string. Existing Sessions retain their admitted configuration."
+    example: |
+      mosoo public-thread-api-v2 threads create --project-id <project-id> --file session.json --idempotency-key <stable-create-key> -o json
+    examples:
+      - summary: "Create a Session directly from harness/model/instructions and an uploaded Project file."
+        command: "mosoo public-thread-api-v2 threads create --project-id <project-id> --file session.json --idempotency-key <stable-create-key> -o json"
+        body_shape:
+          configuration:
+            type: inline
+            harness: openai-runtime
+            provider: openai
+            model: "<model-id>"
+            instructions: "Analyze the supplied material and save the results."
+          input:
+            type: user.message
+            content:
+              -
+                type: text
+                text: "Summarize the attachment."
+          resources:
+            -
+              type: file
+              file_id: "<file-id>"
+        output_hints:
+          id_path: thread.id
+        follow_up_commands:
+          - "mosoo public-thread-api-v2 events send --thread-id <thread-id> --file events.json -o json"
+      - summary: "Create an idle Session from an optional saved private Agent preset."
+        command: "mosoo public-thread-api-v2 threads create --project-id <project-id> --set configuration.type=agent --set-str configuration.agent_id=<agent-id> -o json"
+        body_shape:
+          configuration:
+            type: agent
+            agent_id: "<agent-id>"
+        output_hints:
+          id_path: thread.id
+    notes:
+      - "Project credentials are BYOK. A Project key is restricted to its own Project; CLI login must supply an explicit owned Project. No Agent is created for inline execution."
+      - "Continue with events send --thread-id using the returned thread.id. Reuse the same idempotency key only with an unchanged request; changing configuration under that key returns 409."
+      - "The compatibility form threads create --agent-id <agent-id> retains the saved-private Agent route and optional body. --agent-id and --project-id are mutually exclusive; use configuration.type=agent for a Project-scoped preset."
+    known_errors:
+      - status: 400
+        cause: "The configuration is missing, mixes inline and preset fields, or has blank instructions; userId may also be invalid."
+      - status: 404
+        cause: "Project or preset Agent not found or not owned by this caller."
+      - status: 409
+        cause: "The idempotency key was reused with a different request or configuration."
+  delete:
+    short: "Delete a thread"
+    long: "Permanently delete a thread owned by this caller."
+    example: |
+      mosoo public-thread-api-v2 threads delete --thread-id <thread-id>
+  list-for-agent:
+    short: "List threads for an agent"
+    long: "List threads created against an agent API endpoint."
+    example: |
+      mosoo public-thread-api-v2 threads list-for-agent --agent-id <agent-id>
+  project-files-upload:
+    use: upload
+    short: "Upload a file to a Project"
+    long: "Upload one local file with --project-id and --file, then reference file.id in resources[].file_id when creating or continuing a Session. No Agent is required."
+    example: |
+      mosoo public-thread-api-v2 files upload --project-id <project-id> --file <path> -o json
+    examples:
+      - summary: "Upload a Project file for a direct or preset Session."
+        command: "mosoo public-thread-api-v2 files upload --project-id <project-id> --file <path> -o json"
+        output_hints:
+          id_path: file.id
+        follow_up_commands:
+          - "mosoo public-thread-api-v2 threads create --project-id <project-id> --file session.json -o json"
+    notes:
+      - "A Project key is restricted to its own Project; CLI login supplies an explicit owned Project."
+      - "The compatibility --agent-id form remains available. --project-id and --agent-id are mutually exclusive."
+    known_errors:
+      - status: 401
+        cause: "Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again."
+      - status: 400
+        cause: "The multipart request must contain exactly one file field."
+      - status: 413
+        cause: "The upload exceeds the Public API file size limit."
+  public-files-delete-file:
+    use: delete-file
+    short: "Delete a file"
+    long: "Delete a pre-thread draft file or a file attached to a writable thread."
+    example: |
+      mosoo public-thread-api-v2 files delete-file --file-id <file-id> -o json
+  public-files-download:
+    use: download
+    short: "Download file content"
+    long: "Download the bytes of a ready thread attachment or agent artifact."
+    example: |
+      mosoo public-thread-api-v2 files download --file-id <file-id> -o raw
+  public-files-retrieve-file:
+    use: retrieve-file
+    short: "Retrieve file metadata"
+    long: "Retrieve public metadata for a draft or thread file."
+    example: |
+      mosoo public-thread-api-v2 files retrieve-file --file-id <file-id> -o json
+  retrieve:
+    short: "Retrieve a thread"
+    long: "Fetch thread metadata and status."
+    example: |
+      mosoo public-thread-api-v2 threads retrieve --thread-id <thread-id>
+  thread-events-list-events:
+    use: list-events
+    short: "List thread events"
+    long: "Return recent events for a thread on the Public Thread API."
+    example: |
+      mosoo public-thread-api-v2 events list-events --thread-id <thread-id>
+    known_errors:
+      - status: 401
+        cause: "Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again."
+      - status: 404
+        cause: "Thread not found for this caller."
+  thread-events-send:
+    use: send
+    short: "Send events to a thread"
+    long: "Send user messages, permission decisions, or interrupts to a thread session."
+    example: |
+      mosoo public-thread-api-v2 events send --thread-id <thread-id> --file events.json
+    examples:
+      - summary: "Send a user message event to an existing thread."
+        command: "mosoo public-thread-api-v2 events send --thread-id <thread-id> --file events.json -o json"
+        body_shape:
+          events:
+            -
+              type: user_message
+              text: "Continue the task with this follow-up."
+              requestId: cli-send-001
+        output_hints:
+          list_path: events
+        follow_up_commands:
+          - "mosoo public-thread-api-v2 events list-events --thread-id <thread-id> -o json"
+    known_errors:
+      - status: 401
+        cause: "Invalid or revoked credential. Rotate the Project API key or run mosoo auth login again."
+      - status: 409
+        cause: "Idempotency key reused while the original request is still processing."
+  thread-events-stream:
+    use: stream
+    short: "Stream thread events (SSE)"
+    long: "Open a Server-Sent Events stream of thread events. Use -o raw for the event stream."
+    example: |
+      mosoo public-thread-api-v2 events stream --thread-id <thread-id> -o raw
+  thread-files-list-files:
+    use: list-files
+    short: "List thread files"
+    long: "List files attached to a thread."
+    example: |
+      mosoo public-thread-api-v2 files list-files --thread-id <thread-id>
+  thread-files-remove:
+    use: remove
+    short: "Remove a thread file"
+    long: "Detach a file from a thread."
+    example: |
+      mosoo public-thread-api-v2 files remove --thread-id <thread-id> --file-id <file-id>
+  unarchive:
+    short: "Unarchive a thread"
+    long: "Restore an archived thread to the active list."
+    example: |
+      mosoo public-thread-api-v2 threads unarchive --thread-id <thread-id>
+  usage:
+    short: "Read recorded Session usage"
+    long: "Read paginated persisted usage observations. Missing values are null, not zero. Provider cost estimates are not invoices or complete upstream request accounting."
+    example: |
+      mosoo public-thread-api-v2 threads usage --thread-id <thread-id> -o json

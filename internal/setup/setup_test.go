@@ -72,6 +72,7 @@ func TestAuthLoginUsesExistingLocalConfigAndMirrorsCredentials(t *testing.T) {
 
 	assertHostToken(t, srv.URL+"/api", "test-token")
 	assertHostToken(t, srv.URL+"/api/v1", "test-token")
+	assertHostToken(t, srv.URL+"/api/v2", "test-token")
 	gotConfig := readTargetConfig(t, configDir)
 	if gotConfig.Target != target.LocalTarget || gotConfig.BaseURL != srv.URL {
 		t.Fatalf("config = %+v, want existing local config", gotConfig)
@@ -129,6 +130,7 @@ func TestAuthLoginDefaultsToDeviceFlowAndValidatesAccountCredential(t *testing.T
 	}
 	assertHostToken(t, srv.URL+"/api", "mcli_device-test")
 	assertHostToken(t, srv.URL+"/api/v1", "mcli_device-test")
+	assertHostToken(t, srv.URL+"/api/v2", "mcli_device-test")
 }
 
 func TestAuthLoginRejectsProjectKeyAndPreservesExistingAccountCredential(t *testing.T) {

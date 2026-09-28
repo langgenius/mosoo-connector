@@ -39,9 +39,10 @@ const (
 )
 
 const (
-	SurfaceConsole         = "console"
-	SurfaceConsoleREST     = "console-rest"
-	SurfacePublicThreadAPI = "public-thread-api"
+	SurfaceConsole           = "console"
+	SurfaceConsoleREST       = "console-rest"
+	SurfacePublicThreadAPI   = "public-thread-api"
+	SurfacePublicThreadAPIV2 = "public-thread-api-v2"
 )
 
 // Resolution describes the mosoo service target selected for this invocation.
@@ -99,7 +100,10 @@ func Install(root *cobra.Command) {
 			return nil
 		}
 		if HasExplicitHostname(cmd) {
-			return ValidateExplicitHostnameForSurface(cmd, surface)
+			if err := ValidateExplicitHostnameForSurface(cmd, surface); err != nil {
+				return err
+			}
+			return nil
 		}
 		resolved, err := ResolveFromCommand(cmd)
 		if err != nil {
@@ -109,7 +113,10 @@ func Install(root *cobra.Command) {
 		if hostname == "" {
 			return fmt.Errorf("no hostname resolved for surface %q", surface)
 		}
-		return cmd.Root().PersistentFlags().Set("hostname", hostname)
+		if err := cmd.Root().PersistentFlags().Set("hostname", hostname); err != nil {
+			return err
+		}
+		return nil
 	}
 }
 
@@ -329,6 +336,8 @@ func ValidateExplicitHostnameForSurface(cmd *cobra.Command, surface string) erro
 	switch surface {
 	case SurfaceConsole, SurfaceConsoleREST:
 		expectedSuffix = "/api"
+	case SurfacePublicThreadAPIV2:
+		expectedSuffix = "/api/v2"
 	case SurfacePublicThreadAPI:
 		expectedSuffix = "/api/v1"
 	default:
@@ -348,7 +357,7 @@ func SurfaceForCommand(cmd *cobra.Command) (string, bool) {
 	parts := strings.Fields(cmd.CommandPath())
 	for i := 1; i < len(parts); i++ {
 		switch parts[i] {
-		case SurfaceConsole, SurfaceConsoleREST, SurfacePublicThreadAPI:
+		case SurfaceConsole, SurfaceConsoleREST, SurfacePublicThreadAPI, SurfacePublicThreadAPIV2:
 			return parts[i], true
 		}
 	}
@@ -365,7 +374,7 @@ func surfaceForCatalogCommand(cmd *cobra.Command) (string, bool) {
 		return "", false
 	}
 	switch entry.Service {
-	case SurfaceConsole, SurfaceConsoleREST, SurfacePublicThreadAPI:
+	case SurfaceConsole, SurfaceConsoleREST, SurfacePublicThreadAPI, SurfacePublicThreadAPIV2:
 		return entry.Service, true
 	default:
 		return "", false
@@ -375,9 +384,10 @@ func surfaceForCatalogCommand(cmd *cobra.Command) (string, bool) {
 func HostsForBaseURL(baseURL string) map[string]string {
 	base := strings.TrimRight(baseURL, "/")
 	return map[string]string{
-		SurfaceConsole:         base + "/api",
-		SurfaceConsoleREST:     base + "/api",
-		SurfacePublicThreadAPI: base + "/api/v1",
+		SurfaceConsole:           base + "/api",
+		SurfaceConsoleREST:       base + "/api",
+		SurfacePublicThreadAPI:   base + "/api/v1",
+		SurfacePublicThreadAPIV2: base + "/api/v2",
 	}
 }
 
@@ -465,7 +475,7 @@ func normalizeBaseURL(raw string) (string, error) {
 
 func stripAPISuffix(hostname string) string {
 	value := strings.TrimRight(hostname, "/")
-	for _, suffix := range []string{"/api/v1", "/api"} {
+	for _, suffix := range []string{"/api/v2", "/api/v1", "/api"} {
 		if strings.HasSuffix(value, suffix) {
 			return strings.TrimRight(strings.TrimSuffix(value, suffix), "/")
 		}

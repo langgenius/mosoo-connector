@@ -107,7 +107,6 @@ func TestUpdateInputFromExportedAgentManifest(t *testing.T) {
 	manifest := map[string]any{
 		"sourceAgentId":   "ag_123",
 		"manifestVersion": "1",
-		"kind":            "pet",
 		"metadata": map[string]any{
 			"name":        "Portable Agent",
 			"description": "Imported safely",
@@ -414,7 +413,6 @@ func TestRunApplyDryRunFetchesRemoteButDoesNotUpdate(t *testing.T) {
 			return agentManifestResponse(map[string]any{
 				"agentId":         "ag_1",
 				"projectId":       "app_1",
-				"kind":            "cattle",
 				"mcpServerIds":    []any{},
 				"model":           "gpt-4.1",
 				"name":            "Researcher",
@@ -478,7 +476,6 @@ func TestRunApplySkipsUpdateWhenManifestIsCurrent(t *testing.T) {
 			return agentManifestResponse(map[string]any{
 				"agentId":         "ag_1",
 				"projectId":       "app_1",
-				"kind":            "cattle",
 				"mcpServerIds":    []any{},
 				"model":           "gpt-4.1",
 				"name":            "Researcher",
@@ -527,7 +524,6 @@ func TestRunApplySendsMergedUpdateInput(t *testing.T) {
 			return agentManifestResponse(map[string]any{
 				"agentId":      "ag_1",
 				"projectId":    "app_1",
-				"kind":         "cattle",
 				"mcpServerIds": []any{"mcp_1"},
 				"model":        "gpt-4.1",
 				"name":         "Researcher",
@@ -571,6 +567,9 @@ func TestRunApplySendsMergedUpdateInput(t *testing.T) {
 	if updateInput == nil {
 		t.Fatal("updateAgentConfig was not called")
 	}
+	if _, ok := updateInput["kind"]; ok {
+		t.Fatalf("update input carries retired kind: %#v", updateInput)
+	}
 	if updateInput["prompt"] != "new prompt" {
 		t.Fatalf("prompt = %v", updateInput["prompt"])
 	}
@@ -600,7 +599,6 @@ func TestPlanManifestUpdateRoundTripsExportedManifest(t *testing.T) {
 	remote := map[string]any{
 		"sourceAgentId":   "ag_123",
 		"manifestVersion": "mosoo.agent.manifest.v1",
-		"kind":            "pet",
 		"metadata": map[string]any{
 			"name":        "Portable Agent",
 			"description": nil,

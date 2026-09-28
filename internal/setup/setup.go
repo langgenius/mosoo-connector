@@ -148,12 +148,13 @@ func mirrorCredential(loginHost string, resolved target.Resolution) ([]string, e
 		return nil, fmt.Errorf("auth login succeeded but no credential was saved for %s", loginHost)
 	}
 
-	savedHosts := make([]string, 0, 3)
+	savedHosts := make([]string, 0, 4)
 	seen := map[string]bool{}
 	for _, host := range []string{
 		loginHost,
 		resolved.Hosts[target.SurfaceConsole],
 		resolved.Hosts[target.SurfacePublicThreadAPI],
+		resolved.Hosts[target.SurfacePublicThreadAPIV2],
 	} {
 		host = strings.TrimSpace(host)
 		if host == "" {

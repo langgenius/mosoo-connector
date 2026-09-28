@@ -40,6 +40,9 @@ func TestUpdateConfigSendsProviderOptionsAsJSONObject(t *testing.T) {
 	}
 	variables, _ := got["variables"].(map[string]any)
 	input, _ := variables["input"].(map[string]any)
+	if _, ok := input["kind"]; ok {
+		t.Fatalf("update input carries retired kind: %#v", input)
+	}
 	providerOptions, ok := input["providerOptions"].(map[string]any)
 	if !ok {
 		t.Fatalf("providerOptions = %#v (%T), want JSON object", input["providerOptions"], input["providerOptions"])
@@ -81,6 +84,42 @@ func TestUpdateConfigRejectsInvalidProviderOptionsLocally(t *testing.T) {
 			}
 			if hits != 0 {
 				t.Fatalf("server hits = %d, want 0", hits)
+			}
+		})
+	}
+}
+
+func TestUpdateConfigLegacyKindCompatibility(t *testing.T) {
+	for _, kind := range []string{"pet", "cattle", "unknown", ""} {
+		t.Run(kind, func(t *testing.T) {
+			var hits int
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				hits++
+				var body struct {
+					Variables struct {
+						Input map[string]any `json:"input"`
+					} `json:"variables"`
+				}
+				if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+					t.Error(err)
+				}
+				if _, ok := body.Variables.Input["kind"]; ok {
+					t.Error("legacy kind was forwarded to API")
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"data":{"updateAgentConfig":{"id":"agent_1"}}}`))
+			}))
+			defer srv.Close()
+			root := newTestRoot(t, srv.URL)
+			args := append([]string{"--hostname", srv.URL, "console", "agents", "update-config"}, validUpdateConfigArgs(`{}`)...)
+			root.SetArgs(append(args, "--input-kind", kind))
+			err := root.Execute()
+			if kind == "pet" || kind == "cattle" {
+				if err != nil || hits != 1 {
+					t.Fatalf("legacy kind should be accepted and ignored: err=%v hits=%d", err, hits)
+				}
+			} else if err == nil || !strings.Contains(err.Error(), "--input-kind") || hits != 0 {
+				t.Fatalf("malformed legacy kind should fail locally: err=%v hits=%d", err, hits)
 			}
 		})
 	}
@@ -171,7 +210,6 @@ func validUpdateConfigArgs(providerOptions string) []string {
 	return []string{
 		"--input-agent-id", "agent_1",
 		"--input-project-id", "app_1",
-		"--input-kind", "pet",
 		"--input-mcp-server-ids", "mcp_1",
 		"--input-model", "gpt-4.1",
 		"--input-name", "Agent",

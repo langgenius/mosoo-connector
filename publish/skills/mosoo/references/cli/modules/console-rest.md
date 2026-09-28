@@ -5,9 +5,9 @@
 - Backend: `openapi3`
 - Default hostname: `http://127.0.0.1:8787/api`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `51056b328b24c707fc5b8edfdc868b8f01d72527`
+- Pinned tag: `bf80ed17c2ee9890d670595a5ec9f2f8ac72be7e`
 - Files: `docs/openapi/console-rest.openapi.json`
-- Resolved SHA: `51056b328b24c707fc5b8edfdc868b8f01d72527`
+- Resolved SHA: `bf80ed17c2ee9890d670595a5ec9f2f8ac72be7e`
 
 ## Access Tokens
 

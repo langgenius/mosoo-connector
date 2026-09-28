@@ -21,6 +21,8 @@ LATHE_BIN := $(TOOLS_DIR)/lathe
 LATHE ?= $(LATHE_BIN)
 MOSOO_DIR := .cache/mosoo
 SPEC_FILE := docs/openapi/public-thread-api.openapi.json
+V2_SPEC_FILE := docs/openapi/public-thread-api.v2.openapi.json
+V2_SYNC_DIR := .cache/specs-sync/threadsv2
 GRAPHQL_SPEC_FILE := docs/graphql/console.graphql
 CONSOLE_REST_SPEC_FILE := docs/openapi/console-rest.openapi.json
 SOURCE_NAME := threads
@@ -101,7 +103,7 @@ _codegen: $(LATHE_BIN)
 		echo "MOSOO_REF must be an explicit 40-character Mosoo commit SHA (got: $(MOSOO_REF))" >&2; \
 		exit 1; \
 	fi
-	@mkdir -p .cache specs "$(SYNC_DIR)/docs/openapi" "$(CONSOLE_SYNC_DIR)/docs/graphql" "$(CONSOLE_REST_SYNC_DIR)/docs/openapi"
+	@mkdir -p .cache specs "$(SYNC_DIR)/docs/openapi" "$(V2_SYNC_DIR)/docs/openapi" "$(CONSOLE_SYNC_DIR)/docs/graphql" "$(CONSOLE_REST_SYNC_DIR)/docs/openapi"
 	@if [ -d "$(MOSOO_DIR)/.git" ]; then \
 		git -C "$(MOSOO_DIR)" fetch --all --tags --quiet; \
 	else \
@@ -125,6 +127,7 @@ _codegen: $(LATHE_BIN)
 	MOSOO_REF=$(MOSOO_REF) MOSOO_HOST_BASE=$(MOSOO_HOST_BASE) MOSOO_REPO_URL=$(MOSOO_REPO) $(BUN) scripts/render-sources-yaml.ts
 	$(BUN) scripts/render-overlays.ts
 	cp "$(MOSOO_DIR)/$(SPEC_FILE)" "$(SYNC_DIR)/$(SPEC_FILE)"
+	cp "$(MOSOO_DIR)/$(V2_SPEC_FILE)" "$(V2_SYNC_DIR)/$(V2_SPEC_FILE)"
 	cp "$(MOSOO_DIR)/$(GRAPHQL_SPEC_FILE)" "$(CONSOLE_SYNC_DIR)/$(GRAPHQL_SPEC_FILE)"
 	cp "$(MOSOO_DIR)/$(CONSOLE_REST_SPEC_FILE)" "$(CONSOLE_REST_SYNC_DIR)/$(CONSOLE_REST_SPEC_FILE)"
 	"$(LATHE)" codegen -sources specs/sources.yaml -cache .cache -overlay $(OVERLAY_DIR)
