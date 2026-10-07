@@ -190,7 +190,7 @@ commands:
         deprecated: true
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
-      - "For Pi, set input.runtimeId=pi, input.provider=openai-compatible, and input.model to an exact custom model ID configured in the Project. Pi requires a custom HTTPS Chat Completions endpoint with streaming and tool calls; it does not change the default runtime."
+      - "For Pi, set input.runtimeId=pi, input.provider=openai-compatible, and input.model to an exact custom model ID configured in the Project. Pi requires a custom HTTPS Chat Completions endpoint with streaming and tool calls. For custom OpenAI-Compatible providers, OpenCode remains the default runtime; select Pi explicitly."
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."

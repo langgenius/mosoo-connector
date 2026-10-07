@@ -106,7 +106,8 @@ OpenAI-Compatible credential and a custom model in the Project first. The
 endpoint must use HTTPS and support Chat Completions streaming and tool calls;
 OpenAI Responses endpoints and built-in provider credentials are not supported.
 Use the exact configured model ID, never the catalog placeholder `custom-model`.
-OpenCode remains the default runtime for Agent creation without a runtime choice.
+For custom OpenAI-Compatible providers, OpenCode remains the default runtime;
+select Pi explicitly.
 
 Save a request such as this as `pi-session.json`:
 

@@ -157,7 +157,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		short: "Create an Agent",
 		params: { "input.kind": { help: "Legacy compatibility field; ignored. Sessions own execution state.", deprecated: true } },
 		long: "Save an optional Agent preset from a structured input. Project-direct Sessions do not require an Agent; publish only for flows that use a published Agent, including v1.",
-		notes: ["For Pi, set input.runtimeId=pi, input.provider=openai-compatible, and input.model to an exact custom model ID configured in the Project. Pi requires a custom HTTPS Chat Completions endpoint with streaming and tool calls; it does not change the default runtime."],
+		notes: ["For Pi, set input.runtimeId=pi, input.provider=openai-compatible, and input.model to an exact custom model ID configured in the Project. Pi requires a custom HTTPS Chat Completions endpoint with streaming and tool calls. For custom OpenAI-Compatible providers, OpenCode remains the default runtime; select Pi explicitly."],
 		example: [
 			"cat > agent-create.json <<'JSON'",
 			"{",
