@@ -32,7 +32,7 @@ func TestProjectCreateCatalogDescribesExplicitConfiguration(t *testing.T) {
 	if configuration == nil || len(configuration.OneOf) != 2 || !slices.Contains(command.Body.Schema.Required, "configuration") {
 		t.Fatal("configuration must be an explicit union")
 	}
-	var foundInline, foundPreset bool
+	var foundInline, foundPreset, foundPiExample bool
 	for _, variant := range configuration.OneOf {
 		if slices.Contains(variant.Required, "instructions") && slices.Contains(variant.Required, "harness") {
 			foundInline = true
@@ -49,16 +49,36 @@ func TestProjectCreateCatalogDescribesExplicitConfiguration(t *testing.T) {
 			if err := validateProjectCreateBody(example.BodyShape); err != nil {
 				t.Fatalf("generated example rejected: %v", err)
 			}
+			var body struct {
+				Configuration struct {
+					Harness  string `json:"harness"`
+					Provider string `json:"provider"`
+				} `json:"configuration"`
+			}
+			if err := json.Unmarshal(example.BodyShape, &body); err != nil {
+				t.Fatal(err)
+			}
+			if body.Configuration.Harness == "pi" && body.Configuration.Provider == "openai-compatible" {
+				foundPiExample = true
+			}
 		}
+	}
+	if !foundPiExample {
+		t.Fatal("generated catalog must expose the Pi custom-provider Session example")
 	}
 }
 
 func TestProjectCreatePreservesConfigurationAndResources(t *testing.T) {
-	for _, kind := range []string{"inline", "agent"} {
+	for _, kind := range []string{"inline", "pi", "agent"} {
 		for _, inputMode := range []string{"file", "set"} {
 			t.Run(kind+"/"+inputMode, func(t *testing.T) {
 				configuration := inlineConfiguration
 				sets := []string{"--set", "configuration.type=inline", "--set", "configuration.harness=openai-runtime", "--set", "configuration.provider=openai", "--set-str", "configuration.model=test-model", "--set-str", "configuration.instructions=Preserve the supplied bytes. 分析附件。"}
+				if kind == "pi" {
+					configuration = strings.ReplaceAll(strings.ReplaceAll(configuration, `"harness":"openai-runtime"`, `"harness":"pi"`), `"provider":"openai"`, `"provider":"openai-compatible"`)
+					sets[3] = "configuration.harness=pi"
+					sets[5] = "configuration.provider=openai-compatible"
+				}
 				if kind == "agent" {
 					configuration = `{"type":"agent","agent_id":"preset1"}`
 					sets = []string{"--set", "configuration.type=agent", "--set-str", "configuration.agent_id=preset1"}

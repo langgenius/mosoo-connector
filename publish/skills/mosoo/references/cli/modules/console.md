@@ -5,13 +5,13 @@
 - Backend: `graphql`
 - Default hostname: `http://127.0.0.1:8787/api`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `bf80ed17c2ee9890d670595a5ec9f2f8ac72be7e`
+- Pinned tag: `83a841bbfd3697cf463ac4307540ecd06a12df5b`
 - Schema: `docs/graphql/console.graphql`
 - Expose queries: `accessibleAgentList`, `agent`, `agentCostCard`, `agentEditorState`, `agentManifest`, `agentSessionDiagnostics`, `agentSessionList`, `agentSessionRetrieve`, `appInfo`, `availableAgentModels`, `controlPlaneOverview`, `environment`, `exportAgentPackage`, `fileList`, `listSessionResources`, `mcpOAuthFlowStatus`, `mcpRegistry`, `organizationBillingCostCard`, `projectCostCard`, `projectEnvironmentList`, `projectList`, `projectOverview`, `projectSkillList`, `session`, `sessionList`, `sessionMessages`, `sessionProcessEvents`, `skillDetail`, `threadAgentSessionList`, `threadAgentSessionRetrieve`, `threadSessionMessages`, `threadSessionProcessEvents`, `vendorCredentialList`, `viewer`
 - Expose mutations: `addSessionResource`, `archiveAgentSession`, `autoTitleSession`, `connectMcpBearer`, `createAgent`, `createAgentFork`, `createAgentSession`, `createEnvironment`, `createEnvironmentFork`, `createProject`, `createProjectMcpServer`, `createSkillFork`, `createVendorCredential`, `deleteAgent`, `deleteAgentSession`, `deleteEnvironment`, `deleteMcpServer`, `deleteOwnedSkill`, `deleteVendorCredential`, `importAgentPackage`, `onboardingBootstrap`, `prewarmAgentSession`, `publishAgent`, `recreateSessionSandbox`, `removeSessionResource`, `renameProject`, `renameSession`, `restartSessionDriver`, `revokeMcpCredential`, `setDefaultVendorCredential`, `setEnvironmentVariableValue`, `setMcpServerEnabled`, `setProjectDefaultEnvironment`, `setSystemAgentModel`, `startAgentRun`, `startMcpOAuth`, `testVendorCredential`, `unarchiveAgentSession`, `unpublishAgent`, `updateAgentConfig`, `updateEnvironment`, `updateProfile`, `updateProjectMcpServer`, `updateVendorCredential`
 - Group policies: `12`
 - Selection policy: max depth `5`
-- Resolved SHA: `bf80ed17c2ee9890d670595a5ec9f2f8ac72be7e`
+- Resolved SHA: `83a841bbfd3697cf463ac4307540ecd06a12df5b`
 
 ## Agents
 
@@ -84,6 +84,7 @@
   - `--input-project-id` (variable, required): input.projectId
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
+  - For Pi, set input.runtimeId=pi, input.provider=openai-compatible, and input.model to an exact custom model ID configured in the Project. Pi requires a custom HTTPS Chat Completions endpoint with streaming and tool calls; it does not change the default runtime.
 - Known errors:
   - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
 - Examples:

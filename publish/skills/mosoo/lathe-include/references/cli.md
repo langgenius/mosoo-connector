@@ -99,6 +99,46 @@ configure the Project key for that explicit v2 hostname. An API invocation
 never restores a credential removed by logout.
 `doctor --json` reports both versioned OpenAPI hashes in `contract`.
 
+### Pi Sessions
+
+Pi is an explicit harness choice on deployments that enable it. Configure an
+OpenAI-Compatible credential and a custom model in the Project first. The
+endpoint must use HTTPS and support Chat Completions streaming and tool calls;
+OpenAI Responses endpoints and built-in provider credentials are not supported.
+Use the exact configured model ID, never the catalog placeholder `custom-model`.
+OpenCode remains the default runtime for Agent creation without a runtime choice.
+
+Save a request such as this as `pi-session.json`:
+
+```json
+{
+  "configuration": {
+    "type": "inline",
+    "harness": "pi",
+    "provider": "openai-compatible",
+    "model": "<custom-model-id>",
+    "instructions": "Use tools to inspect the supplied repository and summarize your findings."
+  },
+  "input": {
+    "type": "user.message",
+    "content": [{ "type": "text", "text": "List the files in the working directory." }]
+  }
+}
+```
+
+```sh
+mosoo public-thread-api-v2 threads create --project-id <project-id> --file pi-session.json --idempotency-key <stable-create-key> -o json
+mosoo public-thread-api-v2 events wait --thread-id <thread-id> --final-output
+```
+
+Keep the same target for both commands and use the returned `thread.id` for
+follow-ups. Existing Sessions retain their admitted runtime. For an optional
+saved Agent preset, set `runtimeId: "pi"`, `provider: "openai-compatible"`, and
+the exact custom model ID through the Agent creation input or manifest workflow.
+Round-trip existing manifests and inspect `apply --dry-run` before applying.
+Pi requires full access with unrestricted built-in tools; do not add permission
+modes or tool restrictions it cannot enforce.
+
 ## Common Workflow Recipes
 
 Use this section as the entry point for end-to-end mosoo CLI tasks. It defines

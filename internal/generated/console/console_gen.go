@@ -147,7 +147,7 @@ var Specs = []runtime.CommandSpec{
 			{Summary: "Create an Agent from a JSON body file", Command: "mosoo console agents create-agent --file agent-create.json -o json", BodyShape: []byte("{\"input\":{\"model\":\"\\u003cmodel\\u003e\",\"name\":\"Research Agent\",\"projectId\":\"\\u003cproject-id\\u003e\",\"prompt\":\"You research concise answers with citations.\",\"provider\":\"\\u003cprovider\\u003e\",\"runtimeId\":\"\\u003cruntime-id\\u003e\",\"skillIds\":[]}}"), OutputHints: &runtime.ExampleOutputHints{IDPath: "data.createAgent.id"}, FollowUpCommands: []string{"mosoo console agents agent --project-id <project-id> --agent-id <id> -o json"},
 			},
 		},
-		Notes: []string{"Uses POST /graphql on the console default hostname (/api)."},
+		Notes: []string{"Uses POST /graphql on the console default hostname (/api).", "For Pi, set input.runtimeId=pi, input.provider=openai-compatible, and input.model to an exact custom model ID configured in the Project. Pi requires a custom HTTPS Chat Completions endpoint with streaming and tool calls; it does not change the default runtime."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 401, Cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."},
 		},

@@ -5,9 +5,9 @@
 - Backend: `openapi3`
 - Default hostname: `http://127.0.0.1:8787/api/v2`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `bf80ed17c2ee9890d670595a5ec9f2f8ac72be7e`
+- Pinned tag: `83a841bbfd3697cf463ac4307540ecd06a12df5b`
 - Files: `docs/openapi/public-thread-api.v2.openapi.json`
-- Resolved SHA: `bf80ed17c2ee9890d670595a5ec9f2f8ac72be7e`
+- Resolved SHA: `83a841bbfd3697cf463ac4307540ecd06a12df5b`
 
 ## Events
 
@@ -167,6 +167,7 @@
 - Output: response media `application/json`
 - Notes:
   - Project credentials are BYOK. A Project key is restricted to its own Project; CLI login must supply an explicit owned Project. No Agent is created for inline execution.
+  - Pi uses configuration.harness=pi and configuration.provider=openai-compatible with an exact custom model ID configured in the Project. It requires a custom HTTPS Chat Completions endpoint with streaming and tool calls; OpenAI Responses endpoints and built-in provider credentials are not supported for Pi.
   - Continue with events send --thread-id using the returned thread.id. Reuse the same idempotency key only with an unchanged request; changing configuration under that key returns 409.
   - The compatibility form threads create --agent-id <agent-id> retains the saved-private Agent route and optional body. --agent-id and --project-id are mutually exclusive; use configuration.type=agent for a Project-scoped preset.
 - Known errors:
@@ -180,6 +181,12 @@
     Output ID path: `thread.id`
     Follow-up commands:
       - `mosoo public-thread-api-v2 events send --thread-id <thread-id> --file events.json -o json`
+  - Create a Pi Session using a Project's custom OpenAI-compatible model.
+    Command: `mosoo public-thread-api-v2 threads create --project-id <project-id> --file pi-session.json --idempotency-key <stable-create-key> -o json`
+    Body shape: `{"configuration":{"harness":"pi","instructions":"Use tools to inspect the supplied repository and summarize your findings.","model":"\u003ccustom-model-id\u003e","provider":"openai-compatible","type":"inline"},"input":{"content":[{"text":"List the files in the working directory.","type":"text"}],"type":"user.message"}}`
+    Output ID path: `thread.id`
+    Follow-up commands:
+      - `mosoo public-thread-api-v2 events wait --thread-id <thread-id> --final-output`
   - Create an idle Session from an optional saved private Agent preset.
     Command: `mosoo public-thread-api-v2 threads create --project-id <project-id> --set configuration.type=agent --set-str configuration.agent_id=<agent-id> -o json`
     Body shape: `{"configuration":{"agent_id":"\u003cagent-id\u003e","type":"agent"}}`

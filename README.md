@@ -249,6 +249,45 @@ turn. Run `mosoo auth login` for the chosen target once after upgrading to add t
 v2 credential. Configure Project keys against the explicit v2 hostname.
 API commands never recreate credentials removed by logout.
 
+### Pi Sessions
+
+On a deployment with Pi enabled, configure an OpenAI-Compatible credential and
+its custom model in the Project. The endpoint must use HTTPS and support Chat
+Completions streaming and tool calls. Pi does not support OpenAI Responses
+endpoints or built-in provider credentials. Use the exact configured model ID;
+`custom-model` is a catalog placeholder, not a usable default. OpenCode remains
+the default runtime when creating an Agent without an explicit runtime choice.
+
+Save this as `pi-session.json`:
+
+```json
+{
+  "configuration": {
+    "type": "inline",
+    "harness": "pi",
+    "provider": "openai-compatible",
+    "model": "<custom-model-id>",
+    "instructions": "Use tools to inspect the supplied repository and summarize your findings."
+  },
+  "input": {
+    "type": "user.message",
+    "content": [{ "type": "text", "text": "List the files in the working directory." }]
+  }
+}
+```
+
+```sh
+mosoo --target custom --base-url <service-origin> public-thread-api-v2 threads create --project-id <project-id> --file pi-session.json --idempotency-key <stable-create-key> -o json
+mosoo --target custom --base-url <service-origin> public-thread-api-v2 events wait --thread-id <thread-id> --final-output
+```
+
+The returned `thread.id` is used for follow-ups. Existing Sessions retain their
+original runtime. For an optional saved Agent preset, use `runtimeId: "pi"`,
+`provider: "openai-compatible"`, and the exact custom model ID in the Agent
+input or round-tripped manifest; inspect `mosoo agent manifest apply --dry-run`
+before applying changes. Pi requires full access with unrestricted built-in
+tools; do not configure permission modes or tool restrictions it cannot enforce.
+
 ## Target resolution
 
 Generated API commands resolve a default target before falling back to baked-in hostnames.
