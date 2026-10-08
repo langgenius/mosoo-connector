@@ -17,7 +17,7 @@ type OverlayCommand = {
 	examples?: OverlayExample[];
 	hidden?: boolean;
 	ignore?: boolean;
-	params?: Record<string, { help: string; deprecated: boolean }>;
+	params?: Record<string, { help: string; deprecated?: boolean }>;
 	notes?: string[];
 	prerequisites?: string[];
 	known_errors?: { status: number; cause: string }[];
@@ -157,7 +157,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		short: "Create an Agent",
 		params: { "input.kind": { help: "Legacy compatibility field; ignored. Sessions own execution state.", deprecated: true } },
 		long: "Save an optional Agent preset from a structured input. Project-direct Sessions do not require an Agent; publish only for flows that use a published Agent, including v1.",
-		notes: ["For Pi, set input.runtimeId=pi, input.provider=openai-compatible, and input.model to an exact custom model ID configured in the Project. Pi requires a custom HTTPS Chat Completions endpoint with streaming and tool calls. For custom OpenAI-Compatible providers, OpenCode remains the default runtime; select Pi explicitly."],
+		notes: ["For Pi, set input.runtimeId=pi and select a compatible Project provider/model. Built-in models use their catalog protocol; custom credentials use their selected modelProtocol. Pi supports OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Google Gemini. OpenCode remains the default for custom providers; select Pi explicitly."],
 		example: [
 			"cat > agent-create.json <<'JSON'",
 			"{",
@@ -206,6 +206,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		shortcuts: [{ use: "add-key" }],
 		short: "Add a provider key",
 		long: "Create a provider credential for a Project while keeping API keys out of shell history.",
+		params: { "input.modelProtocol": { help: "Custom endpoint protocol: openai-chat-completions (default for new credentials), openai-responses, anthropic-messages, or google-gemini. Built-in providers use their model catalog." } },
 		example: [
 			"mosoo console credentials create-vendor-credential \\",
 			"  --input-project-id <project-id> \\",
@@ -242,10 +243,16 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 			},
 		],
 		notes: [
-			"For preset providers such as openai or anthropic, omit input.models unless mosoo asks for explicit model configuration.",
+			"For preset providers such as openai or anthropic, omit input.models and input.modelProtocol; the model catalog supplies the protocol.",
+			"Custom providers retain input.vendorId=openai-compatible. Set input.modelProtocol to the protocol implemented by input.apiBase and configure exact input.models IDs. A new custom credential defaults to openai-chat-completions when the protocol is omitted.",
+			"Runtime compatibility depends on the selected protocol: OpenAI Runtime requires Responses; OpenCode and Pi support all four model protocols. Claude Runtime remains limited to the Anthropic provider.",
 			"Use --input-api-key-env, --input-api-key-file, or --input-api-key-stdin so provider keys do not appear in shell history.",
 			"Current Lathe required variable flags must be present; safe input modes satisfy the required input.apiKey variable.",
 		],
+	},
+	updateVendorCredential: {
+		params: { "input.modelProtocol": { help: "Custom endpoint protocol. Omit to preserve the saved value; explicitly select a protocol to replace legacy runtime-based routing." } },
+		notes: ["Omitting input.modelProtocol preserves the current setting. Legacy credentials without a stored protocol keep runtime-based routing. Choosing an explicit protocol can make an incompatible runtime unavailable; check dependent Agents before changing it."],
 	},
 	publishAgent: {
 		aliases: ["publish"],
@@ -273,6 +280,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		aliases: ["test"],
 		short: "Test a provider key",
 		long: "Test provider credential material before or after saving it.",
+		params: { "input.modelProtocol": { help: "Custom endpoint protocol to test: openai-chat-completions, openai-responses, anthropic-messages, or google-gemini. Match the saved credential and endpoint." } },
 		example: [
 			"mosoo console credentials test-vendor-credential \\",
 			"  --input-project-id <project-id> \\",
@@ -306,6 +314,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 			},
 		],
 		notes: [
+			"For a custom provider, pass the same input.modelProtocol, input.apiBase, and input.modelId used for execution. A connection test does not verify a complete streamed tool-using Run.",
 			"Prefer --input-api-key-env, --input-api-key-file, or --input-api-key-stdin so provider secrets do not appear in shell history.",
 			"Current Lathe required variable flags must be present; --set and --set-str can supplement body fields but do not replace required flags.",
 		],
@@ -796,7 +805,7 @@ function buildThreadsV2Overlay(): Record<string, OverlayCommand> {
 	create.example = "mosoo public-thread-api threads create --project-id <project-id> --file session.json --idempotency-key <stable-create-key> -o json";
 	create.notes = [
 		"Project credentials are BYOK. A Project key is restricted to its own Project; CLI login must supply an explicit owned Project. No Agent is created for inline execution.",
-		"Pi uses configuration.harness=pi and configuration.provider=openai-compatible with an exact custom model ID configured in the Project. It requires a custom HTTPS Chat Completions endpoint with streaming and tool calls; OpenAI Responses endpoints and built-in provider credentials are not supported for Pi.",
+		"Pi uses configuration.harness=pi with a compatible Project provider/model. It supports built-in provider protocols and custom credentials configured for OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, or Google Gemini. Custom providers retain configuration.provider=openai-compatible and require exact configured model IDs. Configure modelProtocol on the credential, not in the Session request.",
 		"Continue with events send --thread-id using the returned thread.id. Reuse the same idempotency key only with an unchanged request; changing configuration under that key returns 409.",
 		"The compatibility form threads create --agent-id <agent-id> retains the saved-private Agent route and optional body. --agent-id and --project-id are mutually exclusive; use configuration.type=agent for a Project-scoped preset.",
 	];

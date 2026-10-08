@@ -251,13 +251,48 @@ API commands never recreate credentials removed by logout.
 
 ### Pi Sessions
 
-On a deployment with Pi enabled, configure an OpenAI-Compatible credential and
-its custom model in the Project. The endpoint must use HTTPS and support Chat
-Completions streaming and tool calls. Pi does not support OpenAI Responses
-endpoints or built-in provider credentials. Use the exact configured model ID;
-`custom-model` is a catalog placeholder, not a usable default. For custom
-OpenAI-Compatible providers, OpenCode remains the default runtime; select Pi
-explicitly.
+Pi is an explicit harness choice on deployments that enable it. Configure a
+built-in provider key or a custom provider in the Project. Built-in models use
+the protocol from Mosoo's model catalog; custom models use the credential's
+`modelProtocol`. Pi supports OpenAI Chat Completions, OpenAI Responses,
+Anthropic Messages, and Google Gemini, including streaming and tool calls.
+For custom providers, use the exact configured model ID, never the catalog
+placeholder `custom-model`. OpenCode remains the default for custom providers;
+select Pi explicitly. This integration uses Project API-key credentials, not
+standalone Pi's subscription OAuth or Bedrock/Vertex ambient authentication.
+
+For a custom Responses endpoint, create the credential with:
+
+```sh
+mosoo console credentials create-vendor-credential \
+  --input-project-id <project-id> \
+  --input-vendor-id openai-compatible \
+  --input-name "Custom Responses" \
+  --input-api-base https://models.example.com/v1 \
+  --input-model-protocol openai-responses \
+  --input-models <model-id> \
+  --input-api-key-env MODEL_API_KEY -o json
+```
+
+The custom provider ID stays `openai-compatible` for every supported protocol.
+Set `modelProtocol` on the credential, not on the Session configuration. New
+custom credentials default to `openai-chat-completions` if omitted. Existing
+credentials without a stored protocol retain legacy runtime-based routing;
+set their protocol explicitly to match the endpoint. Omitting the field during
+an update preserves its value. Use the same protocol, base URL and model ID in
+`test-vendor-credential`; then verify a representative tool-using Run.
+
+| Model protocol | Claude Runtime | OpenAI Runtime | OpenCode | Pi |
+| --- | --- | --- | --- | --- |
+| `anthropic-messages` | Anthropic provider only | — | Yes | Yes |
+| `openai-responses` | — | Yes | Yes | Yes |
+| `openai-chat-completions` | — | — | Yes | Yes |
+| `google-gemini` | — | — | Yes | Yes |
+
+A provider can offer models from multiple protocol families; built-in catalog
+routing is resolved per model. The built-in Gemini provider keeps its existing
+Chat Completions endpoint. Use a custom `google-gemini` credential with Google's
+native base URL for the native Gemini protocol.
 
 Save this as `pi-session.json`:
 
@@ -283,9 +318,8 @@ mosoo --target custom --base-url <service-origin> public-thread-api-v2 events wa
 ```
 
 The returned `thread.id` is used for follow-ups. Existing Sessions retain their
-original runtime. For an optional saved Agent preset, use `runtimeId: "pi"`,
-`provider: "openai-compatible"`, and the exact custom model ID in the Agent
-input or round-tripped manifest; inspect `mosoo agent manifest apply --dry-run`
+original runtime. For an optional saved Agent preset, use `runtimeId: "pi"`
+and a compatible provider/model in the Agent input or round-tripped manifest; inspect `mosoo agent manifest apply --dry-run`
 before applying changes. Pi requires full access with unrestricted built-in
 tools; do not configure permission modes or tool restrictions it cannot enforce.
 
