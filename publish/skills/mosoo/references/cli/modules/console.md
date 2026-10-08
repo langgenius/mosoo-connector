@@ -5,13 +5,13 @@
 - Backend: `graphql`
 - Default hostname: `http://127.0.0.1:8787/api`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `63b636521aa3e707bbd86f5bfa6ce8b3ed7aaef5`
+- Pinned tag: `7e92d221af06daa01061ab1a973446dab6b624b1`
 - Schema: `docs/graphql/console.graphql`
 - Expose queries: `accessibleAgentList`, `agent`, `agentCostCard`, `agentEditorState`, `agentManifest`, `agentSessionDiagnostics`, `agentSessionList`, `agentSessionRetrieve`, `appInfo`, `availableAgentModels`, `controlPlaneOverview`, `environment`, `exportAgentPackage`, `fileList`, `listSessionResources`, `mcpOAuthFlowStatus`, `mcpRegistry`, `organizationBillingCostCard`, `projectCostCard`, `projectEnvironmentList`, `projectList`, `projectOverview`, `projectSkillList`, `session`, `sessionList`, `sessionMessages`, `sessionProcessEvents`, `skillDetail`, `threadAgentSessionList`, `threadAgentSessionRetrieve`, `threadSessionMessages`, `threadSessionProcessEvents`, `vendorCredentialList`, `viewer`
 - Expose mutations: `addSessionResource`, `archiveAgentSession`, `autoTitleSession`, `connectMcpBearer`, `createAgent`, `createAgentFork`, `createAgentSession`, `createEnvironment`, `createEnvironmentFork`, `createProject`, `createProjectMcpServer`, `createSkillFork`, `createVendorCredential`, `deleteAgent`, `deleteAgentSession`, `deleteEnvironment`, `deleteMcpServer`, `deleteOwnedSkill`, `deleteVendorCredential`, `importAgentPackage`, `onboardingBootstrap`, `prewarmAgentSession`, `publishAgent`, `recreateSessionSandbox`, `removeSessionResource`, `renameProject`, `renameSession`, `restartSessionDriver`, `revokeMcpCredential`, `setDefaultVendorCredential`, `setEnvironmentVariableValue`, `setMcpServerEnabled`, `setProjectDefaultEnvironment`, `setSystemAgentModel`, `startAgentRun`, `startMcpOAuth`, `testVendorCredential`, `unarchiveAgentSession`, `unpublishAgent`, `updateAgentConfig`, `updateEnvironment`, `updateProfile`, `updateProjectMcpServer`, `updateVendorCredential`
 - Group policies: `12`
 - Selection policy: max depth `5`
-- Resolved SHA: `63b636521aa3e707bbd86f5bfa6ce8b3ed7aaef5`
+- Resolved SHA: `7e92d221af06daa01061ab1a973446dab6b624b1`
 
 ## Agents
 
@@ -84,7 +84,7 @@
   - `--input-project-id` (variable, required): input.projectId
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
-  - For Pi, set input.runtimeId=pi, input.provider=openai-compatible, and input.model to an exact custom model ID configured in the Project. Pi requires a custom HTTPS Chat Completions endpoint with streaming and tool calls. For custom OpenAI-Compatible providers, OpenCode remains the default runtime; select Pi explicitly.
+  - For Pi, set input.runtimeId=pi and select a compatible Project provider/model. Built-in models use their catalog protocol; custom credentials use their selected modelProtocol. Pi supports OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Google Gemini. OpenCode remains the default for custom providers; select Pi explicitly.
 - Known errors:
   - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
 - Examples:
@@ -272,13 +272,16 @@
 - Flags:
   - `--input-api-base` (variable): input.apiBase
   - `--input-api-key` (variable, required): input.apiKey
+  - `--input-model-protocol` (variable): Custom endpoint protocol: openai-chat-completions (default for new credentials), openai-responses, anthropic-messages, or google-gemini. Built-in providers use their model catalog.
   - `--input-models` (variable): input.models
   - `--input-name` (variable, required): input.name
   - `--input-project-id` (variable, required): input.projectId
   - `--input-vendor-id` (variable, required): input.vendorId
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
-  - For preset providers such as openai or anthropic, omit input.models unless mosoo asks for explicit model configuration.
+  - For preset providers such as openai or anthropic, omit input.models and input.modelProtocol; the model catalog supplies the protocol.
+  - Custom providers retain input.vendorId=openai-compatible. Set input.modelProtocol to the protocol implemented by input.apiBase and configure exact input.models IDs. A new custom credential defaults to openai-chat-completions when the protocol is omitted.
+  - Runtime compatibility depends on the selected protocol: OpenAI Runtime requires Responses; OpenCode and Pi support all four model protocols. Claude Runtime remains limited to the Anthropic provider.
   - Use --input-api-key-env, --input-api-key-file, or --input-api-key-stdin so provider keys do not appear in shell history.
   - Current Lathe required variable flags must be present; safe input modes satisfy the required input.apiKey variable.
 - Known errors:
@@ -329,10 +332,12 @@
   - `--input-api-base` (variable): input.apiBase
   - `--input-api-key` (variable, required): input.apiKey
   - `--input-model-id` (variable): input.modelId
+  - `--input-model-protocol` (variable): Custom endpoint protocol to test: openai-chat-completions, openai-responses, anthropic-messages, or google-gemini. Match the saved credential and endpoint.
   - `--input-project-id` (variable, required): input.projectId
   - `--input-vendor-id` (variable, required): input.vendorId
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
+  - For a custom provider, pass the same input.modelProtocol, input.apiBase, and input.modelId used for execution. A connection test does not verify a complete streamed tool-using Run.
   - Prefer --input-api-key-env, --input-api-key-file, or --input-api-key-stdin so provider secrets do not appear in shell history.
   - Current Lathe required variable flags must be present; --set and --set-str can supplement body fields but do not replace required flags.
 - Known errors:
@@ -354,11 +359,13 @@
   - `--input-api-base` (variable): input.apiBase
   - `--input-api-key` (variable): input.apiKey
   - `--input-id` (variable, required): input.id
+  - `--input-model-protocol` (variable): Custom endpoint protocol. Omit to preserve the saved value; explicitly select a protocol to replace legacy runtime-based routing.
   - `--input-models` (variable): input.models
   - `--input-name` (variable): input.name
   - `--input-project-id` (variable, required): input.projectId
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
+  - Omitting input.modelProtocol preserves the current setting. Legacy credentials without a stored protocol keep runtime-based routing. Choosing an explicit protocol can make an incompatible runtime unavailable; check dependent Agents before changing it.
 - Known errors:
   - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
 

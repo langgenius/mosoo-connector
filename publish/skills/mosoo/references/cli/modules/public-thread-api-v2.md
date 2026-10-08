@@ -5,9 +5,9 @@
 - Backend: `openapi3`
 - Default hostname: `http://127.0.0.1:8787/api/v2`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `63b636521aa3e707bbd86f5bfa6ce8b3ed7aaef5`
+- Pinned tag: `7e92d221af06daa01061ab1a973446dab6b624b1`
 - Files: `docs/openapi/public-thread-api.v2.openapi.json`
-- Resolved SHA: `63b636521aa3e707bbd86f5bfa6ce8b3ed7aaef5`
+- Resolved SHA: `7e92d221af06daa01061ab1a973446dab6b624b1`
 
 ## Events
 
@@ -167,7 +167,7 @@
 - Output: response media `application/json`
 - Notes:
   - Project credentials are BYOK. A Project key is restricted to its own Project; CLI login must supply an explicit owned Project. No Agent is created for inline execution.
-  - Pi uses configuration.harness=pi and configuration.provider=openai-compatible with an exact custom model ID configured in the Project. It requires a custom HTTPS Chat Completions endpoint with streaming and tool calls; OpenAI Responses endpoints and built-in provider credentials are not supported for Pi.
+  - Pi uses configuration.harness=pi with a compatible Project provider/model. It supports built-in provider protocols and custom credentials configured for OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, or Google Gemini. Custom providers retain configuration.provider=openai-compatible and require exact configured model IDs. Configure modelProtocol on the credential, not in the Session request.
   - Continue with events send --thread-id using the returned thread.id. Reuse the same idempotency key only with an unchanged request; changing configuration under that key returns 409.
   - The compatibility form threads create --agent-id <agent-id> retains the saved-private Agent route and optional body. --agent-id and --project-id are mutually exclusive; use configuration.type=agent for a Project-scoped preset.
 - Known errors:
