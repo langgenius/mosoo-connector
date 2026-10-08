@@ -157,6 +157,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		short: "Create an Agent",
 		params: { "input.kind": { help: "Legacy compatibility field; ignored. Sessions own execution state.", deprecated: true } },
 		long: "Save an optional Agent preset from a structured input. Project-direct Sessions do not require an Agent; publish only for flows that use a published Agent, including v1.",
+		notes: ["For Pi, set input.runtimeId=pi, input.provider=openai-compatible, and input.model to an exact custom model ID configured in the Project. Pi requires a custom HTTPS Chat Completions endpoint with streaming and tool calls. For custom OpenAI-Compatible providers, OpenCode remains the default runtime; select Pi explicitly."],
 		example: [
 			"cat > agent-create.json <<'JSON'",
 			"{",
@@ -795,6 +796,7 @@ function buildThreadsV2Overlay(): Record<string, OverlayCommand> {
 	create.example = "mosoo public-thread-api threads create --project-id <project-id> --file session.json --idempotency-key <stable-create-key> -o json";
 	create.notes = [
 		"Project credentials are BYOK. A Project key is restricted to its own Project; CLI login must supply an explicit owned Project. No Agent is created for inline execution.",
+		"Pi uses configuration.harness=pi and configuration.provider=openai-compatible with an exact custom model ID configured in the Project. It requires a custom HTTPS Chat Completions endpoint with streaming and tool calls; OpenAI Responses endpoints and built-in provider credentials are not supported for Pi.",
 		"Continue with events send --thread-id using the returned thread.id. Reuse the same idempotency key only with an unchanged request; changing configuration under that key returns 409.",
 		"The compatibility form threads create --agent-id <agent-id> retains the saved-private Agent route and optional body. --agent-id and --project-id are mutually exclusive; use configuration.type=agent for a Project-scoped preset.",
 	];
@@ -813,6 +815,15 @@ function buildThreadsV2Overlay(): Record<string, OverlayCommand> {
 		},
 		output_hints: { id_path: "thread.id" },
 		follow_up_commands: ["mosoo public-thread-api events send --thread-id <thread-id> --file events.json -o json"],
+	}, {
+		summary: "Create a Pi Session using a Project's custom OpenAI-compatible model.",
+		command: "mosoo public-thread-api threads create --project-id <project-id> --file pi-session.json --idempotency-key <stable-create-key> -o json",
+		body_shape: {
+			configuration: { type: "inline", harness: "pi", provider: "openai-compatible", model: "<custom-model-id>", instructions: "Use tools to inspect the supplied repository and summarize your findings." },
+			input: { type: "user.message", content: [{ type: "text", text: "List the files in the working directory." }] },
+		},
+		output_hints: { id_path: "thread.id" },
+		follow_up_commands: ["mosoo public-thread-api events wait --thread-id <thread-id> --final-output"],
 	}, {
 		summary: "Create an idle Session from an optional saved private Agent preset.",
 		command: "mosoo public-thread-api threads create --project-id <project-id> --set configuration.type=agent --set-str configuration.agent_id=<agent-id> -o json",
