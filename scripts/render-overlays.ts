@@ -42,18 +42,14 @@ type OverlayExample = {
 const exampleFields = new Set([
 	"viewer",
 	"projectList",
-	"projectOverview",
-	"controlPlaneOverview",
 	"createProject",
 	"createAgent",
 	"createVendorCredential",
 	"publishAgent",
-	"startAgentRun",
 	"testVendorCredential",
 	"threadSessionProcessEvents",
 	"vendorCredentialList",
 	"agentSessionList",
-	"sessionList",
 ]);
 const noArticleVerbs = new Set(["set", "poll", "start", "test"]);
 
@@ -112,23 +108,8 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 	projectList: {
 		aliases: ["list"],
 		short: "List Projects",
-		long: "List Projects for an Organization. Prefer control-plane-overview for the current-user CLI overview path.",
+		long: "List Projects for an Organization.",
 		example: "mosoo console projects list --organization-id <organization-id> -o json",
-	},
-	projectOverview: {
-		short: "Show one Project overview",
-		long: "Show one Project's console overview, including limited Agent and provider credential metadata.",
-		example: "mosoo console projects project-overview --project-id <project-id> -o json",
-	},
-	controlPlaneOverview: {
-		aliases: ["overview"],
-		shortcuts: [{ use: "ls" }],
-		short: "Show control-plane overview",
-		long: "Show the current user's control-plane overview for generated CLI list flows. This is the main ls/overview path.",
-		example: "mosoo console projects overview --project-limit 20 --agent-limit 20 --credential-limit 20 -o json",
-		notes: [
-			"Use this before lower-level project-list, accessible-agent-list, or vendor-credential-list when you need a CLI overview.",
-		],
 	},
 	createProject: {
 		example:
@@ -147,7 +128,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 				output_hints: {
 					id_path: "data.createProject.id",
 				},
-				follow_up_commands: ["mosoo console projects project-overview --project-id <project-id> -o json"],
+				follow_up_commands: ["mosoo console agents accessible-agent-list --project-id <project-id> -o json"],
 			},
 		],
 	},
@@ -260,22 +241,6 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 		long: "Publish an Agent after its draft configuration and provider credentials are ready.",
 		example: "mosoo console agents publish --input-project-id <project-id> --input-agent-id <agent-id> -o json",
 	},
-	startAgentRun: {
-		aliases: ["run"],
-		shortcuts: [{ use: "run" }],
-		short: "Start an Agent run",
-		long: "Create or continue a Thread, queue one prompt Run, and return event-surface metadata for polling.",
-		example: [
-			"mosoo console sessions run \\",
-			"  --input-project-id <project-id> \\",
-			"  --input-agent-id <agent-id> \\",
-			"  --input-prompt \"Summarize this repository\" \\",
-			"  -o json",
-		].join("\n"),
-		notes: [
-			"This is the generated main path for mosoo run. Use the returned projectId/sessionId with thread-session-process-events to poll output.",
-		],
-	},
 	testVendorCredential: {
 		aliases: ["test"],
 		short: "Test a provider key",
@@ -328,7 +293,7 @@ const consoleCommandOverrides: Record<string, OverlayCommand> = {
 	vendorCredentialList: {
 		aliases: ["list"],
 		short: "List provider keys",
-		long: "List provider credentials for a Project. Prefer control-plane-overview for summary counts and status.",
+		long: "List provider credentials for a Project.",
 		example: "mosoo console credentials list --project-id <project-id> -o json",
 	},
 };
@@ -814,6 +779,11 @@ function buildThreadsV2Overlay(): Record<string, OverlayCommand> {
 		{ status: 404, cause: "Project or preset Agent not found or not owned by this caller." },
 		{ status: 409, cause: "The idempotency key was reused with a different request or configuration." },
 	];
+	// `mosoo run` maps to the current session-creation surface. The former
+	// console startAgentRun mutation was retired with the Project-direct Session
+	// API; this is the modern path it points at.
+	create.shortcuts = [{ use: "run" }];
+	create.notes = [...(create.notes ?? []), "Exposed as the top-level shortcut `mosoo run`."];
 	create.examples = [{
 		summary: "Create a Session directly from harness/model/instructions and an uploaded Project file.",
 		command: create.example,

@@ -222,8 +222,11 @@ var Specs = []runtime.CommandSpec{
 		Security: &runtime.SecurityHint{},
 	},
 	{
-		Group:   "Threads",
-		Use:     "create",
+		Group: "Threads",
+		Use:   "create",
+		Shortcuts: []runtime.CommandShortcut{
+			{Use: "run"},
+		},
 		Short:   "Create a durable Session in a Project",
 		Long:    "Create a durable Session with --project-id and a required configuration object: type=inline with harness, provider, model and non-blank instructions, or type=agent with agent_id for an optional saved private preset. Never mix preset and inline fields. Input, resources and userId are optional; a supplied userId must be a non-blank string. Existing Sessions retain their admitted configuration.",
 		Example: "mosoo public-thread-api-v2 threads create --project-id <project-id> --file session.json --idempotency-key <stable-create-key> -o json\n",
@@ -235,7 +238,7 @@ var Specs = []runtime.CommandSpec{
 			{Summary: "Create an idle Session from an optional saved private Agent preset.", Command: "mosoo public-thread-api-v2 threads create --project-id <project-id> --set configuration.type=agent --set-str configuration.agent_id=<agent-id> -o json", BodyShape: []byte("{\"configuration\":{\"agent_id\":\"\\u003cagent-id\\u003e\",\"type\":\"agent\"}}"), OutputHints: &runtime.ExampleOutputHints{IDPath: "thread.id"},
 			},
 		},
-		Notes: []string{"Project credentials are BYOK. A Project key is restricted to its own Project; CLI login must supply an explicit owned Project. No Agent is created for inline execution.", "Pi uses configuration.harness=pi with a compatible Project provider/model. It supports built-in provider protocols and custom credentials configured for OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, or Google Gemini. Custom providers retain configuration.provider=openai-compatible and require exact configured model IDs. Configure modelProtocol on the credential, not in the Session request.", "Continue with events send --thread-id using the returned thread.id. Reuse the same idempotency key only with an unchanged request; changing configuration under that key returns 409.", "The compatibility form threads create --agent-id <agent-id> retains the saved-private Agent route and optional body. --agent-id and --project-id are mutually exclusive; use configuration.type=agent for a Project-scoped preset."},
+		Notes: []string{"Project credentials are BYOK. A Project key is restricted to its own Project; CLI login must supply an explicit owned Project. No Agent is created for inline execution.", "Pi uses configuration.harness=pi with a compatible Project provider/model. It supports built-in provider protocols and custom credentials configured for OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, or Google Gemini. Custom providers retain configuration.provider=openai-compatible and require exact configured model IDs. Configure modelProtocol on the credential, not in the Session request.", "Continue with events send --thread-id using the returned thread.id. Reuse the same idempotency key only with an unchanged request; changing configuration under that key returns 409.", "The compatibility form threads create --agent-id <agent-id> retains the saved-private Agent route and optional body. --agent-id and --project-id are mutually exclusive; use configuration.type=agent for a Project-scoped preset.", "Exposed as the top-level shortcut `mosoo run`."},
 		KnownErrors: []runtime.KnownError{
 			{Status: 400, Cause: "The configuration is missing, mixes inline and preset fields, or has blank instructions; userId may also be invalid."},
 			{Status: 404, Cause: "Project or preset Agent not found or not owned by this caller."},

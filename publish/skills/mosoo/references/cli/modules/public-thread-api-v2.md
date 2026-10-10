@@ -5,9 +5,9 @@
 - Backend: `openapi3`
 - Default hostname: `http://127.0.0.1:8787/api/v2`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `48ea069f37956a723380636407a4ad6b15291aaa`
+- Pinned tag: `dadfb757b2804417e987b3fc1fe17c8796eaf058`
 - Files: `docs/openapi/public-thread-api.v2.openapi.json`
-- Resolved SHA: `48ea069f37956a723380636407a4ad6b15291aaa`
+- Resolved SHA: `dadfb757b2804417e987b3fc1fe17c8796eaf058`
 
 ## Events
 
@@ -161,6 +161,8 @@
 - HTTP: `POST /projects/{projectId}/threads`
 - Auth: required
 - Body: required; media type `application/json`
+- Shortcuts:
+  - `mosoo run`
 - Flags:
   - `--project-id` (path, required, ulid): Owned Project. A Project key can access only its own Project; CLI login supplies an explicit owned Project.
   - `--idempotency-key` (header): Optional key for retry-safe create-thread and send-events calls. Reusing the same key with the same request returns the original response. Reusing the key while the original request is still processing returns 409.
@@ -170,6 +172,7 @@
   - Pi uses configuration.harness=pi with a compatible Project provider/model. It supports built-in provider protocols and custom credentials configured for OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, or Google Gemini. Custom providers retain configuration.provider=openai-compatible and require exact configured model IDs. Configure modelProtocol on the credential, not in the Session request.
   - Continue with events send --thread-id using the returned thread.id. Reuse the same idempotency key only with an unchanged request; changing configuration under that key returns 409.
   - The compatibility form threads create --agent-id <agent-id> retains the saved-private Agent route and optional body. --agent-id and --project-id are mutually exclusive; use configuration.type=agent for a Project-scoped preset.
+  - Exposed as the top-level shortcut `mosoo run`.
 - Known errors:
   - HTTP 400: The configuration is missing, mixes inline and preset fields, or has blank instructions; userId may also be invalid.
   - HTTP 404: Project or preset Agent not found or not owned by this caller.

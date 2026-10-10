@@ -5,13 +5,13 @@
 - Backend: `graphql`
 - Default hostname: `http://127.0.0.1:8787/api`
 - Repository: https://github.com/langgenius/mosoo.git
-- Pinned tag: `48ea069f37956a723380636407a4ad6b15291aaa`
+- Pinned tag: `dadfb757b2804417e987b3fc1fe17c8796eaf058`
 - Schema: `docs/graphql/console.graphql`
-- Expose queries: `accessibleAgentList`, `agent`, `agentCostCard`, `agentEditorState`, `agentManifest`, `agentSessionDiagnostics`, `agentSessionList`, `agentSessionRetrieve`, `appInfo`, `availableAgentModels`, `controlPlaneOverview`, `environment`, `exportAgentPackage`, `fileList`, `listSessionResources`, `mcpOAuthFlowStatus`, `mcpRegistry`, `organizationBillingCostCard`, `projectCostCard`, `projectEnvironmentList`, `projectList`, `projectOverview`, `projectSkillList`, `session`, `sessionList`, `sessionMessages`, `sessionProcessEvents`, `skillDetail`, `threadAgentSessionList`, `threadAgentSessionRetrieve`, `threadSessionMessages`, `threadSessionProcessEvents`, `vendorCredentialList`, `viewer`
-- Expose mutations: `addSessionResource`, `archiveAgentSession`, `autoTitleSession`, `connectMcpBearer`, `createAgent`, `createAgentFork`, `createAgentSession`, `createEnvironment`, `createEnvironmentFork`, `createProject`, `createProjectMcpServer`, `createSkillFork`, `createVendorCredential`, `deleteAgent`, `deleteAgentSession`, `deleteEnvironment`, `deleteMcpServer`, `deleteOwnedSkill`, `deleteVendorCredential`, `importAgentPackage`, `onboardingBootstrap`, `prewarmAgentSession`, `publishAgent`, `recreateSessionSandbox`, `removeSessionResource`, `renameProject`, `renameSession`, `restartSessionDriver`, `revokeMcpCredential`, `setDefaultVendorCredential`, `setEnvironmentVariableValue`, `setMcpServerEnabled`, `setProjectDefaultEnvironment`, `setSystemAgentModel`, `startAgentRun`, `startMcpOAuth`, `testVendorCredential`, `unarchiveAgentSession`, `unpublishAgent`, `updateAgentConfig`, `updateEnvironment`, `updateProfile`, `updateProjectMcpServer`, `updateVendorCredential`
+- Expose queries: `accessibleAgentList`, `agent`, `agentCostCard`, `agentEditorState`, `agentManifest`, `agentSessionDiagnostics`, `agentSessionList`, `availableAgentModels`, `environment`, `exportAgentPackage`, `fileList`, `mcpOAuthFlowStatus`, `mcpRegistry`, `projectCostCard`, `projectEnvironmentList`, `projectList`, `projectSkillList`, `skillDetail`, `threadAgentSessionList`, `threadAgentSessionRetrieve`, `threadSessionMessages`, `threadSessionProcessEvents`, `vendorCredentialList`, `viewer`
+- Expose mutations: `addSessionResource`, `archiveAgentSession`, `connectMcpBearer`, `createAgent`, `createAgentFork`, `createAgentSession`, `createEnvironment`, `createProject`, `createProjectMcpServer`, `createSkillFork`, `createVendorCredential`, `deleteAgent`, `deleteAgentSession`, `deleteEnvironment`, `deleteMcpServer`, `deleteOwnedSkill`, `deleteVendorCredential`, `importAgentPackage`, `onboardingBootstrap`, `prewarmAgentSession`, `publishAgent`, `recreateSessionSandbox`, `renameOrganization`, `renameProject`, `restartSessionDriver`, `revokeMcpCredential`, `setDefaultVendorCredential`, `setMcpServerEnabled`, `setProjectDefaultEnvironment`, `startMcpOAuth`, `testVendorCredential`, `unarchiveAgentSession`, `unpublishAgent`, `updateAgentConfig`, `updateEnvironment`, `updateProfile`, `updateProjectMcpServer`, `updateVendorCredential`
 - Group policies: `12`
 - Selection policy: max depth `5`
-- Resolved SHA: `48ea069f37956a723380636407a4ad6b15291aaa`
+- Resolved SHA: `dadfb757b2804417e987b3fc1fe17c8796eaf058`
 
 ## Agents
 
@@ -181,20 +181,6 @@
 - Known errors:
   - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
 
-## Common
-
-### `mosoo console common app-info`
-
-- Summary: App info
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags: none
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-
 ## Cost
 
 ### `mosoo console cost agent-cost-card`
@@ -206,21 +192,6 @@
 - Flags:
   - `--project-id` (variable, required): projectId
   - `--agent-id` (variable, required): agentId
-  - `--range` (variable, required, one of: LAST_7_DAYS|LAST_30_DAYS|MONTH_TO_DATE|LAST_90_DAYS): range
-  - `--run-purposes` (variable): runPurposes
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-
-### `mosoo console cost organization-billing-cost-card`
-
-- Summary: Organization billing cost card
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--organization-id` (variable, required): organizationId
   - `--range` (variable, required, one of: LAST_7_DAYS|LAST_30_DAYS|MONTH_TO_DATE|LAST_90_DAYS): range
   - `--run-purposes` (variable): runPurposes
 - Notes:
@@ -392,28 +363,12 @@
 - Auth: required
 - Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
 - Flags:
-  - `--input-allow-mcp-servers` (variable, required): input.allowMcpServers
-  - `--input-allow-package-managers` (variable, required): input.allowPackageManagers
   - `--input-allowed-hosts` (variable, required): input.allowedHosts
   - `--input-description` (variable): input.description
   - `--input-name` (variable, required): input.name
   - `--input-network-policy` (variable, required, one of: full|limited): input.networkPolicy
   - `--input-project-id` (variable, required): input.projectId
   - `--input-setup-script` (variable, required): input.setupScript
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-
-### `mosoo console environments create-environment-fork`
-
-- Summary: Create an environment fork
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-environment-id` (variable, required): input.environmentId
-  - `--input-project-id` (variable, required): input.projectId
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
 - Known errors:
@@ -460,22 +415,6 @@
 - Known errors:
   - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
 
-### `mosoo console environments set-environment-variable-value`
-
-- Summary: Set environment variable value
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-environment-id` (variable, required): input.environmentId
-  - `--input-key` (variable, required): input.key
-  - `--input-project-id` (variable, required): input.projectId
-  - `--input-value` (variable, required): input.value
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-
 ### `mosoo console environments set-project-default-environment`
 
 - Summary: Set project default environment
@@ -497,8 +436,6 @@
 - Auth: required
 - Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
 - Flags:
-  - `--input-allow-mcp-servers` (variable, required): input.allowMcpServers
-  - `--input-allow-package-managers` (variable, required): input.allowPackageManagers
   - `--input-allowed-hosts` (variable, required): input.allowedHosts
   - `--input-description` (variable): input.description
   - `--input-environment-id` (variable, required): input.environmentId
@@ -521,7 +458,6 @@
 - Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
 - Flags:
   - `--input-project-id` (variable, required): input.projectId
-  - `--input-scope-id` (variable): input.scopeId
   - `--input-scope-kind` (variable, one of: account|agent_package|app_draft|library|session): input.scopeKind
   - `--input-session-id` (variable): input.sessionId
   - `--input-session-kind` (variable, one of: artifact|attachment): input.sessionKind
@@ -641,7 +577,6 @@
 - Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
 - Flags:
   - `--input-project-id` (variable, required): input.projectId
-  - `--input-return-url` (variable): input.returnUrl
   - `--input-server-id` (variable, required): input.serverId
 
 ### `mosoo console mcp update-project-mcp-server`
@@ -677,26 +612,23 @@
 - Known errors:
   - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
 
-## Projects
+## Organization
 
-### `mosoo console projects control-plane-overview`
+### `mosoo console organization rename-organization`
 
-- Summary: Show control-plane overview
+- Summary: Rename an organization
 - HTTP: `POST /graphql`
 - Auth: required
 - Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Shortcuts:
-  - `mosoo ls`
 - Flags:
-  - `--project-limit` (variable): projectLimit
-  - `--agent-limit` (variable): agentLimit
-  - `--credential-limit` (variable): credentialLimit
+  - `--input-organization-id` (variable, required): input.organizationId
+  - `--input-name` (variable, required): input.name
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
-  - Use this before lower-level project-list, accessible-agent-list, or vendor-credential-list when you need a CLI overview.
 - Known errors:
   - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-- Example: `mosoo console projects overview --project-limit 20 --agent-limit 20 --credential-limit 20 -o json`
+
+## Projects
 
 ### `mosoo console projects create-project`
 
@@ -717,7 +649,7 @@
     Body shape: `{"input":{"name":"CLI Example Project","organizationId":"\u003corganization-id\u003e"}}`
     Output ID path: `data.createProject.id`
     Follow-up commands:
-      - `mosoo console projects project-overview --project-id <project-id> -o json`
+      - `mosoo console agents accessible-agent-list --project-id <project-id> -o json`
 
 ### `mosoo console projects project-list`
 
@@ -732,22 +664,6 @@
 - Known errors:
   - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
 - Example: `mosoo console projects list --organization-id <organization-id> -o json`
-
-### `mosoo console projects project-overview`
-
-- Summary: Show one Project overview
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--project-id` (variable, required): projectId
-  - `--agent-limit` (variable): agentLimit
-  - `--credential-limit` (variable): credentialLimit
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-- Example: `mosoo console projects project-overview --project-id <project-id> -o json`
 
 ### `mosoo console projects rename-project`
 
@@ -809,27 +725,12 @@
   - `--archived` (variable): archived
   - `--before-cursor` (variable): beforeCursor
   - `--limit` (variable): limit
-  - `--participant-only` (variable): participantOnly
   - `--type` (variable, one of: preview|ui): type
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
 - Known errors:
   - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
 - Example: `mosoo console sessions agent-session-list`
-
-### `mosoo console sessions agent-session-retrieve`
-
-- Summary: Agent session retrieve
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--project-id` (variable, required): projectId
-  - `--session-id` (variable, required): sessionId
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
 
 ### `mosoo console sessions archive-agent-session`
 
@@ -845,21 +746,6 @@
 - Known errors:
   - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
 
-### `mosoo console sessions auto-title-session`
-
-- Summary: Auto a title session
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-project-id` (variable, required): input.projectId
-  - `--input-session-id` (variable, required): input.sessionId
-  - `--input-title` (variable, required): input.title
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-
 ### `mosoo console sessions create-agent-session`
 
 - Summary: Create an agent session
@@ -870,7 +756,6 @@
   - `--input-agent-id` (variable, required): input.agentId
   - `--input-project-id` (variable, required): input.projectId
   - `--input-type` (variable, one of: preview|ui): input.type
-  - `--input-wait-for-runtime-ready` (variable): input.waitForRuntimeReady
 - Notes:
   - Uses POST /graphql on the console default hostname (/api).
 - Known errors:
@@ -879,20 +764,6 @@
 ### `mosoo console sessions delete-agent-session`
 
 - Summary: Delete an agent session
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--project-id` (variable, required): projectId
-  - `--session-id` (variable, required): sessionId
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-
-### `mosoo console sessions list-session-resources`
-
-- Summary: List session resources
 - HTTP: `POST /graphql`
 - Auth: required
 - Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
@@ -932,36 +803,6 @@
 - Known errors:
   - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
 
-### `mosoo console sessions remove-session-resource`
-
-- Summary: Remove a session resource
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-project-id` (variable, required): input.projectId
-  - `--input-resource-id` (variable, required): input.resourceId
-  - `--input-session-id` (variable, required): input.sessionId
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-
-### `mosoo console sessions rename-session`
-
-- Summary: Rename a session
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-project-id` (variable, required): input.projectId
-  - `--input-session-id` (variable, required): input.sessionId
-  - `--input-title` (variable, required): input.title
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-
 ### `mosoo console sessions restart-session-driver`
 
 - Summary: Restart a session driver
@@ -975,98 +816,6 @@
   - Uses POST /graphql on the console default hostname (/api).
 - Known errors:
   - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-
-### `mosoo console sessions session`
-
-- Summary: Session
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--project-id` (variable, required): projectId
-  - `--session-id` (variable, required): sessionId
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-
-### `mosoo console sessions session-list`
-
-- Summary: List sessions
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--archived` (variable): archived
-  - `--before-cursor` (variable): beforeCursor
-  - `--limit` (variable): limit
-  - `--project-id` (variable, required): projectId
-  - `--type` (variable, one of: preview|ui): type
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-- Example: `mosoo console sessions session-list`
-
-### `mosoo console sessions session-messages`
-
-- Summary: Session messages
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--project-id` (variable, required): projectId
-  - `--session-id` (variable, required): sessionId
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-
-### `mosoo console sessions session-process-events`
-
-- Summary: Session process events
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--project-id` (variable, required): projectId
-  - `--limit` (variable): limit
-  - `--session-id` (variable, required): sessionId
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-
-### `mosoo console sessions start-agent-run`
-
-- Summary: Start an Agent run
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Shortcuts:
-  - `mosoo run`
-- Flags:
-  - `--input-agent-id` (variable): input.agentId
-  - `--input-project-id` (variable, required): input.projectId
-  - `--input-client-request-id` (variable): input.clientRequestId
-  - `--input-prompt` (variable, required): input.prompt
-  - `--input-session-id` (variable): input.sessionId
-  - `--input-type` (variable, one of: preview|ui): input.type
-  - `--input-wait-for-runtime-ready` (variable): input.waitForRuntimeReady
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-  - This is the generated main path for mosoo run. Use the returned projectId/sessionId with thread-session-process-events to poll output.
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
-- Example:
-
-```
-mosoo console sessions run \
-  --input-project-id <project-id> \
-  --input-agent-id <agent-id> \
-  --input-prompt "Summarize this repository" \
-  -o json
-```
 
 ### `mosoo console sessions thread-agent-session-list`
 
@@ -1201,20 +950,6 @@ mosoo console sessions run \
   - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
 
 ## User
-
-### `mosoo console user set-system-agent-model`
-
-- Summary: Set system agent model
-- HTTP: `POST /graphql`
-- Auth: required
-- Body: required; templated body, set inputs under `variables` with --set/--set-str/--file
-- Flags:
-  - `--input-model-id` (variable, required): input.modelId
-  - `--input-vendor` (variable, required): input.vendor
-- Notes:
-  - Uses POST /graphql on the console default hostname (/api).
-- Known errors:
-  - HTTP 401: Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade.
 
 ### `mosoo console user update-profile`
 
