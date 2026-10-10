@@ -85,33 +85,9 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  agent-session-retrieve:
-    short: "Agent session retrieve"
-    long: "Agent session retrieve via the mosoo Console GraphQL API (Sessions surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  app-info:
-    short: "App info"
-    long: "App info via the mosoo Console GraphQL API (Common surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
   archive-agent-session:
     short: "Archive an agent session"
     long: "Archive an agent session via the mosoo Console GraphQL API (Sessions surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  auto-title-session:
-    short: "Auto a title session"
-    long: "Auto a title session via the mosoo Console GraphQL API (Sessions surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -130,20 +106,6 @@ commands:
     long: "Connect a mcp bearer via the mosoo Console GraphQL API (MCP surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  control-plane-overview:
-    aliases: [overview]
-    shortcuts:
-      - use: ls
-    short: "Show control-plane overview"
-    long: "Show the current user's control-plane overview for generated CLI list flows. This is the main ls/overview path."
-    example: |
-      mosoo console projects overview --project-limit 20 --agent-limit 20 --credential-limit 20 -o json
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-      - "Use this before lower-level project-list, accessible-agent-list, or vendor-credential-list when you need a CLI overview."
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
@@ -222,14 +184,6 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  create-environment-fork:
-    short: "Create an environment fork"
-    long: "Create an environment fork via the mosoo Console GraphQL API (Environments surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
   create-project:
     short: "Create a project"
     long: "Create a project via the mosoo Console GraphQL API (Projects surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
@@ -245,7 +199,7 @@ commands:
         output_hints:
           id_path: data.createProject.id
         follow_up_commands:
-          - "mosoo console projects project-overview --project-id <project-id> -o json"
+          - "mosoo console agents accessible-agent-list --project-id <project-id> -o json"
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -386,14 +340,6 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  list-session-resources:
-    short: "List session resources"
-    long: "List session resources via the mosoo Console GraphQL API (Sessions surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
   mcp-oauth-flow-status:
     short: "Mcp oauth flow status"
     long: "Mcp oauth flow status via the mosoo Console GraphQL API (MCP surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
@@ -413,14 +359,6 @@ commands:
   onboarding-bootstrap:
     short: "Onboarding bootstrap"
     long: "Onboarding bootstrap via the mosoo Console GraphQL API (Onboarding surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  organization-billing-cost-card:
-    short: "Organization billing cost card"
-    long: "Organization billing cost card via the mosoo Console GraphQL API (Cost surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -453,19 +391,9 @@ commands:
   project-list:
     aliases: [list]
     short: "List Projects"
-    long: "List Projects for an Organization. Prefer control-plane-overview for the current-user CLI overview path."
+    long: "List Projects for an Organization."
     example: |
       mosoo console projects list --organization-id <organization-id> -o json
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  project-overview:
-    short: "Show one Project overview"
-    long: "Show one Project's console overview, including limited Agent and provider credential metadata."
-    example: |
-      mosoo console projects project-overview --project-id <project-id> -o json
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -498,9 +426,9 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  remove-session-resource:
-    short: "Remove a session resource"
-    long: "Remove a session resource via the mosoo Console GraphQL API (Sessions surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
+  rename-organization:
+    short: "Rename an organization"
+    long: "Rename an organization via the mosoo Console GraphQL API (Organization surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -509,14 +437,6 @@ commands:
   rename-project:
     short: "Rename a project"
     long: "Rename a project via the mosoo Console GraphQL API (Projects surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  rename-session:
-    short: "Rename a session"
-    long: "Rename a session via the mosoo Console GraphQL API (Sessions surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -538,51 +458,9 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  session:
-    short: Session
-    long: "Session via the mosoo Console GraphQL API (Sessions surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  session-list:
-    short: "List sessions"
-    long: "List sessions via the mosoo Console GraphQL API (Sessions surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    example: |
-      mosoo console sessions session-list
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  session-messages:
-    short: "Session messages"
-    long: "Session messages via the mosoo Console GraphQL API (Sessions surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  session-process-events:
-    short: "Session process events"
-    long: "Session process events via the mosoo Console GraphQL API (Sessions surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
   set-default-vendor-credential:
     short: "Set default vendor credential"
     long: "Set default vendor credential via the mosoo Console GraphQL API (Credentials surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  set-environment-variable-value:
-    short: "Set environment variable value"
-    long: "Set environment variable value via the mosoo Console GraphQL API (Environments surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
     known_errors:
@@ -604,37 +482,11 @@ commands:
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  set-system-agent-model:
-    short: "Set system agent model"
-    long: "Set system agent model via the mosoo Console GraphQL API (User surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
   skill-detail:
     short: "Skill detail"
     long: "Skill detail via the mosoo Console GraphQL API (Skills surface). Use mosoo auth login for account access. Project API keys support only Agent configuration in their own Project."
     notes:
       - "Uses POST /graphql on the console default hostname (/api)."
-    known_errors:
-      - status: 401
-        cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
-  start-agent-run:
-    aliases: [run]
-    shortcuts:
-      - use: run
-    short: "Start an Agent run"
-    long: "Create or continue a Thread, queue one prompt Run, and return event-surface metadata for polling."
-    example: |
-      mosoo console sessions run \
-        --input-project-id <project-id> \
-        --input-agent-id <agent-id> \
-        --input-prompt "Summarize this repository" \
-        -o json
-    notes:
-      - "Uses POST /graphql on the console default hostname (/api)."
-      - "This is the generated main path for mosoo run. Use the returned projectId/sessionId with thread-session-process-events to poll output."
     known_errors:
       - status: 401
         cause: "Missing, invalid, or revoked credential. Run mosoo auth login again after the Project key upgrade."
@@ -785,7 +637,7 @@ commands:
   vendor-credential-list:
     aliases: [list]
     short: "List provider keys"
-    long: "List provider credentials for a Project. Prefer control-plane-overview for summary counts and status."
+    long: "List provider credentials for a Project."
     example: |
       mosoo console credentials list --project-id <project-id> -o json
     notes:

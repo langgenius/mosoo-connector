@@ -3,7 +3,7 @@ sources:
     display_name: public-thread-api
     default_hostname: http://127.0.0.1:8787/api/v1
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: 48ea069f37956a723380636407a4ad6b15291aaa
+    pinned_tag: dadfb757b2804417e987b3fc1fe17c8796eaf058
     backend: openapi3
     openapi3:
       files:
@@ -12,7 +12,7 @@ sources:
     display_name: public-thread-api-v2
     default_hostname: http://127.0.0.1:8787/api/v2
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: 48ea069f37956a723380636407a4ad6b15291aaa
+    pinned_tag: dadfb757b2804417e987b3fc1fe17c8796eaf058
     backend: openapi3
     openapi3:
       files:
@@ -21,7 +21,7 @@ sources:
     display_name: console
     default_hostname: http://127.0.0.1:8787/api
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: 48ea069f37956a723380636407a4ad6b15291aaa
+    pinned_tag: dadfb757b2804417e987b3fc1fe17c8796eaf058
     backend: graphql
     graphql:
       schema: docs/graphql/console.graphql
@@ -34,26 +34,16 @@ sources:
           - agentManifest
           - agentSessionDiagnostics
           - agentSessionList
-          - agentSessionRetrieve
-          - appInfo
           - availableAgentModels
-          - controlPlaneOverview
           - environment
           - exportAgentPackage
           - fileList
-          - listSessionResources
           - mcpOAuthFlowStatus
           - mcpRegistry
-          - organizationBillingCostCard
           - projectCostCard
           - projectEnvironmentList
           - projectList
-          - projectOverview
           - projectSkillList
-          - session
-          - sessionList
-          - sessionMessages
-          - sessionProcessEvents
           - skillDetail
           - threadAgentSessionList
           - threadAgentSessionRetrieve
@@ -64,13 +54,11 @@ sources:
         mutations:
           - addSessionResource
           - archiveAgentSession
-          - autoTitleSession
           - connectMcpBearer
           - createAgent
           - createAgentFork
           - createAgentSession
           - createEnvironment
-          - createEnvironmentFork
           - createProject
           - createProjectMcpServer
           - createSkillFork
@@ -86,17 +74,13 @@ sources:
           - prewarmAgentSession
           - publishAgent
           - recreateSessionSandbox
-          - removeSessionResource
+          - renameOrganization
           - renameProject
-          - renameSession
           - restartSessionDriver
           - revokeMcpCredential
           - setDefaultVendorCredential
-          - setEnvironmentVariableValue
           - setMcpServerEnabled
           - setProjectDefaultEnvironment
-          - setSystemAgentModel
-          - startAgentRun
           - startMcpOAuth
           - testVendorCredential
           - unarchiveAgentSession
@@ -107,9 +91,6 @@ sources:
           - updateProjectMcpServer
           - updateVendorCredential
       groups:
-        - match:
-            - appInfo
-          group: Common
         - match:
             - accessibleAgentList
             - agent
@@ -126,16 +107,13 @@ sources:
           group: Agents
         - match:
             - agentCostCard
-            - organizationBillingCostCard
             - projectCostCard
           group: Cost
         - match:
             - environment
             - projectEnvironmentList
             - createEnvironment
-            - createEnvironmentFork
             - deleteEnvironment
-            - setEnvironmentVariableValue
             - setProjectDefaultEnvironment
             - updateEnvironment
           group: Environments
@@ -158,35 +136,23 @@ sources:
           group: Onboarding
         - match:
             - projectList
-            - projectOverview
-            - controlPlaneOverview
             - createProject
             - renameProject
           group: Projects
         - match:
             - agentSessionDiagnostics
-            - agentSessionRetrieve
-            - session
-            - sessionMessages
-            - sessionProcessEvents
             - threadAgentSessionList
             - threadAgentSessionRetrieve
             - threadSessionMessages
             - threadSessionProcessEvents
-            - listSessionResources
-            - sessionList
             - agentSessionList
             - restartSessionDriver
             - recreateSessionSandbox
             - addSessionResource
             - createAgentSession
             - prewarmAgentSession
-            - startAgentRun
             - archiveAgentSession
-            - autoTitleSession
             - deleteAgentSession
-            - renameSession
-            - removeSessionResource
             - unarchiveAgentSession
           group: Sessions
         - match:
@@ -197,7 +163,6 @@ sources:
           group: Skills
         - match:
             - viewer
-            - setSystemAgentModel
             - updateProfile
           group: User
         - match:
@@ -209,13 +174,16 @@ sources:
             - testVendorCredential
             - updateVendorCredential
           group: Credentials
+        - match:
+            - renameOrganization
+          group: Organization
       selection:
         max_depth: 5
   consolerest:
     display_name: console-rest
     default_hostname: http://127.0.0.1:8787/api
     repo_url: https://github.com/langgenius/mosoo.git
-    pinned_tag: 48ea069f37956a723380636407a4ad6b15291aaa
+    pinned_tag: dadfb757b2804417e987b3fc1fe17c8796eaf058
     backend: openapi3
     openapi3:
       files:

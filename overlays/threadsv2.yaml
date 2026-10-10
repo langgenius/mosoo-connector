@@ -10,6 +10,8 @@ commands:
     ignore: true
   create-in-project:
     use: create
+    shortcuts:
+      - use: run
     short: "Create a durable Session in a Project"
     long: "Create a durable Session with --project-id and a required configuration object: type=inline with harness, provider, model and non-blank instructions, or type=agent with agent_id for an optional saved private preset. Never mix preset and inline fields. Input, resources and userId are optional; a supplied userId must be a non-blank string. Existing Sessions retain their admitted configuration."
     example: |
@@ -70,6 +72,7 @@ commands:
       - "Pi uses configuration.harness=pi with a compatible Project provider/model. It supports built-in provider protocols and custom credentials configured for OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, or Google Gemini. Custom providers retain configuration.provider=openai-compatible and require exact configured model IDs. Configure modelProtocol on the credential, not in the Session request."
       - "Continue with events send --thread-id using the returned thread.id. Reuse the same idempotency key only with an unchanged request; changing configuration under that key returns 409."
       - "The compatibility form threads create --agent-id <agent-id> retains the saved-private Agent route and optional body. --agent-id and --project-id are mutually exclusive; use configuration.type=agent for a Project-scoped preset."
+      - "Exposed as the top-level shortcut `mosoo run`."
     known_errors:
       - status: 400
         cause: "The configuration is missing, mixes inline and preset fields, or has blank instructions; userId may also be invalid."
